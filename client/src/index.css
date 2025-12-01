@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #f0f4ff;
+  --color-primary-100: #e0e9ff;
+  --color-primary-200: #c7d6fe;
+  --color-primary-300: #a4bafc;
+  --color-primary-400: #8098f9;
+  --color-primary-500: #6172f3;
+  --color-primary-600: #444de7;
+  --color-primary-700: #373ccd;
+  --color-primary-800: #3035a5;
+  --color-primary-900: #2d3382;
+  --color-primary-950: #1c1e4e;
+  
+  --color-surface-50: #f8fafc;
+  --color-surface-100: #f1f5f9;
+  --color-surface-200: #e2e8f0;
+  --color-surface-300: #cbd5e1;
+  --color-surface-400: #94a3b8;
+  --color-surface-500: #64748b;
+  --color-surface-600: #475569;
+  --color-surface-700: #334155;
+  --color-surface-800: #1e293b;
+  --color-surface-900: #0f172a;
+  --color-surface-950: #020617;
+  
+  --color-success-50: #ecfdf5;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  
+  --color-warning-50: #fffbeb;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  
+  --color-danger-50: #fef2f2;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-surface-50);
+  color: var(--color-surface-900);
+}
+
+.dark body {
+  background-color: var(--color-surface-950);
+  color: var(--color-surface-50);
+}
+
+.card {
+  background-color: white;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-surface-200);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.dark .card {
+  background-color: var(--color-surface-900);
+  border-color: var(--color-surface-800);
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  background-color: white;
+  border: 1px solid var(--color-surface-300);
+  border-radius: 0.5rem;
+  outline: none;
+  transition: all 0.2s;
+  color: var(--color-surface-900);
+}
+
+.input:focus {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+  border-color: transparent;
+}
+
+.dark .input {
+  background-color: var(--color-surface-900);
+  border-color: var(--color-surface-700);
+  color: var(--color-surface-100);
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-surface-700);
+  margin-bottom: 0.25rem;
+}
+
+.dark .label {
+  color: var(--color-surface-300);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
