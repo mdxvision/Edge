@@ -115,3 +115,11 @@ Located in `client/cypress/e2e/` with tests for:
 GitHub Actions workflow in `.github/workflows/test.yml` runs:
 1. Backend Pytest tests on Python 3.11
 2. Frontend E2E tests using Cypress Docker action
+
+## Implementation Tracker
+See `docs/IMPLEMENTATION_STATUS.md` for:
+- Complete checklist of done vs pending tasks
+- Testing gaps and coverage status
+- Data sources needed
+- Technical debt tracking
+- Recommended next steps
