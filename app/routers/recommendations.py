@@ -35,11 +35,11 @@ def format_game_info(rec: BetRecommendation, db: Session) -> str:
 def get_market_info(rec: BetRecommendation, db: Session) -> tuple:
     line = db.query(Line).filter(Line.id == rec.line_id).first()
     if not line:
-        return "moneyline", "unknown", "Unknown", None
+        return "moneyline", "unknown", "Unknown", None, -110
     
     market = db.query(Market).filter(Market.id == line.market_id).first()
     if not market:
-        return "moneyline", "unknown", "Unknown", None
+        return "moneyline", "unknown", "Unknown", None, line.american_odds if line else -110
     
     return market.market_type, market.selection, line.sportsbook, line.line_value, line.american_odds
 
