@@ -1,0 +1,31 @@
+sport,team,player_name,position,stat_type,value
+NFL,Kansas City Chiefs,Patrick Mahomes,QB,passing_yards,4200
+NFL,Kansas City Chiefs,Travis Kelce,TE,receiving_yards,1100
+NFL,Buffalo Bills,Josh Allen,QB,passing_yards,4100
+NFL,San Francisco 49ers,Brock Purdy,QB,passing_yards,3800
+NBA,Boston Celtics,Jayson Tatum,SF,points_per_game,27.5
+NBA,Boston Celtics,Jaylen Brown,SG,points_per_game,23.2
+NBA,Miami Heat,Jimmy Butler,SF,points_per_game,21.8
+NBA,Los Angeles Lakers,LeBron James,SF,points_per_game,25.4
+NBA,Golden State Warriors,Stephen Curry,PG,points_per_game,28.1
+MLB,New York Yankees,Aaron Judge,RF,home_runs,52
+MLB,New York Yankees,Juan Soto,RF,batting_average,0.285
+MLB,Los Angeles Dodgers,Mookie Betts,RF,home_runs,38
+NHL,Toronto Maple Leafs,Auston Matthews,C,goals,55
+NHL,Vegas Golden Knights,Jack Eichel,C,points,85
+NCAA_FOOTBALL,Georgia Bulldogs,Carson Beck,QB,passing_yards,3200
+NCAA_BASKETBALL,Duke Blue Devils,Kyle Filipowski,C,points_per_game,18.5
+SOCCER,Arsenal,Bukayo Saka,RW,goals,15
+SOCCER,Real Madrid,Vinicius Jr,LW,goals,18
+CRICKET,India,Virat Kohli,Batsman,batting_average,52.5
+CRICKET,Australia,Steve Smith,Batsman,batting_average,48.2
+RUGBY,New Zealand,Beauden Barrett,Fly-half,points,120
+TENNIS,ATP,Novak Djokovic,Singles,ranking,1
+TENNIS,ATP,Carlos Alcaraz,Singles,ranking,2
+GOLF,PGA,Scottie Scheffler,Pro,world_ranking,1
+MMA,UFC,Jon Jones,Heavyweight,finish_rate,0.68
+MMA,UFC,Alex Pereira,Light Heavyweight,finish_rate,0.75
+BOXING,WBC,Tyson Fury,Heavyweight,ko_rate,0.72
+BOXING,WBA,Canelo Alvarez,Super Middleweight,ko_rate,0.56
+MOTORSPORTS,F1,Max Verstappen,Driver,wins,15
+MOTORSPORTS,F1,Lewis Hamilton,Driver,wins,7

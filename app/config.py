@@ -1,7 +1,8 @@
 import os
 from typing import List
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sports_betting.db")
+SQLITE_URL = "sqlite:///./sports_betting.db"
+DATABASE_URL = SQLITE_URL
 
 DEFAULT_MIN_EDGE = 0.03
 

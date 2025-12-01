@@ -1,0 +1,34 @@
+sport,home_team,away_team,competitor1,competitor2,start_time,venue,league,home_rating,away_rating,competitor1_rating,competitor2_rating
+NFL,Kansas City Chiefs,Buffalo Bills,,,2024-12-15 13:00:00,Arrowhead Stadium,NFL,1650,1580,,
+NFL,San Francisco 49ers,Dallas Cowboys,,,2024-12-15 16:25:00,Levis Stadium,NFL,1620,1550,,
+NFL,Philadelphia Eagles,New York Giants,,,2024-12-15 20:20:00,Lincoln Financial Field,NFL,1600,1420,,
+NBA,Boston Celtics,Miami Heat,,,2024-12-14 19:30:00,TD Garden,NBA,1680,1520,,
+NBA,Los Angeles Lakers,Golden State Warriors,,,2024-12-14 22:00:00,Crypto Arena,NBA,1560,1590,,
+NBA,Denver Nuggets,Phoenix Suns,,,2024-12-15 15:00:00,Ball Arena,NBA,1640,1530,,
+MLB,New York Yankees,Boston Red Sox,,,2024-12-10 19:05:00,Yankee Stadium,MLB,1580,1540,,
+MLB,Los Angeles Dodgers,San Diego Padres,,,2024-12-10 22:10:00,Dodger Stadium,MLB,1620,1510,,
+NHL,Toronto Maple Leafs,Montreal Canadiens,,,2024-12-14 19:00:00,Scotiabank Arena,NHL,1560,1480,,
+NHL,Vegas Golden Knights,Colorado Avalanche,,,2024-12-14 22:00:00,T-Mobile Arena,NHL,1590,1610,,
+NCAA_FOOTBALL,Georgia Bulldogs,Alabama Crimson Tide,,,2024-12-07 16:00:00,Mercedes-Benz Stadium,SEC Championship,1680,1660,,
+NCAA_FOOTBALL,Michigan Wolverines,Ohio State Buckeyes,,,2024-12-07 12:00:00,Michigan Stadium,Big Ten,1640,1630,,
+NCAA_BASKETBALL,Duke Blue Devils,North Carolina Tar Heels,,,2024-12-14 18:00:00,Cameron Indoor Stadium,ACC,1620,1580,,
+NCAA_BASKETBALL,Kansas Jayhawks,Kentucky Wildcats,,,2024-12-15 14:00:00,Allen Fieldhouse,Non-Conference,1650,1590,,
+SOCCER,Arsenal,Chelsea,,,2024-12-14 12:30:00,Emirates Stadium,EPL,1610,1580,,
+SOCCER,Real Madrid,Barcelona,,,2024-12-15 21:00:00,Santiago Bernabeu,La Liga,1680,1670,,
+SOCCER,Manchester City,Liverpool,,,2024-12-15 16:30:00,Etihad Stadium,EPL,1690,1660,,
+CRICKET,India,Australia,,,2024-12-12 09:30:00,MCG,T20 World Cup,1640,1620,,
+CRICKET,England,South Africa,,,2024-12-13 14:00:00,Lords,ODI Series,1580,1550,,
+RUGBY,New Zealand,South Africa,,,2024-12-14 08:00:00,Eden Park,Rugby Championship,1700,1680,,
+RUGBY,Ireland,England,,,2024-12-15 15:00:00,Aviva Stadium,Six Nations,1650,1590,,
+TENNIS,,,Novak Djokovic,Carlos Alcaraz,2024-12-14 14:00:00,O2 Arena,ATP Finals,,,1720,1680
+TENNIS,,,Jannik Sinner,Daniil Medvedev,2024-12-14 20:00:00,O2 Arena,ATP Finals,,,1690,1650
+GOLF,,,Scottie Scheffler,Rory McIlroy,2024-12-15 10:00:00,Augusta National,PGA Tour,,,1680,1640
+GOLF,,,Jon Rahm,Viktor Hovland,2024-12-15 11:30:00,Augusta National,PGA Tour,,,1660,1620
+MMA,,,Jon Jones,Stipe Miocic,2024-12-16 22:00:00,T-Mobile Arena,UFC 309,,,1750,1680
+MMA,,,Alex Pereira,Jamahal Hill,2024-12-16 21:00:00,T-Mobile Arena,UFC 309,,,1700,1620
+BOXING,,,Tyson Fury,Oleksandr Usyk,2024-12-21 22:00:00,Kingdom Arena,WBC/WBA/IBF,,,1720,1710
+BOXING,,,Canelo Alvarez,David Benavidez,2024-12-28 23:00:00,T-Mobile Arena,WBA/WBC,,,1700,1660
+MOTORSPORTS,,,Max Verstappen,Lewis Hamilton,2024-12-08 14:00:00,Yas Marina Circuit,F1 Abu Dhabi GP,,,1750,1680
+MOTORSPORTS,,,Charles Leclerc,Lando Norris,2024-12-08 14:00:00,Yas Marina Circuit,F1 Abu Dhabi GP,,,1660,1650
+ESPORTS,T1,Gen.G,,,2024-12-14 10:00:00,Online,LoL Worlds,1680,1660,,
+ESPORTS,,,Faker,ShowMaker,2024-12-14 12:00:00,Online,LoL All-Stars,,,1700,1650
