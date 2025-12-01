@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from app.db import init_db
 from app.services.data_ingestion import seed_sample_data
 from app.routers import health, clients, recommendations, games
+from app.routers.historical import router as historical_router
 
 
 @asynccontextmanager
@@ -48,6 +49,7 @@ app.include_router(health.router)
 app.include_router(clients.router)
 app.include_router(games.router)
 app.include_router(recommendations.router)
+app.include_router(historical_router)
 
 
 @app.get("/")

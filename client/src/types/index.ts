@@ -104,3 +104,31 @@ export const SPORT_LABELS: Record<Sport, string> = {
   MOTORSPORTS: 'Motorsports',
   ESPORTS: 'Esports'
 };
+
+export interface BacktestResult {
+  id: number;
+  sport: string;
+  model: string;
+  period: string;
+  accuracy: number;
+  roi: number | null;
+  bets: number;
+  brier_score: number | null;
+  created: string;
+}
+
+export interface ModelStatus {
+  is_fitted: boolean;
+  teams_tracked: number;
+  k_factor: number;
+  home_advantage: number;
+  last_update: string | null;
+}
+
+export interface TeamRating {
+  id: number;
+  name: string;
+  short_name: string | null;
+  rating: number;
+  model_rating: number | null;
+}

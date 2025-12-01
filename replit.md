@@ -3,9 +3,17 @@
 ## Overview
 A comprehensive global sports analytics and betting recommendation system covering 15 sports worldwide. The platform uses machine learning models to identify value bets and provides personalized recommendations based on client risk profiles with full transparency on every pick.
 
-**Current State**: Phase 1 Complete - Foundation with full testing suite
+**Current State**: Phase 2 In Progress - Advanced ML & Historical Data
 
 ## Recent Changes
+- 2024-12-01: Phase 2 Progress
+  - Historical data models (GameResult, ELOHistory, PlayerStats, Injuries)
+  - Historical data seeding with 2-3 seasons per sport
+  - Advanced ELO system with recency weighting and sport-specific K-factors
+  - Backtesting engine with accuracy, ROI, Brier score, Sharpe ratio
+  - Model Performance page with team rankings and backtest results
+  - Historical API endpoints (/historical/seed, /train-models, /backtest)
+
 - 2024-12-01: Phase 1 Complete
   - React TypeScript frontend with Vite + TailwindCSS v4
   - FastAPI backend with SQLite database
@@ -35,7 +43,7 @@ app/                 # FastAPI Backend
 └── utils/           # Odds calculations, logging
 client/              # React TypeScript Frontend
 ├── src/
-│   ├── pages/       # Dashboard, Games, Recommendations, Profile
+│   ├── pages/       # Dashboard, Games, Recommendations, Models, Profile
 │   ├── components/  # Reusable UI components
 │   ├── context/     # Auth context provider
 │   └── lib/         # API client
@@ -92,6 +100,14 @@ cd client && npm run cypress:run
 - GET /games/sports - List supported sports
 - GET /games/teams - List teams
 - GET /games/competitors - List individual competitors
+
+### Historical/ML Endpoints
+- POST /historical/seed - Seed historical game data
+- POST /historical/train-models - Train ELO models on historical data
+- GET /historical/model-status - Get model training status
+- GET /historical/ratings/{sport} - Get team power rankings
+- POST /historical/backtest/{sport} - Run backtest for a sport
+- GET /historical/backtest/results - Get all backtest results
 
 ## Testing
 

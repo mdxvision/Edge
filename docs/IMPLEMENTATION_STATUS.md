@@ -37,22 +37,29 @@
 
 ---
 
-## Phase 2: Advanced ML & Historical Data (TO DO)
+## Phase 2: Advanced ML & Historical Data (IN PROGRESS)
 
-### Tasks To Complete
+### Completed Phase 2 Tasks
+
+| ID | Task | Priority | Status | Notes |
+|----|------|----------|--------|-------|
+| 2.1 | Historical data models (GameResult, ELOHistory, PlayerStats, Injuries) | High | Done | SQLAlchemy models created |
+| 2.2 | Historical data ingestion with seeding | High | Done | 2-3 seasons simulated data per sport |
+| 2.3 | Enhanced ELO models with recency weighting | High | Done | Sport-specific K-factors, home advantage |
+| 2.7 | Backtesting engine with metrics | High | Done | Accuracy, ROI, Brier score, Sharpe ratio |
+| 2.8 | Model performance dashboard (Frontend) | Medium | Done | Team rankings, backtest results, model status |
+| 2.9 | Historical API endpoints | High | Done | /historical/seed, /train-models, /backtest |
+
+### Remaining Phase 2 Tasks
 
 | ID | Task | Priority | Status | Dependencies |
 |----|------|----------|--------|--------------|
-| 2.1 | Historical data ingestion (2-3 seasons) | High | Not Started | Data sources needed |
-| 2.2 | Enhanced ELO models with recency weighting | High | Not Started | Historical data |
-| 2.3 | Player-level statistics integration | High | Not Started | Player data API |
-| 2.4 | Injury impact factors | Medium | Not Started | Injury data feed |
-| 2.5 | Weather/venue adjustments | Medium | Not Started | Weather API |
-| 2.6 | Ensemble model combining multiple signals | High | Not Started | 2.2-2.5 complete |
-| 2.7 | Backtesting engine with historical validation | High | Not Started | Historical data |
-| 2.8 | Model performance dashboard | Medium | Not Started | Backtesting engine |
-| 2.9 | Automatic daily data updates | Medium | Not Started | Data sources |
-| 2.10 | Unit tests for ML models | High | Not Started | Models implemented |
+| 2.4 | Player-level statistics integration | High | Not Started | Player data API |
+| 2.5 | Injury impact factors | Medium | Not Started | Injury data feed |
+| 2.6 | Weather/venue adjustments | Medium | Not Started | Weather API |
+| 2.7 | Ensemble model combining multiple signals | High | Not Started | 2.4-2.6 complete |
+| 2.10 | Automatic daily data updates | Medium | Not Started | Data sources |
+| 2.11 | Unit tests for ML models | High | Not Started | Models implemented |
 
 ### Testing Gaps To Address
 

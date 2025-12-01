@@ -8,7 +8,8 @@ import {
   Sun,
   Moon,
   Menu,
-  X
+  X,
+  Brain
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
@@ -19,6 +20,7 @@ const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/games', icon: Trophy, label: 'Games' },
   { to: '/recommendations', icon: TrendingUp, label: 'Recommendations' },
+  { to: '/models', icon: Brain, label: 'Models' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];
 

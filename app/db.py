@@ -133,5 +133,190 @@ class BetRecommendation(Base):
     line = relationship("Line")
 
 
+class HistoricalGameResult(Base):
+    __tablename__ = "historical_game_results"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    game_id = Column(Integer, ForeignKey("games.id"), nullable=True)
+    sport = Column(String(50), nullable=False, index=True)
+    season = Column(String(20), nullable=False, index=True)
+    game_date = Column(DateTime, nullable=False, index=True)
+    
+    home_team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
+    away_team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
+    competitor1_id = Column(Integer, ForeignKey("competitors.id"), nullable=True)
+    competitor2_id = Column(Integer, ForeignKey("competitors.id"), nullable=True)
+    
+    home_score = Column(Integer, nullable=True)
+    away_score = Column(Integer, nullable=True)
+    competitor1_score = Column(Float, nullable=True)
+    competitor2_score = Column(Float, nullable=True)
+    
+    winner = Column(String(20), nullable=True)
+    margin = Column(Float, nullable=True)
+    total_points = Column(Float, nullable=True)
+    
+    home_team_name = Column(String(200), nullable=True)
+    away_team_name = Column(String(200), nullable=True)
+    competitor1_name = Column(String(200), nullable=True)
+    competitor2_name = Column(String(200), nullable=True)
+    
+    venue = Column(String(200), nullable=True)
+    is_neutral_site = Column(Boolean, default=False)
+    weather_condition = Column(String(100), nullable=True)
+    temperature = Column(Float, nullable=True)
+    
+    closing_spread = Column(Float, nullable=True)
+    closing_total = Column(Float, nullable=True)
+    closing_home_ml = Column(Integer, nullable=True)
+    closing_away_ml = Column(Integer, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ELORatingHistory(Base):
+    __tablename__ = "elo_rating_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    sport = Column(String(50), nullable=False, index=True)
+    entity_type = Column(String(20), nullable=False)
+    entity_id = Column(Integer, nullable=False, index=True)
+    entity_name = Column(String(200), nullable=False)
+    
+    rating = Column(Float, nullable=False)
+    rating_change = Column(Float, nullable=True)
+    game_id = Column(Integer, nullable=True)
+    
+    recorded_at = Column(DateTime, nullable=False, index=True)
+    season = Column(String(20), nullable=True)
+    
+    games_played = Column(Integer, default=0)
+    wins = Column(Integer, default=0)
+    losses = Column(Integer, default=0)
+    draws = Column(Integer, default=0)
+
+
+class PlayerStats(Base):
+    __tablename__ = "player_stats"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    sport = Column(String(50), nullable=False, index=True)
+    season = Column(String(20), nullable=False, index=True)
+    
+    games_played = Column(Integer, default=0)
+    minutes_per_game = Column(Float, nullable=True)
+    
+    points_per_game = Column(Float, nullable=True)
+    rebounds_per_game = Column(Float, nullable=True)
+    assists_per_game = Column(Float, nullable=True)
+    
+    passing_yards = Column(Float, nullable=True)
+    rushing_yards = Column(Float, nullable=True)
+    touchdowns = Column(Float, nullable=True)
+    
+    batting_average = Column(Float, nullable=True)
+    home_runs = Column(Float, nullable=True)
+    rbi = Column(Float, nullable=True)
+    era = Column(Float, nullable=True)
+    
+    goals = Column(Float, nullable=True)
+    assists_hockey = Column(Float, nullable=True)
+    save_percentage = Column(Float, nullable=True)
+    
+    fantasy_points_avg = Column(Float, nullable=True)
+    consistency_score = Column(Float, nullable=True)
+    
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+
+class InjuryReport(Base):
+    __tablename__ = "injury_reports"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    sport = Column(String(50), nullable=False, index=True)
+    
+    injury_type = Column(String(100), nullable=False)
+    body_part = Column(String(100), nullable=True)
+    status = Column(String(50), nullable=False)
+    
+    reported_date = Column(DateTime, nullable=False)
+    expected_return = Column(DateTime, nullable=True)
+    
+    impact_rating = Column(Float, nullable=True)
+    
+    notes = Column(Text, nullable=True)
+    is_active = Column(Boolean, default=True)
+    
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+
+class BacktestResult(Base):
+    __tablename__ = "backtest_results"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    sport = Column(String(50), nullable=False, index=True)
+    model_name = Column(String(100), nullable=False)
+    model_version = Column(String(50), nullable=True)
+    
+    start_date = Column(DateTime, nullable=False)
+    end_date = Column(DateTime, nullable=False)
+    
+    total_predictions = Column(Integer, nullable=False)
+    correct_predictions = Column(Integer, nullable=False)
+    accuracy = Column(Float, nullable=False)
+    
+    total_bets = Column(Integer, nullable=True)
+    winning_bets = Column(Integer, nullable=True)
+    roi = Column(Float, nullable=True)
+    
+    avg_edge = Column(Float, nullable=True)
+    avg_odds = Column(Float, nullable=True)
+    
+    brier_score = Column(Float, nullable=True)
+    log_loss = Column(Float, nullable=True)
+    calibration_error = Column(Float, nullable=True)
+    
+    sharpe_ratio = Column(Float, nullable=True)
+    max_drawdown = Column(Float, nullable=True)
+    
+    parameters = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ModelPrediction(Base):
+    __tablename__ = "model_predictions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    game_result_id = Column(Integer, ForeignKey("historical_game_results.id"), nullable=False)
+    sport = Column(String(50), nullable=False, index=True)
+    model_name = Column(String(100), nullable=False)
+    
+    home_win_prob = Column(Float, nullable=True)
+    away_win_prob = Column(Float, nullable=True)
+    draw_prob = Column(Float, nullable=True)
+    
+    predicted_winner = Column(String(20), nullable=True)
+    predicted_margin = Column(Float, nullable=True)
+    predicted_total = Column(Float, nullable=True)
+    
+    actual_winner = Column(String(20), nullable=True)
+    was_correct = Column(Boolean, nullable=True)
+    
+    edge_on_home = Column(Float, nullable=True)
+    edge_on_away = Column(Float, nullable=True)
+    
+    bet_placed = Column(Boolean, default=False)
+    bet_selection = Column(String(50), nullable=True)
+    bet_odds = Column(Integer, nullable=True)
+    bet_result = Column(String(20), nullable=True)
+    profit_loss = Column(Float, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 def init_db():
     Base.metadata.create_all(bind=engine)
