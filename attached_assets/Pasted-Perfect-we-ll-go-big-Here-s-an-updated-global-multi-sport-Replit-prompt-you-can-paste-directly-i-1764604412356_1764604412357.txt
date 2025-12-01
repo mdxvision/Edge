@@ -1,0 +1,558 @@
+Perfect, we’ll go big.
+
+Here’s an updated global, multi-sport Replit prompt you can paste directly into Replit’s AI. It covers US majors + global sports + combat sports (NFL, NBA, MLB, NHL, NCAA FB/BB, soccer, cricket, rugby, tennis, golf, MMA, boxing, motorsports, esports as an optional stub).
+
+⸻
+
+Replit Prompt (copy everything below)
+
+You are an expert Python architect and sports analytics engineer.
+
+⸻
+
+HIGH-LEVEL GOAL
+
+Create a complete Python project that implements a global multi-sport betting & DFS recommendation agent. The agent should:
+	•	Ingest and store data for many sports, including at minimum:
+	•	NFL, NBA, MLB, NHL
+	•	NCAA Football, NCAA Basketball
+	•	Global Soccer (EPL, La Liga, MLS, etc. – treated generically as “SOCCER”)
+	•	Cricket (T20, ODI, Test – treated generically as “CRICKET”)
+	•	Rugby (league + union – generic “RUGBY”)
+	•	Tennis (ATP/WTA – generic “TENNIS”)
+	•	Golf (PGA/DP World – generic “GOLF”)
+	•	MMA (UFC/Bellator/PFL – generic “MMA”)
+	•	Boxing (generic “BOXING”)
+	•	Motorsports (F1/NASCAR – generic “MOTORSPORTS”)
+	•	Esports as an optional stub (“ESPORTS”)
+	•	Store schedules, teams/fighters/players, stats, and betting lines
+	•	Run simple, realistic predictive models per sport (win probability and, where reasonable, margin/total-type projections)
+	•	Detect value bets (positive EV) by comparing model probabilities vs sportsbook odds
+	•	Apply bankroll management per client and suggest stake sizes based on risk profile
+	•	Expose everything through a FastAPI API so a front end or chatbot can consume recommendations
+	•	Operate entirely in simulation mode (no real-money book connections) with clear disclaimers
+
+Do not just outline. Actually generate the code files.
+
+⸻
+
+1. Tech stack & project layout
+
+Use:
+	•	Python 3.11
+	•	FastAPI + Uvicorn for the API
+	•	SQLite (via SQLAlchemy) as the database
+	•	pydantic for schemas
+	•	pandas / numpy for data handling
+	•	scikit-learn for simple models
+
+Create a project structure similar to:
+
+.
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── config.py
+│   ├── db.py
+│   ├── models/            # ML models and modeling utilities per sport
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── nfl.py
+│   │   ├── nba.py
+│   │   ├── mlb.py
+│   │   ├── nhl.py
+│   │   ├── ncaa_football.py
+│   │   ├── ncaa_basketball.py
+│   │   ├── soccer.py
+│   │   ├── cricket.py
+│   │   ├── rugby.py
+│   │   ├── tennis.py
+│   │   ├── golf.py
+│   │   ├── mma.py
+│   │   ├── boxing.py
+│   │   ├── motorsports.py
+│   │   ├── esports.py      # optional stub
+│   ├── schemas/
+│   │   ├── __init__.py
+│   │   ├── core.py
+│   │   ├── bets.py
+│   │   ├── clients.py
+│   │   ├── games.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── data_ingestion.py
+│   │   ├── edge_engine.py
+│   │   ├── bankroll.py
+│   │   ├── agent.py
+│   ├── routers/
+│   │   ├── __init__.py
+│   │   ├── health.py
+│   │   ├── clients.py
+│   │   ├── recommendations.py
+│   ├── utils/
+│       ├── __init__.py
+│       ├── odds.py
+│       ├── logging.py
+├── data/
+│   ├── sample_games.csv
+│   ├── sample_player_stats.csv
+│   ├── sample_lines.csv
+├── requirements.txt
+├── README.md
+
+Populate requirements.txt with all required packages.
+
+⸻
+
+2. Database models (SQLAlchemy)
+
+In app/db.py set up the SQLite engine and session.
+
+Create ORM models that support global multi-sport use:
+
+2.1 Sport representation
+
+Use a simple string for sport with a constrained set of allowed values:
+	•	"NFL", "NBA", "MLB", "NHL", "NCAA_FOOTBALL", "NCAA_BASKETBALL",
+	•	"SOCCER", "CRICKET", "RUGBY", "TENNIS", "GOLF",
+	•	"MMA", "BOXING", "MOTORSPORTS", "ESPORTS"
+
+2.2 Core entities
+
+Implement models:
+	•	Team
+	•	id (int, PK)
+	•	sport (string)
+	•	name (string)
+	•	short_name (string, optional)
+	•	For combat sports and individual sports, treat “team” as a generic competitor where needed.
+	•	Competitor
+	•	For individual sports (MMA, BOXING, TENNIS, GOLF, MOTORSPORTS, some ESPORTS):
+	•	id, sport, name, country, rating (float, optional)
+	•	Player
+	•	For team sports (NFL, NBA, etc.)
+	•	id, sport, team_id, name, position, is_active
+	•	Game
+	•	id (int, PK)
+	•	sport
+	•	For team sports:
+	•	home_team_id, away_team_id (nullable for individual events)
+	•	For individual events (MMA, BOXING, TENNIS, etc.):
+	•	competitor1_id, competitor2_id (nullable for team sports)
+	•	start_time
+	•	venue (optional string)
+	•	league (e.g. EPL, IPL, UFC, ATP; optional string)
+	•	Market
+	•	id (PK)
+	•	game_id (FK)
+	•	market_type (string, e.g. "moneyline", "spread", "total", "prop", "outright")
+	•	description (string)
+	•	selection (string, e.g. "home", "away", "over", "under", "fighter1", "fighter2")
+	•	Line
+	•	id (PK)
+	•	market_id (FK)
+	•	sportsbook (string)
+	•	odds_type (string: "moneyline", "spread", "total", "prop")
+	•	line_value (float, nullable; for spread/total)
+	•	american_odds (int)
+	•	created_at (datetime)
+	•	Client
+	•	id (PK)
+	•	name (string)
+	•	bankroll (float)
+	•	risk_profile (string enum: "conservative", "balanced", "aggressive")
+	•	BetRecommendation
+	•	id (PK)
+	•	client_id (FK)
+	•	line_id (FK)
+	•	sport (string)
+	•	suggested_stake (float)
+	•	model_probability (float)
+	•	implied_probability (float)
+	•	edge (float)
+	•	expected_value (float)
+	•	explanation (text)
+	•	created_at (datetime)
+
+Wire up relationships where natural (e.g. Game → Market → Line).
+
+On app startup, call Base.metadata.create_all() to create tables.
+
+⸻
+
+3. Pydantic Schemas
+
+In app/schemas/, define Pydantic models for:
+	•	Core (core.py):
+	•	SportEnum (as a Literal or Enum using the values above)
+	•	Games (games.py):
+	•	GameBase, GameRead
+	•	Clients (clients.py):
+	•	ClientCreate, ClientUpdate, ClientRead
+	•	Bets (bets.py):
+	•	BetRecommendationRead:
+	•	sport
+	•	game info (teams/fighters, start_time, league)
+	•	market info (market_type, description, selection)
+	•	sportsbook, american_odds, line_value (if applicable)
+	•	model_probability, implied_probability, edge, expected_value
+	•	suggested_stake
+	•	explanation
+
+Schemas must be separate from ORM models.
+
+⸻
+
+4. Odds and math utilities
+
+In app/utils/odds.py, implement:
+	•	American odds → implied probability
+	•	Implied probability → fair American odds
+	•	Expected value per unit stake:
+
+def expected_value(prob: float, american_odds: int, stake: float = 1.0) -> float:
+    ...
+
+	•	Edge calculation:
+
+def edge(model_prob: float, implied_prob: float) -> float:
+    return model_prob - implied_prob
+
+	•	Helpers to detect if an outcome is value given a min_edge threshold.
+
+Keep these functions generic, usable by all sports.
+
+⸻
+
+5. Modeling layer (multi-sport)
+
+In app/models/base.py define an abstract base class:
+
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List
+
+class BaseSportModel(ABC):
+    sport: str
+
+    @abstractmethod
+    def fit(self, data) -> None:
+        ...
+
+    @abstractmethod
+    def predict_game_probabilities(
+        self,
+        games: List[Dict[str, Any]]
+    ) -> List[Dict[str, float]]:
+        """
+        Each dict should include probabilities and any useful projections, e.g.:
+
+        {
+          "game_id": 123,
+          "home_win": 0.58,     # for team sports
+          "away_win": 0.42,
+          "draw": 0.22,         # for soccer/cricket where draws possible
+          "competitor1_win": 0.63,  # for combat sports
+          "competitor2_win": 0.37,
+          "expected_margin": 3.2,
+          "expected_total": 224.5
+        }
+
+        Not all keys are required for all sports; use what's relevant.
+        """
+        ...
+
+5.1 Sport-specific model classes
+
+For each sport file (nfl.py, nba.py, cricket.py, mma.py, etc):
+	•	Implement a class like NFLModel(BaseSportModel), CricketModel(BaseSportModel), etc.
+	•	Use simple but realistic dummy models:
+	•	scikit-learn LogisticRegression or GradientBoostingClassifier for win/draw/no-result probability
+	•	LinearRegression or RandomForestRegressor for totals/margins where appropriate.
+	•	Features (keep it simple but plausible):
+	•	Team or competitor rating (from small CSV or hardcoded mapping)
+	•	Recent performance (win/loss streak, recent margin of victory/defeat)
+	•	Home/away or location
+	•	For cricket: format (T20 vs ODI), average runs for/against, run rates
+	•	For tennis: surface type (hard/clay/grass), recent wins, ranking gap
+	•	For golf: simple stroke-gained type rating or world ranking tier
+	•	For MMA/boxing: ELO-like fighter rating, recent fight outcomes, finish rates
+	•	For motorsports: driver rating, team rating, starting position (stubbed)
+	•	Provide load_or_train_dummy_model() per sport that:
+	•	Reads from /data CSVs if available (like sample_games.csv), and
+	•	Trains a very quick model (or substitutes with a heuristic if no real data)
+	•	For esports, it’s enough to implement a stub that returns 50/50 win probabilities for now.
+
+Also create a registry in models/__init__.py:
+
+SPORT_MODEL_REGISTRY = {
+    "NFL": NFLModel(),
+    "NBA": NBAModel(),
+    "MLB": MLBModel(),
+    "NHL": NHLModel(),
+    "NCAA_FOOTBALL": NCAAFootballModel(),
+    "NCAA_BASKETBALL": NCAABasketballModel(),
+    "SOCCER": SoccerModel(),
+    "CRICKET": CricketModel(),
+    "RUGBY": RugbyModel(),
+    "TENNIS": TennisModel(),
+    "GOLF": GolfModel(),
+    "MMA": MMAModel(),
+    "BOXING": BoxingModel(),
+    "MOTORSPORTS": MotorsportsModel(),
+    "ESPORTS": EsportsModel(),  # simple stub
+}
+
+Each model should:
+	•	Have a sport attribute set correctly
+	•	Implement fit (even if it just uses dummy training data)
+	•	Implement predict_game_probabilities using the DB’s game info and its internal model
+
+Keep models lightweight so they run fast.
+
+⸻
+
+6. Data ingestion service
+
+In app/services/data_ingestion.py:
+	•	Load sample data from /data/sample_games.csv, /data/sample_player_stats.csv, /data/sample_lines.csv.
+	•	The CSVs should include a sport column so you can seed many sports at once.
+	•	Implement a function seed_sample_data() that:
+	•	Creates a small but coherent sample of:
+	•	At least a few games per sport (including combat sports like MMA/BOXING and global sports like CRICKET/SOCCER)
+	•	Teams / competitors
+	•	Basic player stats where relevant (team sports)
+	•	Markets and lines (moneyline and, where applicable, spreads/totals)
+	•	This function should:
+	•	Be idempotent or safely clear existing sample data,
+	•	And be callable from somewhere like main.py or an init script.
+
+Design the ingestion code so later it can be swapped for real APIs, but for now the app must work out-of-the-box using these CSVs.
+
+⸻
+
+7. Edge engine (multi-sport value detection)
+
+In app/services/edge_engine.py:
+
+Implement an edge engine that:
+	1.	Given:
+	•	A sport (string) or a list of sports
+	•	A minimum edge threshold (e.g. min_edge = 0.03)
+	2.	Performs:
+	•	Fetch upcoming games for that sport (e.g. games starting “today” or within a time window)
+	•	Fetch associated markets and lines (moneyline and spread first; totals optional)
+	•	Use the correct sport model from SPORT_MODEL_REGISTRY to compute outcome probabilities per game
+	3.	For each line:
+	•	Determine which outcome it corresponds to (home/away/draw, fighter1/fighter2, over/under)
+	•	Map the model’s probability for that outcome
+	•	Compute implied probability from American odds
+	•	Compute edge and expected value for a 1-unit stake
+
+Define a simple dataclass or Pydantic model BetCandidate that includes:
+	•	game_id, sport, market_id, line_id
+	•	selection (e.g. "home", "away", "over", "fighter1", etc.)
+	•	sportsbook
+	•	american_odds, line_value (if applicable)
+	•	model_probability, implied_probability
+	•	edge, expected_value
+
+Provide a function like:
+
+def find_value_bets_for_sport(
+    sport: str,
+    min_edge: float = 0.03
+) -> list[BetCandidate]:
+    ...
+
+And another one that handles multiple sports and aggregates results:
+
+def find_value_bets_for_sports(
+    sports: list[str],
+    min_edge: float = 0.03
+) -> list[BetCandidate]:
+    ...
+
+Initially, focus on moneylines for all sports, plus spreads/totals for team sports. Make it easy to extend to props later.
+
+⸻
+
+8. Bankroll & bet sizing
+
+In app/services/bankroll.py:
+
+Implement bankroll logic that:
+	•	Takes:
+	•	A Client (with bankroll and risk_profile)
+	•	A list of BetCandidates
+	•	Returns:
+	•	A list of sized BetRecommendation objects
+
+Rules:
+	•	Define the base unit as 1% of bankroll.
+	•	For conservative:
+	•	0.5 units on high-edge bets (edge ≥ 5%)
+	•	Ignore bets with edge < 3%
+	•	Cap daily exposure at 3% of bankroll
+	•	For balanced:
+	•	1 unit for edge ≥ 5%
+	•	0.5 units for edge 3–5%
+	•	Cap daily exposure at 5–7% of bankroll
+	•	For aggressive:
+	•	1.5–2 units for edge ≥ 7%
+	•	1 unit for edge 4–7%
+	•	0.5 units for edge 2–4% if you want more action
+	•	Cap daily exposure at 10% of bankroll
+
+Global guards:
+	•	No single bet > 2% of bankroll
+	•	Do not exceed the daily exposure cap; once cap is reached, skip remaining candidates
+	•	Optionally, give priority to higher-edge bets first when allocating exposure
+
+Return a list of BetRecommendation instances (not yet committed to DB) with:
+	•	client_id
+	•	line_id
+	•	sport
+	•	suggested_stake
+	•	model_probability, implied_probability
+	•	edge, expected_value
+	•	explanation (can be filled by the agent service)
+
+⸻
+
+9. Agent orchestration
+
+In app/services/agent.py:
+
+Implement the “agent” orchestrator.
+
+Create:
+
+def generate_recommendations_for_client(
+    client_id: int,
+    sports: list[str] | None = None,
+    min_edge: float = 0.03
+) -> list[BetRecommendation]:
+    """
+    Steps:
+    1. Load client from DB.
+    2. Determine sports to use (if None, default to all supported sports).
+    3. Use edge_engine.find_value_bets_for_sports(...) to get BetCandidates.
+    4. Pass BetCandidates to bankroll module to size bets.
+    5. Persist BetRecommendation rows to DB.
+    6. Return the list of BetRecommendation objects.
+    """
+
+For each recommendation, generate a plain-English explanation string without calling any external LLM, for example:
+	•	For team sports:
+
+“SOCCER: Arsenal vs Chelsea – moneyline Arsenal at +140.
+Model win probability: 45%, implied probability: 41%.
+Edge: +4%. Suggested stake: 1.0% of bankroll (balanced profile).”
+
+	•	For combat sports:
+
+“MMA: Fight X – Fighter A vs Fighter B – Fighter A at -150.
+Model win probability: 63%, implied: 60%.
+Edge: +3%. Suggested stake: 0.5% of bankroll (conservative profile).”
+
+Include the explanation in the BetRecommendation.explanation field.
+
+⸻
+
+10. API layer (FastAPI)
+
+In app/main.py:
+	•	Initialize the FastAPI app
+	•	Connect DB
+	•	Include routers
+	•	Optionally call seed_sample_data() on first run (guard it so it doesn’t reseed every restart)
+
+10.1 Health router
+
+app/routers/health.py:
+	•	GET /health → { "status": "ok" }
+
+10.2 Clients router
+
+app/routers/clients.py endpoints:
+	•	POST /clients
+	•	Create a new client with name, bankroll, risk_profile
+	•	GET /clients/{client_id}
+	•	Fetch a client
+	•	PATCH /clients/{client_id}
+	•	Update bankroll and/or risk_profile
+
+10.3 Recommendations router
+
+app/routers/recommendations.py endpoints:
+	•	POST /clients/{client_id}/recommendations/run
+	•	Request body:
+	•	sports: Optional[list[str]] (if omitted, use all)
+	•	min_edge: Optional[float] (default 0.03)
+	•	Action:
+	•	Call generate_recommendations_for_client(...)
+	•	Response:
+	•	List of BetRecommendationRead DTOs (one per recommendation)
+	•	GET /clients/{client_id}/recommendations/latest
+	•	Returns the most recent recommendations generated for that client, ordered by created_at descending.
+
+Make sure the responses are clean JSON and easy to consume.
+
+⸻
+
+11. Config & README
+
+In app/config.py:
+	•	Store configuration such as:
+	•	Database URL (SQLite)
+	•	Default min_edge
+	•	Default supported sports list
+	•	Use environment variables where appropriate, with default fallbacks.
+
+In README.md:
+
+Explain:
+	1.	What the project does
+	•	Global multi-sport betting & DFS recommendation engine
+	•	Simulated models computing probabilities and value bets
+	2.	How to run it
+	•	pip install -r requirements.txt
+	•	How to run any DB init / seed script
+	•	uvicorn app.main:app --reload
+	3.	How to test the API
+	•	Example curl or HTTP requests:
+	•	Create a client
+	•	Trigger recommendation run
+	•	Fetch latest recommendations
+	4.	Safety & disclaimer
+	•	This project is for simulation, testing, and educational purposes only
+	•	It does not place real bets
+	•	The models are simplistic and do not guarantee profits
+	•	Any real-money deployment would require:
+	•	Stronger models
+	•	Extensive backtesting
+	•	Compliance, licensing, and responsible gambling safeguards
+
+⸻
+
+12. Quality expectations
+	•	The code should be runnable end-to-end on Replit:
+	•	Install requirements.txt
+	•	Initialize SQLite DB
+	•	Seed sample data
+	•	Start FastAPI with Uvicorn
+	•	Hit endpoints and get real JSON recommendations (based on sample data)
+	•	Each sport model can be simple, but must:
+	•	Load some demo data
+	•	Produce plausible probability outputs (not all 50/50)
+	•	Add inline comments explaining:
+	•	How predictions are generated
+	•	How edges are computed
+	•	How bankroll rules work
+	•	Use clear naming, type hints, and keep the code organized by module
+
+Generate all necessary files, not stubs. The final result should be a small but functional demo of a global multi-sport betting & DFS recommendation agent, ready to be extended with live data and more sophisticated models.
+
+⸻
+
+That’s the full prompt.
