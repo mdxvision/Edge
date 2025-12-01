@@ -140,12 +140,12 @@ export default function Profile() {
         </Card>
 
         <div className="flex items-center gap-4">
-          <Button type="submit" isLoading={isLoading}>
+          <Button type="submit" isLoading={isLoading} data-testid="save-button">
             <Save className="w-4 h-4" />
             Save Changes
           </Button>
           {success && (
-            <span className="text-sm text-success-600 dark:text-success-500">
+            <span className="text-sm text-success-600 dark:text-success-500" data-testid="success-message">
               Profile updated successfully!
             </span>
           )}

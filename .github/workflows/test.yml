@@ -1,0 +1,81 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest httpx pytest-asyncio
+      
+      - name: Run Pytest API tests
+        run: |
+          python -m pytest tests/ -v --tb=short
+
+  frontend-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install uvicorn
+      
+      - name: Start backend server
+        run: |
+          nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 &
+          echo "Backend PID: $!"
+          sleep 10
+          curl http://localhost:8000/health || cat backend.log
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+      
+      - name: Install frontend dependencies
+        run: |
+          cd client
+          npm ci
+      
+      - name: Build frontend
+        run: |
+          cd client
+          npm run build
+      
+      - name: Start frontend server
+        run: |
+          cd client
+          npm run preview -- --port 5000 &
+          sleep 5
+      
+      - name: Run Cypress E2E tests
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: client
+          browser: chrome
+          headless: true
+        env:
+          CYPRESS_BASE_URL: http://localhost:5000

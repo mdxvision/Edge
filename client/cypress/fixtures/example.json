@@ -1,0 +1,17 @@
+{
+  "testUser": {
+    "name": "Test User",
+    "bankroll": 10000,
+    "risk_profile": "balanced"
+  },
+  "aggressiveUser": {
+    "name": "Aggressive User",
+    "bankroll": 25000,
+    "risk_profile": "aggressive"
+  },
+  "conservativeUser": {
+    "name": "Conservative User",
+    "bankroll": 5000,
+    "risk_profile": "conservative"
+  }
+}
