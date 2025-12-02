@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Layout } from './components/layout';
-import { Login, Dashboard, Games, Recommendations, Profile, Models } from './pages';
+import { Login, Dashboard, Games, Recommendations, Profile, Models, DFS } from './pages';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,6 +73,7 @@ function AppRoutes() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="games" element={<Games />} />
         <Route path="recommendations" element={<Recommendations />} />
+        <Route path="dfs" element={<DFS />} />
         <Route path="models" element={<Models />} />
         <Route path="profile" element={<Profile />} />
       </Route>

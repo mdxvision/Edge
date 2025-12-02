@@ -3,10 +3,25 @@
 ## Overview
 A comprehensive global sports analytics and betting recommendation system covering 15 sports worldwide. The platform uses machine learning models to identify value bets and provides personalized recommendations based on client risk profiles with full transparency on every pick.
 
-**Current State**: Phase 2 In Progress - Advanced ML & Historical Data
+**Current State**: Phase 4 In Progress - Production Readiness
 
 ## Recent Changes
-- 2024-12-01: Phase 2 Progress
+- 2024-12-02: Phase 4 Progress - Production Infrastructure
+  - PostgreSQL database migration (from SQLite)
+  - User authentication system with session tokens
+  - Password hashing with PBKDF2
+  - Auth endpoints (register, login, logout, refresh, change-password)
+  - User/session database models
+  - psycopg2-binary and email-validator dependencies
+
+- 2024-12-01: Phase 3 Complete - DFS Integration
+  - Player projections engine with sport-specific factors
+  - Lineup optimizer using PuLP linear programming
+  - Salary cap and roster constraints per sport
+  - Ownership projections and correlation analysis
+  - DFS frontend page with lineup builder
+
+- 2024-12-01: Phase 2 Complete - Advanced ML & Historical Data
   - Historical data models (GameResult, ELOHistory, PlayerStats, Injuries)
   - Historical data seeding with 2-3 seasons per sport
   - Advanced ELO system with recency weighting and sport-specific K-factors
@@ -16,7 +31,7 @@ A comprehensive global sports analytics and betting recommendation system coveri
 
 - 2024-12-01: Phase 1 Complete
   - React TypeScript frontend with Vite + TailwindCSS v4
-  - FastAPI backend with SQLite database
+  - FastAPI backend with PostgreSQL database
   - 15 sport-specific ML prediction models (ELO-based)
   - Edge detection engine for value bet identification
   - Kelly Criterion-based bankroll management
@@ -56,10 +71,12 @@ data/                # Sample CSV files
 ```
 
 ### Key Components
-- **Backend**: FastAPI with SQLite via SQLAlchemy
+- **Backend**: FastAPI with PostgreSQL via SQLAlchemy
 - **Frontend**: React 19 + TypeScript + TailwindCSS v4 + React Query
-- **Database Models**: Teams, Competitors, Games, Markets, Lines, Clients, BetRecommendations
+- **Database Models**: Teams, Competitors, Games, Markets, Lines, Clients, BetRecommendations, Users, UserSessions
+- **Authentication**: Session-based auth with PBKDF2 password hashing
 - **ML Models**: ELO-based rating systems customized per sport
+- **DFS Engine**: PuLP-based lineup optimizer with salary constraints
 - **API Docs**: Automatic OpenAPI documentation at /docs
 
 ### Supported Sports
@@ -101,6 +118,15 @@ cd client && npm run cypress:run
 - GET /games/teams - List teams
 - GET /games/competitors - List individual competitors
 
+### Authentication Endpoints
+- POST /auth/register - Register new user with email/password
+- POST /auth/login - Login with email or username
+- POST /auth/logout - Logout current session
+- POST /auth/refresh - Refresh access token
+- GET /auth/me - Get current user info
+- POST /auth/change-password - Change password
+- GET /auth/validate - Validate session token
+
 ### Historical/ML Endpoints
 - POST /historical/seed - Seed historical game data
 - POST /historical/train-models - Train ELO models on historical data
@@ -108,6 +134,11 @@ cd client && npm run cypress:run
 - GET /historical/ratings/{sport} - Get team power rankings
 - POST /historical/backtest/{sport} - Run backtest for a sport
 - GET /historical/backtest/results - Get all backtest results
+
+### DFS Endpoints
+- GET /dfs/projections - Get player projections for a sport
+- POST /dfs/optimize - Generate optimal lineup
+- GET /dfs/ownership - Get ownership projections
 
 ## Testing
 
@@ -139,3 +170,10 @@ See `docs/IMPLEMENTATION_STATUS.md` for:
 - Data sources needed
 - Technical debt tracking
 - Recommended next steps
+
+## Phase 4 Remaining Tasks
+- Rate limiting middleware
+- Security headers (CORS, CSP, etc.)
+- Error monitoring and logging improvements
+- Performance optimization
+- API documentation polish

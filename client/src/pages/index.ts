@@ -4,3 +4,4 @@ export { default as Games } from './Games';
 export { default as Recommendations } from './Recommendations';
 export { default as Profile } from './Profile';
 export { default as Models } from './Models';
+export { default as DFS } from './DFS';

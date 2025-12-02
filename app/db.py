@@ -3,7 +3,16 @@ from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from datetime import datetime
 from app.config import DATABASE_URL
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+is_sqlite = DATABASE_URL.startswith("sqlite")
+connect_args = {"check_same_thread": False} if is_sqlite else {}
+
+engine_options = {
+    "pool_pre_ping": True,
+}
+if not is_sqlite:
+    engine_options["pool_recycle"] = 300
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args, **engine_options)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -316,6 +325,186 @@ class ModelPrediction(Base):
     profit_loss = Column(Float, nullable=True)
     
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class DFSContest(Base):
+    __tablename__ = "dfs_contests"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    platform = Column(String(50), nullable=False)
+    sport = Column(String(50), nullable=False, index=True)
+    contest_type = Column(String(50), nullable=False)
+    name = Column(String(200), nullable=False)
+    
+    entry_fee = Column(Float, nullable=False)
+    prize_pool = Column(Float, nullable=True)
+    max_entries = Column(Integer, nullable=True)
+    
+    salary_cap = Column(Integer, nullable=False)
+    roster_size = Column(Integer, nullable=False)
+    roster_positions = Column(Text, nullable=False)
+    
+    start_time = Column(DateTime, nullable=False)
+    lock_time = Column(DateTime, nullable=False)
+    
+    slate_id = Column(String(100), nullable=True)
+    is_active = Column(Boolean, default=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    lineups = relationship("DFSLineup", back_populates="contest")
+
+
+class DFSPlayerSalary(Base):
+    __tablename__ = "dfs_player_salaries"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    contest_id = Column(Integer, ForeignKey("dfs_contests.id"), nullable=True)
+    
+    platform = Column(String(50), nullable=False)
+    sport = Column(String(50), nullable=False, index=True)
+    slate_date = Column(DateTime, nullable=False, index=True)
+    
+    salary = Column(Integer, nullable=False)
+    position = Column(String(20), nullable=False)
+    positions_eligible = Column(String(100), nullable=True)
+    
+    game_id = Column(Integer, ForeignKey("games.id"), nullable=True)
+    opponent_team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
+    is_home = Column(Boolean, default=True)
+    
+    ownership_projection = Column(Float, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    player = relationship("Player")
+
+
+class DFSProjection(Base):
+    __tablename__ = "dfs_projections"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    player_id = Column(Integer, ForeignKey("players.id"), nullable=False)
+    salary_id = Column(Integer, ForeignKey("dfs_player_salaries.id"), nullable=True)
+    
+    sport = Column(String(50), nullable=False, index=True)
+    platform = Column(String(50), nullable=False)
+    slate_date = Column(DateTime, nullable=False, index=True)
+    
+    projected_points = Column(Float, nullable=False)
+    floor = Column(Float, nullable=True)
+    ceiling = Column(Float, nullable=True)
+    std_dev = Column(Float, nullable=True)
+    
+    value_score = Column(Float, nullable=True)
+    leverage_score = Column(Float, nullable=True)
+    
+    confidence = Column(Float, nullable=True)
+    model_version = Column(String(50), nullable=True)
+    
+    stat_projections = Column(Text, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    player = relationship("Player")
+
+
+class DFSLineup(Base):
+    __tablename__ = "dfs_lineups"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=False)
+    contest_id = Column(Integer, ForeignKey("dfs_contests.id"), nullable=True)
+    
+    sport = Column(String(50), nullable=False, index=True)
+    platform = Column(String(50), nullable=False)
+    slate_date = Column(DateTime, nullable=False)
+    
+    player_ids = Column(Text, nullable=False)
+    positions = Column(Text, nullable=False)
+    
+    total_salary = Column(Integer, nullable=False)
+    salary_remaining = Column(Integer, nullable=True)
+    
+    projected_points = Column(Float, nullable=False)
+    projected_ownership = Column(Float, nullable=True)
+    leverage_score = Column(Float, nullable=True)
+    
+    lineup_type = Column(String(50), default="balanced")
+    optimization_notes = Column(Text, nullable=True)
+    
+    actual_points = Column(Float, nullable=True)
+    finish_position = Column(Integer, nullable=True)
+    winnings = Column(Float, nullable=True)
+    
+    is_submitted = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    client = relationship("Client")
+    contest = relationship("DFSContest", back_populates="lineups")
+
+
+class DFSCorrelation(Base):
+    __tablename__ = "dfs_correlations"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    sport = Column(String(50), nullable=False, index=True)
+    
+    position1 = Column(String(50), nullable=False)
+    position2 = Column(String(50), nullable=False)
+    
+    correlation_type = Column(String(50), nullable=False)
+    correlation_value = Column(Float, nullable=False)
+    
+    sample_size = Column(Integer, nullable=True)
+    confidence_interval = Column(Float, nullable=True)
+    
+    is_same_team = Column(Boolean, default=True)
+    is_same_game = Column(Boolean, default=True)
+    
+    notes = Column(Text, nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    
+    is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
+    
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
+    
+    last_login = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    sessions = relationship("UserSession", back_populates="user")
+
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    session_token = Column(String(255), unique=True, nullable=False, index=True)
+    refresh_token = Column(String(255), unique=True, nullable=True)
+    
+    ip_address = Column(String(50), nullable=True)
+    user_agent = Column(String(500), nullable=True)
+    
+    expires_at = Column(DateTime, nullable=False)
+    is_valid = Column(Boolean, default=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="sessions")
 
 
 def init_db():

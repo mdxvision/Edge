@@ -2,7 +2,13 @@ import os
 from typing import List
 
 SQLITE_URL = "sqlite:///./sports_betting.db"
-DATABASE_URL = SQLITE_URL
+POSTGRES_URL = os.environ.get("DATABASE_URL")
+
+DATABASE_URL = POSTGRES_URL if POSTGRES_URL else SQLITE_URL
+
+SESSION_SECRET = os.environ.get("SESSION_SECRET", "default-dev-secret-change-in-prod")
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 DEFAULT_MIN_EDGE = 0.03
 

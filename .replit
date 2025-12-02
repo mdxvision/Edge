@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["glibcLocales", "libxcrypt", "glib", "gtk3", "xorg.libX11", "xorg.libXcomposite", "xorg.libXcursor", "xorg.libXdamage", "xorg.libXext", "xorg.libXfixes", "xorg.libXi", "xorg.libXrandr", "xorg.libXrender", "xorg.libXtst", "nss", "nspr", "atk", "at-spi2-atk", "cups", "libdrm", "mesa", "libxkbcommon", "alsa-lib", "pango", "cairo", "expat", "gdk-pixbuf"]
+packages = ["alsa-lib", "at-spi2-atk", "atk", "cairo", "cups", "expat", "gdk-pixbuf", "glib", "glibcLocales", "gtk3", "libdrm", "libxcrypt", "libxkbcommon", "mesa", "nspr", "nss", "pango", "xorg.libX11", "xorg.libXcomposite", "xorg.libXcursor", "xorg.libXdamage", "xorg.libXext", "xorg.libXfixes", "xorg.libXi", "xorg.libXrandr", "xorg.libXrender", "xorg.libXtst"]
 
 [workflows]
 runButton = "Project"
@@ -35,5 +35,9 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 8000
-externalPort = 8000
+localPort = 5001
+externalPort = 3000
+
+[[ports]]
+localPort = 33371
+externalPort = 3001

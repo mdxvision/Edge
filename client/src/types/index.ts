@@ -132,3 +132,63 @@ export interface TeamRating {
   rating: number;
   model_rating: number | null;
 }
+
+export interface DFSProjection {
+  player_id: number;
+  player_name: string;
+  position: string;
+  team_id: number;
+  team_name?: string;
+  salary: number;
+  projected_points: number;
+  floor: number;
+  ceiling: number;
+  std_dev: number;
+  value_score: number;
+  ownership_projection: number;
+  leverage_score: number;
+  confidence: number;
+}
+
+export interface DFSLineup {
+  id: number;
+  sport: string;
+  platform: string;
+  slate_date: string;
+  total_salary: number;
+  salary_remaining: number;
+  projected_points: number;
+  projected_ownership: number | null;
+  lineup_type: string;
+  player_ids: number[];
+  positions: string[];
+  actual_points: number | null;
+  finish_position: number | null;
+  is_submitted: boolean;
+  created_at: string;
+}
+
+export interface OptimizeResult {
+  success: boolean;
+  lineup?: DFSProjection[];
+  lineup_id?: number;
+  total_salary?: number;
+  salary_remaining?: number;
+  projected_points?: number;
+  projected_ownership?: number;
+  lineup_type?: string;
+  correlation_analysis?: {
+    total_correlation: number;
+    lineup_rating: string;
+    stacks: Array<{ team_name: string; size: number; positions: string[] }>;
+    recommendation: string;
+  };
+  error?: string;
+}
+
+export interface DFSStack {
+  name: string;
+  positions: string[];
+  correlation: number;
+  notes: string;
+}

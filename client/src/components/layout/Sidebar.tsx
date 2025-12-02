@@ -9,7 +9,8 @@ import {
   Moon,
   Menu,
   X,
-  Brain
+  Brain,
+  Zap
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
@@ -19,7 +20,8 @@ import { clsx } from 'clsx';
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/games', icon: Trophy, label: 'Games' },
-  { to: '/recommendations', icon: TrendingUp, label: 'Recommendations' },
+  { to: '/recommendations', icon: TrendingUp, label: 'Picks' },
+  { to: '/dfs', icon: Zap, label: 'DFS Lineups' },
   { to: '/models', icon: Brain, label: 'Models' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];
