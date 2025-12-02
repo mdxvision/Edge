@@ -11,9 +11,19 @@ from app.routers import health, clients, recommendations, games
 from app.routers.historical import router as historical_router
 from app.routers.dfs import router as dfs_router
 from app.routers.auth import router as auth_router
+from app.routers.security import router as security_router
+from app.routers.tracking import router as tracking_router
+from app.routers.alerts import router as alerts_router
+from app.routers.webhooks import router as webhooks_router
+from app.routers.parlays import router as parlays_router
+from app.routers.currency import router as currency_router
+from app.routers.odds import router as odds_router
+from app.routers.telegram import router as telegram_router
+from app.routers.account import router as account_router
 from app.middleware.rate_limit import RateLimitMiddleware, AuthRateLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.utils.logging import setup_logging, request_logger
+from app.services.currency import seed_default_rates
 
 logger = setup_logging(level=os.environ.get("LOG_LEVEL", "INFO"))
 
@@ -22,6 +32,12 @@ logger = setup_logging(level=os.environ.get("LOG_LEVEL", "INFO"))
 async def lifespan(app: FastAPI):
     init_db()
     seed_sample_data()
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        seed_default_rates(db)
+    finally:
+        db.close()
     yield
 
 
@@ -80,9 +96,15 @@ Authorization: Bearer <session_token>
     openapi_tags=[
         {"name": "health", "description": "Health check endpoints"},
         {"name": "auth", "description": "User authentication and session management"},
+        {"name": "security", "description": "2FA, session management, and audit logs"},
         {"name": "clients", "description": "Client profile management"},
         {"name": "games", "description": "Sports games and events"},
         {"name": "recommendations", "description": "Betting recommendations"},
+        {"name": "tracking", "description": "Bet tracking and performance stats"},
+        {"name": "parlays", "description": "Parlay analysis and creation"},
+        {"name": "alerts", "description": "Custom alert notifications"},
+        {"name": "webhooks", "description": "Webhook integrations"},
+        {"name": "currency", "description": "Multi-currency support"},
         {"name": "historical", "description": "Historical data and ML model management"},
         {"name": "dfs", "description": "Daily Fantasy Sports optimization"}
     ]
@@ -104,9 +126,18 @@ app.add_middleware(RateLimitMiddleware, requests_per_minute=100, requests_per_ho
 
 app.include_router(health.router)
 app.include_router(auth_router)
+app.include_router(security_router)
 app.include_router(clients.router)
 app.include_router(games.router)
 app.include_router(recommendations.router)
+app.include_router(tracking_router)
+app.include_router(parlays_router)
+app.include_router(alerts_router)
+app.include_router(webhooks_router)
+app.include_router(currency_router)
+app.include_router(odds_router)
+app.include_router(telegram_router)
+app.include_router(account_router)
 app.include_router(historical_router)
 app.include_router(dfs_router)
 

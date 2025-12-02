@@ -475,8 +475,19 @@ class User(Base):
     username = Column(String(100), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     
+    display_name = Column(String(100), nullable=True)
+    
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
+    is_age_verified = Column(Boolean, default=False)
+    date_of_birth = Column(DateTime, nullable=True)
+    
+    totp_secret = Column(String(64), nullable=True)
+    totp_enabled = Column(Boolean, default=False)
+    totp_verified_at = Column(DateTime, nullable=True)
+    backup_codes = Column(Text, nullable=True)
+    
+    preferred_currency = Column(String(10), default="USD")
     
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
     
@@ -485,6 +496,8 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     sessions = relationship("UserSession", back_populates="user")
+    alerts = relationship("UserAlert", back_populates="user")
+    tracked_bets = relationship("TrackedBet", back_populates="user")
 
 
 class UserSession(Base):
@@ -505,6 +518,235 @@ class UserSession(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="sessions")
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    action = Column(String(100), nullable=False, index=True)
+    resource_type = Column(String(100), nullable=True)
+    resource_id = Column(Integer, nullable=True)
+    
+    ip_address = Column(String(50), nullable=True)
+    user_agent = Column(String(500), nullable=True)
+    
+    old_value = Column(Text, nullable=True)
+    new_value = Column(Text, nullable=True)
+    
+    status = Column(String(20), default="success")
+    error_message = Column(Text, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+class UserAlert(Base):
+    __tablename__ = "user_alerts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    name = Column(String(200), nullable=False)
+    alert_type = Column(String(50), nullable=False)
+    
+    sport = Column(String(50), nullable=True)
+    team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
+    min_edge = Column(Float, nullable=True)
+    max_odds = Column(Integer, nullable=True)
+    min_odds = Column(Integer, nullable=True)
+    
+    notify_email = Column(Boolean, default=False)
+    notify_push = Column(Boolean, default=True)
+    notify_telegram = Column(Boolean, default=False)
+    
+    is_active = Column(Boolean, default=True)
+    last_triggered = Column(DateTime, nullable=True)
+    trigger_count = Column(Integer, default=0)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User", back_populates="alerts")
+
+
+class TrackedBet(Base):
+    __tablename__ = "tracked_bets"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    recommendation_id = Column(Integer, ForeignKey("bet_recommendations.id"), nullable=True)
+    
+    sport = Column(String(50), nullable=False, index=True)
+    bet_type = Column(String(50), nullable=False)
+    selection = Column(String(200), nullable=False)
+    
+    odds = Column(Integer, nullable=False)
+    stake = Column(Float, nullable=False)
+    currency = Column(String(10), default="USD")
+    
+    potential_profit = Column(Float, nullable=False)
+    
+    status = Column(String(20), default="pending", index=True)
+    result = Column(String(20), nullable=True)
+    profit_loss = Column(Float, nullable=True)
+    
+    placed_at = Column(DateTime, default=datetime.utcnow)
+    settled_at = Column(DateTime, nullable=True)
+    
+    sportsbook = Column(String(100), nullable=True)
+    notes = Column(Text, nullable=True)
+    
+    game_id = Column(Integer, ForeignKey("games.id"), nullable=True)
+    game_date = Column(DateTime, nullable=True)
+    
+    user = relationship("User", back_populates="tracked_bets")
+    recommendation = relationship("BetRecommendation")
+
+
+class LeaderboardEntry(Base):
+    __tablename__ = "leaderboard_entries"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    
+    display_name = Column(String(100), nullable=False)
+    
+    total_bets = Column(Integer, default=0)
+    winning_bets = Column(Integer, default=0)
+    total_profit = Column(Float, default=0.0)
+    roi_percentage = Column(Float, default=0.0)
+    
+    current_streak = Column(Integer, default=0)
+    best_streak = Column(Integer, default=0)
+    
+    rank = Column(Integer, nullable=True, index=True)
+    previous_rank = Column(Integer, nullable=True)
+    
+    weekly_profit = Column(Float, default=0.0)
+    monthly_profit = Column(Float, default=0.0)
+    
+    is_public = Column(Boolean, default=True)
+    
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Webhook(Base):
+    __tablename__ = "webhooks"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    name = Column(String(200), nullable=False)
+    url = Column(String(500), nullable=False)
+    secret = Column(String(255), nullable=True)
+    
+    events = Column(Text, nullable=False)
+    
+    is_active = Column(Boolean, default=True)
+    last_triggered = Column(DateTime, nullable=True)
+    last_status = Column(Integer, nullable=True)
+    failure_count = Column(Integer, default=0)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Parlay(Base):
+    __tablename__ = "parlays"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    name = Column(String(200), nullable=True)
+    
+    leg_ids = Column(Text, nullable=False)
+    leg_count = Column(Integer, nullable=False)
+    
+    combined_odds = Column(Integer, nullable=False)
+    combined_probability = Column(Float, nullable=False)
+    correlation_adjustment = Column(Float, default=1.0)
+    adjusted_probability = Column(Float, nullable=False)
+    
+    suggested_stake = Column(Float, nullable=True)
+    potential_profit = Column(Float, nullable=True)
+    edge = Column(Float, nullable=True)
+    
+    status = Column(String(20), default="pending")
+    result = Column(String(20), nullable=True)
+    profit_loss = Column(Float, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    settled_at = Column(DateTime, nullable=True)
+
+
+class CurrencyRate(Base):
+    __tablename__ = "currency_rates"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    base_currency = Column(String(10), default="USD")
+    target_currency = Column(String(10), nullable=False, index=True)
+    rate = Column(Float, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+
+class PushSubscription(Base):
+    __tablename__ = "push_subscriptions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    endpoint = Column(Text, nullable=False)
+    p256dh_key = Column(String(255), nullable=False)
+    auth_key = Column(String(255), nullable=False)
+    
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class TelegramUser(Base):
+    __tablename__ = "telegram_users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    
+    telegram_chat_id = Column(String(100), nullable=False, unique=True)
+    telegram_username = Column(String(100), nullable=True)
+    
+    is_active = Column(Boolean, default=True)
+    notify_recommendations = Column(Boolean, default=True)
+    notify_results = Column(Boolean, default=True)
+    notify_alerts = Column(Boolean, default=True)
+    
+    linked_at = Column(DateTime, default=datetime.utcnow)
+
+
+class OddsSnapshot(Base):
+    __tablename__ = "odds_snapshots"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
+    market_type = Column(String(50), nullable=False)
+    
+    sportsbook = Column(String(100), nullable=False)
+    odds = Column(Integer, nullable=False)
+    line_value = Column(Float, nullable=True)
+    
+    captured_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    token_hash = Column(String(255), nullable=False, unique=True)
+    expires_at = Column(DateTime, nullable=False)
+    is_used = Column(Boolean, default=False)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 def init_db():

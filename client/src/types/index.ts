@@ -1,9 +1,12 @@
 export interface User {
   id: number;
   email: string;
-  name: string;
-  bankroll: number;
-  risk_profile: 'conservative' | 'balanced' | 'aggressive';
+  username: string;
+  display_name: string | null;
+  preferred_currency: string;
+  is_verified: boolean;
+  is_age_verified: boolean;
+  totp_enabled: boolean;
   created_at: string;
 }
 
@@ -191,4 +194,125 @@ export interface DFSStack {
   positions: string[];
   correlation: number;
   notes: string;
+}
+
+export interface TrackedBet {
+  id: number;
+  sport: string;
+  bet_type: string;
+  selection: string;
+  odds: number;
+  stake: number;
+  currency: string;
+  potential_profit: number;
+  status: 'pending' | 'settled';
+  result: 'won' | 'lost' | 'push' | 'void' | null;
+  profit_loss: number | null;
+  placed_at: string;
+  settled_at: string | null;
+  sportsbook: string | null;
+}
+
+export interface UserStats {
+  total_bets: number;
+  winning_bets: number;
+  losing_bets: number;
+  push_bets: number;
+  win_rate: number;
+  total_staked: number;
+  total_profit: number;
+  roi: number;
+  average_odds: number;
+  best_win: number;
+  worst_loss: number;
+  current_streak: number;
+  best_streak: number;
+  currency: string;
+}
+
+export interface Alert {
+  id: number;
+  name: string;
+  alert_type: string;
+  sport: string | null;
+  team_id: number | null;
+  min_edge: number | null;
+  max_odds: number | null;
+  min_odds: number | null;
+  notify_email: boolean;
+  notify_push: boolean;
+  notify_telegram: boolean;
+  is_active: boolean;
+  last_triggered: string | null;
+  trigger_count: number;
+  created_at: string;
+}
+
+export interface Webhook {
+  id: number;
+  name: string;
+  url: string;
+  events: string[];
+  is_active: boolean;
+  last_triggered: string | null;
+  last_status: number | null;
+  failure_count: number;
+  created_at: string;
+}
+
+export interface ParlayAnalysis {
+  leg_count: number;
+  combined_odds: number;
+  combined_probability: number;
+  correlation_adjustment: number;
+  adjusted_probability: number;
+  implied_probability: number;
+  edge: number;
+  ev_per_dollar: number;
+  is_positive_ev: boolean;
+  legs: Array<{
+    selection: string;
+    odds: number;
+    probability: number;
+    edge: number;
+    ev: number;
+  }>;
+  risk_assessment: {
+    risk_level: string;
+    recommendation: string;
+    win_probability: number;
+    suggested_max_stake_percent: number;
+  };
+}
+
+export interface TwoFAStatus {
+  enabled: boolean;
+  verified_at: string | null;
+  backup_codes_remaining: number;
+}
+
+export interface AuditLog {
+  id: number;
+  action: string;
+  resource_type: string | null;
+  ip_address: string | null;
+  status: string;
+  created_at: string;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  display_name: string;
+  total_bets: number;
+  winning_bets: number;
+  total_profit: number;
+  roi_percentage: number;
+  current_streak: number;
+}
+
+export interface Currency {
+  code: string;
+  name: string;
+  symbol: string;
+  type: 'fiat' | 'crypto';
 }

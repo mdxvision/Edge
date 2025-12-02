@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Layout } from './components/layout';
-import { Login, Dashboard, Games, Recommendations, Profile, Models, DFS } from './pages';
+import { Login, Dashboard, Games, Recommendations, Profile, Models, DFS, Tracking, Security, Alerts, Parlays, Leaderboard, Terms, ResetPassword } from './pages';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +62,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/reset-password"
+        element={
+          <PublicRoute>
+            <ResetPassword />
+          </PublicRoute>
+        }
+      />
+      <Route
         path="/"
         element={
           <ProtectedRoute>
@@ -73,9 +81,15 @@ function AppRoutes() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="games" element={<Games />} />
         <Route path="recommendations" element={<Recommendations />} />
+        <Route path="tracking" element={<Tracking />} />
+        <Route path="parlays" element={<Parlays />} />
+        <Route path="leaderboard" element={<Leaderboard />} />
         <Route path="dfs" element={<DFS />} />
         <Route path="models" element={<Models />} />
+        <Route path="alerts" element={<Alerts />} />
+        <Route path="security" element={<Security />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="terms" element={<Terms />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

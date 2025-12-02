@@ -1,9 +1,10 @@
-import { ButtonHTMLAttributes, forwardRef } from 'react';
+import type { ButtonHTMLAttributes } from 'react';
+import { forwardRef } from 'react';
 import { clsx } from 'clsx';
 import { Loader2 } from 'lucide-react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'destructive';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
@@ -17,6 +18,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       secondary: 'bg-surface-200 text-surface-700 hover:bg-surface-300 dark:bg-surface-700 dark:text-surface-200 dark:hover:bg-surface-600 focus:ring-surface-500',
       ghost: 'bg-transparent text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-800 focus:ring-surface-500',
       danger: 'bg-danger-500 text-white hover:bg-danger-600 focus:ring-danger-500',
+      destructive: 'bg-danger-500 text-white hover:bg-danger-600 focus:ring-danger-500',
+      outline: 'border border-surface-300 bg-transparent text-surface-700 hover:bg-surface-100 dark:border-surface-600 dark:text-surface-300 dark:hover:bg-surface-800 focus:ring-surface-500',
     };
 
     const sizes = {

@@ -5,6 +5,24 @@ def american_to_implied_probability(american_odds: int) -> float:
         return abs(american_odds) / (abs(american_odds) + 100.0)
 
 
+def american_to_probability(american_odds: int) -> float:
+    return american_to_implied_probability(american_odds)
+
+
+def american_to_decimal(american_odds: int) -> float:
+    if american_odds > 0:
+        return 1.0 + (american_odds / 100.0)
+    else:
+        return 1.0 + (100.0 / abs(american_odds))
+
+
+def decimal_to_american(decimal_odds: float) -> int:
+    if decimal_odds >= 2.0:
+        return int(round((decimal_odds - 1) * 100))
+    else:
+        return int(round(-100 / (decimal_odds - 1)))
+
+
 def implied_probability_to_american(prob: float) -> int:
     if prob <= 0 or prob >= 1:
         raise ValueError("Probability must be between 0 and 1 (exclusive)")

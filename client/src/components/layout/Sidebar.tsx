@@ -10,7 +10,13 @@ import {
   Menu,
   X,
   Brain,
-  Zap
+  Zap,
+  BarChart3,
+  Shield,
+  Bell,
+  Layers,
+  Award,
+  FileText
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
@@ -21,9 +27,15 @@ const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/games', icon: Trophy, label: 'Games' },
   { to: '/recommendations', icon: TrendingUp, label: 'Picks' },
+  { to: '/tracking', icon: BarChart3, label: 'Bet Tracking' },
+  { to: '/parlays', icon: Layers, label: 'Parlay Builder' },
+  { to: '/leaderboard', icon: Award, label: 'Leaderboard' },
   { to: '/dfs', icon: Zap, label: 'DFS Lineups' },
   { to: '/models', icon: Brain, label: 'Models' },
+  { to: '/alerts', icon: Bell, label: 'Alerts' },
+  { to: '/security', icon: Shield, label: 'Security' },
   { to: '/profile', icon: User, label: 'Profile' },
+  { to: '/terms', icon: FileText, label: 'Terms of Service' },
 ];
 
 export default function Sidebar() {

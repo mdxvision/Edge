@@ -1,14 +1,16 @@
-import { SelectHTMLAttributes, forwardRef } from 'react';
+import type { SelectHTMLAttributes, ReactNode } from 'react';
+import { forwardRef } from 'react';
 import { clsx } from 'clsx';
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
-  options: { value: string; label: string }[];
+  options?: { value: string; label: string }[];
+  children?: ReactNode;
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, id, options, ...props }, ref) => {
+  ({ className, label, error, id, options, children, ...props }, ref) => {
     const selectId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
     return (
@@ -28,11 +30,11 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           )}
           {...props}
         >
-          {options.map((option) => (
+          {options ? options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
-          ))}
+          )) : children}
         </select>
         {error && (
           <p className="mt-1 text-xs text-danger-500">{error}</p>
