@@ -3,14 +3,26 @@
 ## Overview
 A comprehensive global sports analytics and betting recommendation system covering 15 sports worldwide. The platform uses machine learning models to identify value bets and provides personalized recommendations based on client risk profiles with full transparency on every pick.
 
-**Current State**: Phase 4 In Progress - Production Readiness
+**Current State**: Phase 4 In Progress - Production Readiness (60% Complete)
+
+## Progress Summary
+
+| Phase | Status | Completion |
+|-------|--------|------------|
+| Phase 1: Foundation & Frontend | Complete | 100% |
+| Phase 2: Advanced ML & Historical Data | Complete | 100% |
+| Phase 3: DFS Integration | Complete | 100% |
+| Phase 4: Production Readiness | In Progress | 60% |
 
 ## Recent Changes
 - 2024-12-02: Phase 4 Progress - Production Infrastructure
   - PostgreSQL database migration (from SQLite)
-  - User authentication system with session tokens
-  - Password hashing with PBKDF2
-  - Auth endpoints (register, login, logout, refresh, change-password)
+  - User authentication system with secure session tokens
+  - Password hashing with PBKDF2 (100,000 iterations)
+  - HMAC token storage (tokens hashed before database storage)
+  - Refresh token rotation on each use
+  - Session invalidation on password change
+  - Auth endpoints (register, login, logout, refresh, change-password, validate)
   - User/session database models
   - psycopg2-binary and email-validator dependencies
 
@@ -53,12 +65,19 @@ app/                 # FastAPI Backend
 │   ├── data_ingestion.py
 │   ├── edge_engine.py
 │   ├── bankroll.py
+│   ├── auth.py          # Authentication service
+│   ├── dfs_projections.py
+│   ├── lineup_optimizer.py
 │   └── agent.py
 ├── routers/         # API endpoints
+│   ├── auth.py          # Authentication routes
+│   ├── dfs.py           # DFS routes
+│   ├── historical.py    # ML/Historical routes
+│   └── ...
 └── utils/           # Odds calculations, logging
 client/              # React TypeScript Frontend
 ├── src/
-│   ├── pages/       # Dashboard, Games, Recommendations, Models, Profile
+│   ├── pages/       # Dashboard, Games, Recommendations, Models, DFS, Profile
 │   ├── components/  # Reusable UI components
 │   ├── context/     # Auth context provider
 │   └── lib/         # API client
@@ -67,6 +86,7 @@ client/              # React TypeScript Frontend
 └── vite.config.ts   # Vite + TailwindCSS v4 config
 tests/               # Pytest API tests
 data/                # Sample CSV files
+docs/                # Documentation
 .github/workflows/   # CI configuration
 ```
 
@@ -74,7 +94,7 @@ data/                # Sample CSV files
 - **Backend**: FastAPI with PostgreSQL via SQLAlchemy
 - **Frontend**: React 19 + TypeScript + TailwindCSS v4 + React Query
 - **Database Models**: Teams, Competitors, Games, Markets, Lines, Clients, BetRecommendations, Users, UserSessions
-- **Authentication**: Session-based auth with PBKDF2 password hashing
+- **Authentication**: Session-based auth with PBKDF2 password hashing and HMAC token storage
 - **ML Models**: ELO-based rating systems customized per sport
 - **DFS Engine**: PuLP-based lineup optimizer with salary constraints
 - **API Docs**: Automatic OpenAPI documentation at /docs
@@ -122,9 +142,9 @@ cd client && npm run cypress:run
 - POST /auth/register - Register new user with email/password
 - POST /auth/login - Login with email or username
 - POST /auth/logout - Logout current session
-- POST /auth/refresh - Refresh access token
+- POST /auth/refresh - Refresh access token (rotates tokens)
 - GET /auth/me - Get current user info
-- POST /auth/change-password - Change password
+- POST /auth/change-password - Change password (invalidates all sessions)
 - GET /auth/validate - Validate session token
 
 ### Historical/ML Endpoints
@@ -171,9 +191,25 @@ See `docs/IMPLEMENTATION_STATUS.md` for:
 - Technical debt tracking
 - Recommended next steps
 
+## Phase 4 Completed Tasks
+- PostgreSQL database migration from SQLite
+- User authentication with secure session tokens
+- PBKDF2 password hashing (100,000 iterations)
+- HMAC token storage (tokens never stored raw)
+- Refresh token rotation
+- Session invalidation on password change
+- Auth endpoints (register, login, logout, refresh, change-password, validate)
+
 ## Phase 4 Remaining Tasks
 - Rate limiting middleware
 - Security headers (CORS, CSP, etc.)
 - Error monitoring and logging improvements
 - Performance optimization
 - API documentation polish
+
+## Security Features
+- Passwords hashed with PBKDF2-SHA256 (100,000 iterations)
+- Session/refresh tokens stored as HMAC-SHA256 hashes
+- Refresh tokens rotated on each use (old tokens invalidated)
+- All sessions invalidated when password is changed
+- Timing-safe token comparison to prevent timing attacks
