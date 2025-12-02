@@ -3,7 +3,7 @@
 ## Overview
 A comprehensive global sports analytics and betting recommendation system covering 15 sports worldwide. The platform uses machine learning models to identify value bets and provides personalized recommendations based on client risk profiles with full transparency on every pick.
 
-**Current State**: Phase 4 In Progress - Production Readiness (60% Complete)
+**Current State**: All Phases Complete - Production Ready
 
 ## Progress Summary
 
@@ -12,19 +12,22 @@ A comprehensive global sports analytics and betting recommendation system coveri
 | Phase 1: Foundation & Frontend | Complete | 100% |
 | Phase 2: Advanced ML & Historical Data | Complete | 100% |
 | Phase 3: DFS Integration | Complete | 100% |
-| Phase 4: Production Readiness | In Progress | 60% |
+| Phase 4: Production Readiness | Complete | 100% |
 
 ## Recent Changes
-- 2024-12-02: Phase 4 Progress - Production Infrastructure
+- 2024-12-02: Phase 4 Complete - Production Infrastructure
   - PostgreSQL database migration (from SQLite)
   - User authentication system with secure session tokens
   - Password hashing with PBKDF2 (100,000 iterations)
   - HMAC token storage (tokens hashed before database storage)
   - Refresh token rotation on each use
   - Session invalidation on password change
-  - Auth endpoints (register, login, logout, refresh, change-password, validate)
-  - User/session database models
-  - psycopg2-binary and email-validator dependencies
+  - Rate limiting middleware (100 req/min, 2000 req/hour)
+  - Auth-specific rate limits (5 login attempts/min, 10 registrations/hour)
+  - Security headers (CSP, HSTS, X-Frame-Options, etc.)
+  - Structured logging with request tracking
+  - In-memory caching layer with TTL
+  - Enhanced API documentation with OpenAPI tags
 
 - 2024-12-01: Phase 3 Complete - DFS Integration
   - Player projections engine with sport-specific factors
@@ -39,7 +42,6 @@ A comprehensive global sports analytics and betting recommendation system coveri
   - Advanced ELO system with recency weighting and sport-specific K-factors
   - Backtesting engine with accuracy, ROI, Brier score, Sharpe ratio
   - Model Performance page with team rankings and backtest results
-  - Historical API endpoints (/historical/seed, /train-models, /backtest)
 
 - 2024-12-01: Phase 1 Complete
   - React TypeScript frontend with Vite + TailwindCSS v4
@@ -74,7 +76,13 @@ app/                 # FastAPI Backend
 │   ├── dfs.py           # DFS routes
 │   ├── historical.py    # ML/Historical routes
 │   └── ...
-└── utils/           # Odds calculations, logging
+├── middleware/      # Custom middleware
+│   ├── rate_limit.py    # Rate limiting
+│   └── security.py      # Security headers
+└── utils/           # Utilities
+    ├── logging.py       # Structured logging
+    ├── cache.py         # Caching layer
+    └── odds.py          # Odds calculations
 client/              # React TypeScript Frontend
 ├── src/
 │   ├── pages/       # Dashboard, Games, Recommendations, Models, DFS, Profile
@@ -82,10 +90,9 @@ client/              # React TypeScript Frontend
 │   ├── context/     # Auth context provider
 │   └── lib/         # API client
 ├── cypress/         # E2E tests
-│   └── e2e/         # Test specs (auth, dashboard, games, recommendations, profile)
+│   └── e2e/         # Test specs
 └── vite.config.ts   # Vite + TailwindCSS v4 config
 tests/               # Pytest API tests
-data/                # Sample CSV files
 docs/                # Documentation
 .github/workflows/   # CI configuration
 ```
@@ -97,7 +104,7 @@ docs/                # Documentation
 - **Authentication**: Session-based auth with PBKDF2 password hashing and HMAC token storage
 - **ML Models**: ELO-based rating systems customized per sport
 - **DFS Engine**: PuLP-based lineup optimizer with salary constraints
-- **API Docs**: Automatic OpenAPI documentation at /docs
+- **API Docs**: OpenAPI documentation at /docs and /redoc
 
 ### Supported Sports
 NFL, NBA, MLB, NHL, NCAA_FOOTBALL, NCAA_BASKETBALL, SOCCER, CRICKET, RUGBY, TENNIS, GOLF, MMA, BOXING, MOTORSPORTS, ESPORTS
@@ -121,25 +128,20 @@ cd client && npm run dev
 # Backend API tests (51 tests)
 python -m pytest tests/ -v
 
-# Frontend E2E tests (requires Docker or proper Cypress dependencies)
+# Frontend E2E tests
 cd client && npm run cypress:run
 ```
 
 ## Key Endpoints
-- GET /health - Health check
-- POST /clients - Create client
-- GET /clients/{id} - Get client details
-- PATCH /clients/{id} - Update client
-- DELETE /clients/{id} - Delete client
-- POST /clients/{id}/recommendations/run - Generate recommendations
-- GET /clients/{id}/recommendations/latest - Get latest recommendations
-- GET /games - List games with filtering
-- GET /games/sports - List supported sports
-- GET /games/teams - List teams
-- GET /games/competitors - List individual competitors
 
-### Authentication Endpoints
-- POST /auth/register - Register new user with email/password
+### Core
+- GET / - API information
+- GET /health - Health check
+- GET /docs - OpenAPI documentation
+- GET /redoc - ReDoc documentation
+
+### Authentication
+- POST /auth/register - Register new user
 - POST /auth/login - Login with email or username
 - POST /auth/logout - Logout current session
 - POST /auth/refresh - Refresh access token (rotates tokens)
@@ -147,23 +149,39 @@ cd client && npm run cypress:run
 - POST /auth/change-password - Change password (invalidates all sessions)
 - GET /auth/validate - Validate session token
 
-### Historical/ML Endpoints
+### Clients
+- POST /clients - Create client
+- GET /clients/{id} - Get client details
+- PATCH /clients/{id} - Update client
+- DELETE /clients/{id} - Delete client
+
+### Games
+- GET /games - List games with filtering
+- GET /games/sports - List supported sports
+- GET /games/teams - List teams
+- GET /games/competitors - List individual competitors
+
+### Recommendations
+- POST /clients/{id}/recommendations/run - Generate recommendations
+- GET /clients/{id}/recommendations/latest - Get latest recommendations
+
+### Historical/ML
 - POST /historical/seed - Seed historical game data
-- POST /historical/train-models - Train ELO models on historical data
+- POST /historical/train-models - Train ELO models
 - GET /historical/model-status - Get model training status
 - GET /historical/ratings/{sport} - Get team power rankings
-- POST /historical/backtest/{sport} - Run backtest for a sport
-- GET /historical/backtest/results - Get all backtest results
+- POST /historical/backtest/{sport} - Run backtest
+- GET /historical/backtest/results - Get backtest results
 
-### DFS Endpoints
-- GET /dfs/projections - Get player projections for a sport
+### DFS
+- GET /dfs/projections - Get player projections
 - POST /dfs/optimize - Generate optimal lineup
 - GET /dfs/ownership - Get ownership projections
 
 ## Testing
 
 ### Backend Tests (Pytest)
-Located in `tests/` directory with 51 comprehensive tests covering:
+51 comprehensive tests covering:
 - Health endpoints
 - Client CRUD operations with validation
 - Recommendations generation and persistence
@@ -171,7 +189,7 @@ Located in `tests/` directory with 51 comprehensive tests covering:
 - Staking and probability bounds
 
 ### Frontend Tests (Cypress)
-Located in `client/cypress/e2e/` with tests for:
+5 test files covering:
 - Authentication flow (login, logout, session persistence)
 - Dashboard navigation and layout
 - Games browser with sport filtering
@@ -179,37 +197,34 @@ Located in `client/cypress/e2e/` with tests for:
 - Profile settings updates
 
 ### CI/CD
-GitHub Actions workflow in `.github/workflows/test.yml` runs:
+GitHub Actions workflow runs:
 1. Backend Pytest tests on Python 3.11
-2. Frontend E2E tests using Cypress Docker action
-
-## Implementation Tracker
-See `docs/IMPLEMENTATION_STATUS.md` for:
-- Complete checklist of done vs pending tasks
-- Testing gaps and coverage status
-- Data sources needed
-- Technical debt tracking
-- Recommended next steps
-
-## Phase 4 Completed Tasks
-- PostgreSQL database migration from SQLite
-- User authentication with secure session tokens
-- PBKDF2 password hashing (100,000 iterations)
-- HMAC token storage (tokens never stored raw)
-- Refresh token rotation
-- Session invalidation on password change
-- Auth endpoints (register, login, logout, refresh, change-password, validate)
-
-## Phase 4 Remaining Tasks
-- Rate limiting middleware
-- Security headers (CORS, CSP, etc.)
-- Error monitoring and logging improvements
-- Performance optimization
-- API documentation polish
+2. Frontend E2E tests using Cypress
 
 ## Security Features
+
+### Authentication
 - Passwords hashed with PBKDF2-SHA256 (100,000 iterations)
 - Session/refresh tokens stored as HMAC-SHA256 hashes
 - Refresh tokens rotated on each use (old tokens invalidated)
 - All sessions invalidated when password is changed
 - Timing-safe token comparison to prevent timing attacks
+
+### Rate Limiting
+- 100 requests per minute (general)
+- 2000 requests per hour (general)
+- 20 requests burst limit
+- 5 login attempts per minute
+- 10 registration attempts per hour
+
+### Security Headers
+- Content-Security-Policy
+- Strict-Transport-Security
+- X-Content-Type-Options: nosniff
+- X-Frame-Options: DENY
+- X-XSS-Protection: 1; mode=block
+- Referrer-Policy: strict-origin-when-cross-origin
+- Permissions-Policy
+
+## Implementation Tracker
+See `docs/IMPLEMENTATION_STATUS.md` for complete implementation details.

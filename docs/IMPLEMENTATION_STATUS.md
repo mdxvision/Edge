@@ -11,7 +11,7 @@
 | Phase 1: Foundation & Frontend | Complete | 100% |
 | Phase 2: Advanced ML & Historical Data | Complete | 100% |
 | Phase 3: DFS Integration | Complete | 100% |
-| Phase 4: Production Readiness | In Progress | 60% |
+| Phase 4: Production Readiness | Complete | 100% |
 
 ---
 
@@ -21,30 +21,15 @@
 
 | ID | Task | Status | Tests | Notes |
 |----|------|--------|-------|-------|
-| 1.1 | React frontend with Vite + TailwindCSS v4 | Done | Cypress E2E | Clean professional design system implemented |
-| 1.2 | Authentication system | Done | Cypress auth.cy.ts | Login, logout, session persistence with localStorage |
-| 1.3 | Dashboard page | Done | Cypress dashboard.cy.ts | Stats cards, recent recommendations, upcoming games |
-| 1.4 | Games browser page | Done | Cypress games.cy.ts | Sport filtering, search functionality |
-| 1.5 | Recommendations page | Done | Cypress recommendations.cy.ts | Edge display, confidence scores, explanations |
-| 1.6 | Profile settings page | Done | Cypress profile.cy.ts | Bankroll management, risk profile selection |
-| 1.7 | Responsive layout + dark/light mode | Done | Cypress dashboard.cy.ts | Mobile sidebar with hamburger menu |
-| 1.8 | Pytest API tests | Done | 51 tests passing | Full endpoint coverage |
-| 1.9 | Cypress E2E tests | Done | 5 test files | User flow coverage |
-
-### Test Coverage Summary
-
-**Backend (Pytest) - 51 Tests:**
-- Health endpoints: 2 tests
-- Client CRUD: 18 tests (create, read, update, delete, validation)
-- Games endpoints: 11 tests (listing, filtering, sports, teams, competitors)
-- Recommendations: 20 tests (generation, persistence, fields, staking, calculations)
-
-**Frontend (Cypress) - 5 Test Files:**
-- auth.cy.ts: Login, logout, session persistence
-- dashboard.cy.ts: Layout, navigation, theme toggle
-- games.cy.ts: Page layout, sport filtering, games list
-- recommendations.cy.ts: Generation, edge display, explanations
-- profile.cy.ts: Settings updates, validation
+| 1.1 | React frontend with Vite + TailwindCSS v4 | Done | Cypress E2E | Clean professional design system |
+| 1.2 | Authentication system | Done | Cypress auth.cy.ts | Login, logout, session persistence |
+| 1.3 | Dashboard page | Done | Cypress dashboard.cy.ts | Stats cards, recommendations, games |
+| 1.4 | Games browser page | Done | Cypress games.cy.ts | Sport filtering, search |
+| 1.5 | Recommendations page | Done | Cypress recommendations.cy.ts | Edge display, confidence, explanations |
+| 1.6 | Profile settings page | Done | Cypress profile.cy.ts | Bankroll, risk profile |
+| 1.7 | Responsive layout + dark/light mode | Done | Cypress | Mobile sidebar |
+| 1.8 | Pytest API tests | Done | 51 tests | Full endpoint coverage |
+| 1.9 | Cypress E2E tests | Done | 5 files | User flow coverage |
 
 ---
 
@@ -54,21 +39,12 @@
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| 2.1 | Historical data models (GameResult, ELOHistory, PlayerStats, Injuries) | Done | SQLAlchemy models created |
-| 2.2 | Historical data ingestion with seeding | Done | 2-3 seasons simulated data per sport |
-| 2.3 | Enhanced ELO models with recency weighting | Done | Sport-specific K-factors, home advantage |
-| 2.4 | Backtesting engine with metrics | Done | Accuracy, ROI, Brier score, Sharpe ratio |
-| 2.5 | Model performance dashboard (Frontend) | Done | Team rankings, backtest results, model status |
+| 2.1 | Historical data models | Done | GameResult, ELOHistory, PlayerStats, Injuries |
+| 2.2 | Historical data seeding | Done | 2-3 seasons simulated data per sport |
+| 2.3 | Enhanced ELO models | Done | Sport-specific K-factors, home advantage |
+| 2.4 | Backtesting engine | Done | Accuracy, ROI, Brier score, Sharpe ratio |
+| 2.5 | Model performance dashboard | Done | Team rankings, backtest results |
 | 2.6 | Historical API endpoints | Done | /historical/seed, /train-models, /backtest |
-
-### Future Enhancements (Not Required for MVP)
-
-| ID | Task | Priority | Status | Dependencies |
-|----|------|----------|--------|--------------|
-| 2.7 | Player-level statistics integration | Medium | Deferred | Player data API |
-| 2.8 | Injury impact factors | Low | Deferred | Injury data feed |
-| 2.9 | Weather/venue adjustments | Low | Deferred | Weather API |
-| 2.10 | Ensemble model combining multiple signals | Medium | Deferred | External data sources |
 
 ---
 
@@ -79,129 +55,171 @@
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
 | 3.1 | Player projections engine | Done | Sport-specific projection factors |
-| 3.2 | Lineup optimizer algorithm | Done | PuLP linear programming with salary constraints |
+| 3.2 | Lineup optimizer algorithm | Done | PuLP linear programming |
 | 3.3 | Salary cap and roster constraints | Done | Per-sport configuration |
 | 3.4 | Ownership projections | Done | Historical ownership modeling |
-| 3.5 | Correlation analysis for stacking | Done | Game-level correlation factors |
-| 3.6 | DFS recommendations UI | Done | Lineup builder frontend page |
-
-### DFS API Endpoints
-
-- `GET /dfs/projections` - Get player projections for a sport
-- `POST /dfs/optimize` - Generate optimal lineup with constraints
-- `GET /dfs/ownership` - Get ownership projections
+| 3.5 | Correlation analysis | Done | Game-level correlation factors |
+| 3.6 | DFS recommendations UI | Done | Lineup builder frontend |
 
 ---
 
-## Phase 4: Production Readiness (IN PROGRESS)
+## Phase 4: Production Readiness (COMPLETE)
 
 ### Completed Tasks
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| 4.1 | PostgreSQL migration from SQLite | Done | Connection pooling, health checks configured |
-| 4.2 | User authentication with sessions | Done | PBKDF2 password hashing, HMAC token storage |
-| 4.3 | Session token security | Done | Tokens hashed before storage, refresh rotation |
-| 4.4 | Auth endpoints | Done | Register, login, logout, refresh, change-password, validate |
-| 4.5 | Password change security | Done | Invalidates all sessions on password change |
-
-### Remaining Tasks
-
-| ID | Task | Priority | Status | Notes |
-|----|------|----------|--------|-------|
-| 4.6 | Rate limiting middleware | High | Not Started | Prevent API abuse |
-| 4.7 | Security headers (CORS, CSP, etc.) | High | Not Started | Production hardening |
-| 4.8 | Error monitoring and logging | Medium | Not Started | Structured logging, error tracking |
-| 4.9 | Performance optimization | Medium | Not Started | Query optimization, caching |
-| 4.10 | API documentation polish | Low | Not Started | OpenAPI refinement |
+| 4.1 | PostgreSQL migration | Done | Connection pooling, health checks |
+| 4.2 | User authentication | Done | PBKDF2 password hashing, HMAC tokens |
+| 4.3 | Session token security | Done | Hashed storage, refresh rotation |
+| 4.4 | Auth endpoints | Done | Register, login, logout, refresh, change-password |
+| 4.5 | Password change security | Done | Invalidates all sessions |
+| 4.6 | Rate limiting middleware | Done | Per-minute, per-hour, burst limits |
+| 4.7 | Auth-specific rate limits | Done | Login/register attempt limits |
+| 4.8 | Security headers | Done | CSP, HSTS, X-Frame-Options, etc. |
+| 4.9 | Structured logging | Done | Request logging, error tracking |
+| 4.10 | Caching layer | Done | In-memory cache with TTL |
+| 4.11 | API documentation | Done | OpenAPI with detailed descriptions |
 
 ---
 
-## Authentication System Details
+## Security Implementation
 
-### Security Features Implemented
+### Authentication
+| Feature | Implementation |
+|---------|---------------|
+| Password Hashing | PBKDF2 with SHA-256, 100,000 iterations |
+| Token Storage | HMAC-SHA256 hashed (SESSION_SECRET keyed) |
+| Refresh Token Rotation | New tokens on each refresh |
+| Session Invalidation | All sessions cleared on password change |
+| Timing-Safe Comparison | hmac.compare_digest for validation |
 
-| Feature | Implementation | Status |
-|---------|---------------|--------|
-| Password Hashing | PBKDF2 with SHA-256, 100,000 iterations | Done |
-| Token Storage | HMAC-SHA256 hashed tokens (SESSION_SECRET keyed) | Done |
-| Refresh Token Rotation | New tokens generated on each refresh | Done |
-| Session Invalidation | All sessions invalidated on password change | Done |
-| Timing-Safe Comparison | hmac.compare_digest for token validation | Done |
+### Rate Limiting
+| Limit Type | Value |
+|------------|-------|
+| Requests per minute | 100 |
+| Requests per hour | 2000 |
+| Burst limit | 20 requests/second |
+| Login attempts per minute | 5 |
+| Registration attempts per hour | 10 |
 
-### Auth Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| /auth/register | POST | Register with email/username/password |
-| /auth/login | POST | Login with email or username |
-| /auth/logout | POST | Logout current session |
-| /auth/refresh | POST | Refresh access token (rotates tokens) |
-| /auth/me | GET | Get current user info |
-| /auth/change-password | POST | Change password (invalidates all sessions) |
-| /auth/validate | GET | Validate session token |
-
----
-
-## Database Schema
-
-### Core Tables
-- Teams, Competitors, Games, Markets, Lines
-- Clients, BetRecommendations
-
-### Historical/ML Tables
-- GameResult, ELOHistory, PlayerStats, Injuries
-- BacktestResult, ModelStatus
-
-### User Tables
-- Users (email, username, password_hash, client_id)
-- UserSessions (session_token, refresh_token, expires_at, is_valid)
+### Security Headers
+| Header | Value |
+|--------|-------|
+| X-Content-Type-Options | nosniff |
+| X-Frame-Options | DENY |
+| X-XSS-Protection | 1; mode=block |
+| Referrer-Policy | strict-origin-when-cross-origin |
+| Strict-Transport-Security | max-age=31536000; includeSubDomains |
+| Content-Security-Policy | Configured for API security |
 
 ---
 
-## Technical Debt Status
+## API Endpoints
 
-| Issue | Impact | Priority | Status |
-|-------|--------|----------|--------|
-| Mock data in sample games | Low fidelity testing | Medium | Open |
-| SQLite for development | Not production-ready | High | Resolved (PostgreSQL) |
-| Client-side auth only | Security limitation | High | Resolved (Session auth) |
-| No caching layer | Performance at scale | Medium | Open |
-| Hardcoded sport configs | Difficult to maintain | Low | Open |
+### Core Endpoints
+- `GET /` - API information
+- `GET /health` - Health check
+- `GET /docs` - OpenAPI documentation
+- `GET /redoc` - ReDoc documentation
+
+### Authentication
+- `POST /auth/register` - Register user
+- `POST /auth/login` - Login
+- `POST /auth/logout` - Logout
+- `POST /auth/refresh` - Refresh tokens
+- `GET /auth/me` - Current user info
+- `POST /auth/change-password` - Change password
+- `GET /auth/validate` - Validate session
+
+### Clients
+- `POST /clients` - Create client
+- `GET /clients/{id}` - Get client
+- `PATCH /clients/{id}` - Update client
+- `DELETE /clients/{id}` - Delete client
+
+### Games
+- `GET /games` - List games
+- `GET /games/sports` - List sports
+- `GET /games/teams` - List teams
+- `GET /games/competitors` - List competitors
+
+### Recommendations
+- `POST /clients/{id}/recommendations/run` - Generate recommendations
+- `GET /clients/{id}/recommendations/latest` - Get recommendations
+
+### Historical/ML
+- `POST /historical/seed` - Seed data
+- `POST /historical/train-models` - Train models
+- `GET /historical/model-status` - Model status
+- `GET /historical/ratings/{sport}` - Team rankings
+- `POST /historical/backtest/{sport}` - Run backtest
+- `GET /historical/backtest/results` - Backtest results
+
+### DFS
+- `GET /dfs/projections` - Player projections
+- `POST /dfs/optimize` - Optimize lineup
+- `GET /dfs/ownership` - Ownership projections
 
 ---
 
-## CI/CD Status
+## Testing
 
-| Component | Status | Location |
-|-----------|--------|----------|
-| Pytest Backend Tests | Configured | .github/workflows/test.yml |
-| Cypress E2E Tests | Configured | .github/workflows/test.yml |
-| Automated Deployment | Not Configured | Need production setup |
-| Code Quality Checks | Not Configured | Consider ESLint/Prettier CI |
+### Backend Tests (Pytest) - 51 Tests
+- Health endpoints: 2 tests
+- Client CRUD: 18 tests
+- Games endpoints: 11 tests
+- Recommendations: 20 tests
 
----
-
-## Data Sources (Future Integration)
-
-| Data Type | Source Options | Status | Notes |
-|-----------|---------------|--------|-------|
-| Historical game results | ESPN, Sports Reference | Not Integrated | For enhanced backtesting |
-| Live odds | The Odds API, Pinnacle | Not Integrated | Need API key |
-| Player statistics | ESPN, Basketball Reference | Not Integrated | For player models |
-| Injury reports | ESPN, Rotoworld | Not Integrated | For injury factors |
-| DFS salaries | DraftKings, FanDuel | Not Integrated | For real DFS data |
-| Weather data | OpenWeather, Weather API | Not Integrated | For outdoor sports |
+### Frontend Tests (Cypress) - 5 Files
+- auth.cy.ts: Authentication flows
+- dashboard.cy.ts: Layout, navigation
+- games.cy.ts: Sport filtering
+- recommendations.cy.ts: Generation, display
+- profile.cy.ts: Settings updates
 
 ---
 
-## Next Steps (Recommended Order)
+## Technical Architecture
 
-1. **Immediate**: Add rate limiting middleware to protect API
-2. **Week 1**: Implement security headers and production CORS config
-3. **Week 1-2**: Add structured logging and error monitoring
-4. **Week 2**: Performance optimization and query tuning
-5. **Week 2-3**: API documentation polish and deployment preparation
+### Database
+- **Engine**: PostgreSQL via SQLAlchemy
+- **Connection Pooling**: pool_pre_ping, pool_recycle=300
+- **Models**: Users, UserSessions, Clients, Teams, Games, BetRecommendations, etc.
+
+### Middleware Stack
+1. CORS Middleware
+2. Security Headers Middleware
+3. Auth Rate Limit Middleware
+4. General Rate Limit Middleware
+5. Request Logging Middleware
+
+### Caching
+- In-memory cache with configurable TTL
+- Cache invalidation on mutations
+- Hit/miss statistics tracking
+
+---
+
+## CI/CD
+
+| Component | Status |
+|-----------|--------|
+| Pytest Backend Tests | Configured (.github/workflows/test.yml) |
+| Cypress E2E Tests | Configured (.github/workflows/test.yml) |
+
+---
+
+## Future Enhancements (Post-MVP)
+
+| Feature | Priority | Description |
+|---------|----------|-------------|
+| Redis caching | Medium | Distributed cache for scalability |
+| Real-time odds | High | Live odds API integration |
+| Player statistics | Medium | External player data APIs |
+| Email verification | Low | User email confirmation |
+| 2FA | Medium | Two-factor authentication |
+| Webhook notifications | Low | Bet result notifications |
 
 ---
 
@@ -209,7 +227,9 @@
 
 - All 51 backend tests passing
 - Frontend fully responsive with dark/light mode
-- Backend API documentation available at /docs
-- Simulation-only mode enforced throughout platform
+- API documentation at /docs and /redoc
+- Simulation-only mode enforced throughout
 - PostgreSQL database connected and operational
-- Secure authentication system with token hashing and rotation
+- Secure authentication with token hashing and rotation
+- Rate limiting protects against abuse
+- Security headers prevent common attacks
