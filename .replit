@@ -37,3 +37,12 @@ externalPort = 80
 [[ports]]
 localPort = 5001
 externalPort = 3000
+
+[[ports]]
+localPort = 36773
+externalPort = 3001
+
+[userenv]
+
+[userenv.shared]
+TELEGRAM_BOT_USERNAME = "EdgeBet Alerts"
