@@ -45,34 +45,58 @@ export default function Sidebar() {
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-white dark:bg-surface-900 shadow-md"
-      >
-        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
+      {/* Mobile Header Bar */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-white dark:bg-surface-900 border-b border-surface-200 dark:border-surface-800 flex items-center justify-between px-4">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+          aria-label="Toggle menu"
+        >
+          {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
 
+        <h1 className="text-lg font-bold text-surface-900 dark:text-white">
+          EdgeBet
+        </h1>
+
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+          aria-label="Toggle theme"
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-5 h-5" />
+          ) : (
+            <Moon className="w-5 h-5" />
+          )}
+        </button>
+      </header>
+
+      {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="lg:hidden fixed inset-0 bg-black/50 z-40 pt-16"
           onClick={() => setIsOpen(false)}
         />
       )}
 
+      {/* Sidebar */}
       <aside
         className={clsx(
           'fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white dark:bg-surface-900 border-r border-surface-200 dark:border-surface-800 flex flex-col transition-transform duration-300',
+          'pt-16 lg:pt-0',
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
-        <div className="p-6 border-b border-surface-200 dark:border-surface-800">
+        {/* Desktop Logo - Hidden on Mobile */}
+        <div className="hidden lg:block p-6 border-b border-surface-200 dark:border-surface-800">
           <h1 className="text-xl font-bold text-surface-900 dark:text-white">
             EdgeBet
           </h1>
           <p className="text-xs text-surface-500 mt-1">Analytics Platform</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -105,9 +129,10 @@ export default function Sidebar() {
             </div>
           )}
 
+          {/* Desktop Theme Toggle - Hidden on Mobile */}
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-800 transition-colors"
+            className="hidden lg:flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-800 transition-colors"
           >
             {theme === 'dark' ? (
               <Sun className="w-5 h-5" />
