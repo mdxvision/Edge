@@ -118,10 +118,10 @@ export default function Profile() {
     <div className="p-6 space-y-6 max-w-2xl">
       <div>
         <h1 className="text-2xl font-bold text-surface-900 dark:text-white">
-          Profile Settings
+          Profile
         </h1>
         <p className="text-surface-500 mt-1">
-          Manage your account and betting preferences
+          Your preferences. Your edge.
         </p>
       </div>
 
@@ -132,7 +132,7 @@ export default function Profile() {
             <h2 className="font-semibold text-warning-800 dark:text-warning-200">Age Verification Required</h2>
           </div>
           <p className="text-sm text-warning-700 dark:text-warning-300 mb-4">
-            You must be 21 or older to use this platform. Please verify your age to continue.
+            You must be 21 or older to use this platform. Verify your age to continue.
           </p>
           <div className="space-y-3">
             <Input
@@ -155,7 +155,7 @@ export default function Profile() {
               onClick={handleAgeVerification}
               disabled={!ageVerification.date_of_birth || !ageVerification.confirm_age || verifyAgeMutation.isPending}
             >
-              {verifyAgeMutation.isPending ? 'Verifying...' : 'Verify Age'}
+              {verifyAgeMutation.isPending ? 'Verifying...' : 'Verify'}
             </Button>
             {verifyAgeMutation.isError && (
               <p className="text-sm text-red-600">You must be 21 or older to use this platform.</p>
@@ -175,7 +175,7 @@ export default function Profile() {
                 Personal Information
               </h2>
               <p className="text-sm text-surface-500">
-                Your basic account details
+                Your account details.
               </p>
             </div>
           </div>
@@ -228,7 +228,7 @@ export default function Profile() {
                 Currency Preferences
               </h2>
               <p className="text-sm text-surface-500">
-                Choose your preferred currency for displaying amounts
+                Choose your display currency.
               </p>
             </div>
           </div>
@@ -241,7 +241,7 @@ export default function Profile() {
           />
           
           <p className="text-xs text-surface-500 mt-2">
-            All amounts will be displayed in your preferred currency. Conversion rates update hourly.
+            Amounts display in your preferred currency. Rates update hourly.
           </p>
         </Card>
 
@@ -255,7 +255,7 @@ export default function Profile() {
                 Bankroll Management
               </h2>
               <p className="text-sm text-surface-500">
-                Your available betting capital
+                Your available capital.
               </p>
             </div>
           </div>
@@ -272,7 +272,7 @@ export default function Profile() {
           />
 
           <p className="text-xs text-surface-500 mt-2">
-            Stake recommendations are calculated as a percentage of your bankroll based on edge and risk profile.
+            Stakes are calculated as a percentage of bankroll based on edge and risk.
           </p>
         </Card>
 
@@ -286,7 +286,7 @@ export default function Profile() {
                 Risk Profile
               </h2>
               <p className="text-sm text-surface-500">
-                Determines stake sizing for recommendations
+                Determines stake sizing.
               </p>
             </div>
           </div>
@@ -294,7 +294,7 @@ export default function Profile() {
           <Select
             label="Risk Tolerance"
             value={formData.risk_profile}
-            onChange={(e) => setFormData({ ...formData, risk_profile: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, risk_profile: e.target.value as 'conservative' | 'balanced' | 'aggressive' })}
             options={[
               { value: 'conservative', label: 'Conservative' },
               { value: 'balanced', label: 'Balanced' },
@@ -316,7 +316,7 @@ export default function Profile() {
           </Button>
           {success && (
             <span className="text-sm text-success-600 dark:text-success-500" data-testid="success-message">
-              Profile updated successfully!
+              Changes saved.
             </span>
           )}
         </div>
@@ -332,7 +332,7 @@ export default function Profile() {
               Telegram Notifications
             </h2>
             <p className="text-sm text-surface-500">
-              Receive instant notifications via Telegram
+              Instant alerts. Delivered seamlessly.
             </p>
           </div>
         </div>
@@ -359,7 +359,7 @@ export default function Profile() {
         ) : (
           <div className="space-y-3">
             <p className="text-sm text-surface-600 dark:text-surface-400">
-              Link your Telegram account to receive notifications for recommendations, bet results, and alerts.
+              Link Telegram for picks, results, and alerts.
             </p>
             <Button onClick={handleLinkTelegram} disabled={linkTelegramMutation.isPending}>
               <Send className="w-4 h-4" />
@@ -367,7 +367,7 @@ export default function Profile() {
             </Button>
             {linkTelegramMutation.data?.deep_link && (
               <p className="text-sm text-surface-500">
-                A new tab has opened. Click 'Start' in the Telegram bot to complete linking.
+                Tap 'Start' in the Telegram bot to connect.
               </p>
             )}
           </div>

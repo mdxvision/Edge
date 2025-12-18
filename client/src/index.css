@@ -1,110 +1,296 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
+/* EdgeBet Twist - Apple-inspired Design System */
+
 @theme {
-  --color-primary-50: #f0f4ff;
-  --color-primary-100: #e0e9ff;
-  --color-primary-200: #c7d6fe;
-  --color-primary-300: #a4bafc;
-  --color-primary-400: #8098f9;
-  --color-primary-500: #6172f3;
-  --color-primary-600: #444de7;
-  --color-primary-700: #373ccd;
-  --color-primary-800: #3035a5;
-  --color-primary-900: #2d3382;
-  --color-primary-950: #1c1e4e;
-  
-  --color-surface-50: #f8fafc;
-  --color-surface-100: #f1f5f9;
-  --color-surface-200: #e2e8f0;
-  --color-surface-300: #cbd5e1;
-  --color-surface-400: #94a3b8;
-  --color-surface-500: #64748b;
+  /* ========================================
+     LIGHT MODE COLORS
+     ======================================== */
+  --color-bg: #FAFAFA;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F5F5F7;
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-success: #10B981;
+  --color-success-light: #D1FAE5;
+  --color-danger: #F43F5E;
+  --color-danger-light: #FFE4E6;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-premium: #EAB308;
+  --color-premium-light: #FEF9C3;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+  --color-border: #E2E8F0;
+  --color-border-light: #F1F5F9;
+
+  /* ========================================
+     DARK MODE COLORS
+     ======================================== */
+  --color-dark-bg: #0A1628;
+  --color-dark-surface: #152238;
+  --color-dark-surface-hover: #1E3A5F;
+  --color-dark-primary: #3B82F6;
+  --color-dark-primary-hover: #60A5FA;
+  --color-dark-success: #34D399;
+  --color-dark-success-light: rgba(52, 211, 153, 0.15);
+  --color-dark-danger: #FB7185;
+  --color-dark-danger-light: rgba(251, 113, 133, 0.15);
+  --color-dark-warning: #FBBF24;
+  --color-dark-warning-light: rgba(251, 191, 36, 0.15);
+  --color-dark-premium: #FACC15;
+  --color-dark-premium-light: rgba(250, 204, 21, 0.15);
+  --color-dark-text-primary: #F8FAFC;
+  --color-dark-text-secondary: #94A3B8;
+  --color-dark-text-muted: #64748B;
+  --color-dark-border: #1E3A5F;
+  --color-dark-border-light: #152238;
+
+  /* ========================================
+     LEGACY COLOR MAPPINGS (for existing components)
+     ======================================== */
+  --color-primary-50: #EFF6FF;
+  --color-primary-100: #DBEAFE;
+  --color-primary-200: #BFDBFE;
+  --color-primary-300: #93C5FD;
+  --color-primary-400: #60A5FA;
+  --color-primary-500: #3B82F6;
+  --color-primary-600: #2563EB;
+  --color-primary-700: #1D4ED8;
+  --color-primary-800: #1E40AF;
+  --color-primary-900: #1E3A8A;
+  --color-primary-950: #172554;
+
+  --color-surface-50: #FAFAFA;
+  --color-surface-100: #F5F5F7;
+  --color-surface-200: #E2E8F0;
+  --color-surface-300: #CBD5E1;
+  --color-surface-400: #94A3B8;
+  --color-surface-500: #64748B;
   --color-surface-600: #475569;
   --color-surface-700: #334155;
-  --color-surface-800: #1e293b;
-  --color-surface-900: #0f172a;
-  --color-surface-950: #020617;
-  
-  --color-success-50: #ecfdf5;
-  --color-success-500: #10b981;
+  --color-surface-800: #1E293B;
+  --color-surface-900: #0F172A;
+  --color-surface-950: #0A1628;
+
+  --color-success-50: #D1FAE5;
+  --color-success-100: #A7F3D0;
+  --color-success-400: #34D399;
+  --color-success-500: #10B981;
   --color-success-600: #059669;
-  
-  --color-warning-50: #fffbeb;
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706;
-  --color-warning-700: #b45309;
-  
-  --color-danger-50: #fef2f2;
-  --color-danger-500: #ef4444;
-  --color-danger-600: #dc2626;
-  
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-warning-50: #FEF3C7;
+  --color-warning-100: #FDE68A;
+  --color-warning-400: #FBBF24;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
+  --color-warning-700: #B45309;
+
+  --color-danger-50: #FFE4E6;
+  --color-danger-100: #FECDD3;
+  --color-danger-300: #FDA4AF;
+  --color-danger-400: #FB7185;
+  --color-danger-500: #F43F5E;
+  --color-danger-600: #E11D48;
+
+  --color-premium-400: #FACC15;
+  --color-premium-500: #EAB308;
+  --color-premium-600: #CA8A04;
+
+  /* ========================================
+     TYPOGRAPHY
+     ======================================== */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html {
   font-family: var(--font-sans);
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  background-color: var(--color-surface-50);
-  color: var(--color-surface-900);
+  background-color: #FAFAFA;
+  color: #0F172A;
+  line-height: 1.5;
+  letter-spacing: -0.011em;
 }
 
+/* Dark mode body */
 .dark body {
-  background-color: var(--color-surface-950);
-  color: var(--color-surface-50);
+  background-color: #0A1628;
+  color: #F8FAFC;
 }
 
+/* Selection colors */
+::selection {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.dark ::selection {
+  background-color: var(--color-dark-primary);
+  color: white;
+}
+
+/* Focus visible ring - Apple style */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
+  border-radius: 8px;
+}
+
+.dark :focus-visible {
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
+}
+
+/* ========================================
+   CARD STYLES
+   ======================================== */
 .card {
-  background-color: white;
-  border-radius: 0.75rem;
-  border: 1px solid var(--color-surface-200);
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 .dark .card {
-  background-color: var(--color-surface-900);
-  border-color: var(--color-surface-800);
+  background-color: #152238;
+  border-color: #1E3A5F;
+  box-shadow: none;
 }
 
+.dark .card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+   INPUT STYLES
+   ======================================== */
 .input {
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  background-color: white;
-  border: 1px solid var(--color-surface-300);
-  border-radius: 0.5rem;
+  padding: 12px 16px;
+  font-size: 16px;
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
   outline: none;
-  transition: all 0.2s;
-  color: var(--color-surface-900);
+  transition: all 0.2s ease;
+  color: #0F172A;
+}
+
+.input::placeholder {
+  color: #94A3B8;
+}
+
+.input:hover {
+  border-color: #CBD5E1;
 }
 
 .input:focus {
-  box-shadow: 0 0 0 2px var(--color-primary-500);
-  border-color: transparent;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
 }
 
 .dark .input {
-  background-color: var(--color-surface-900);
-  border-color: var(--color-surface-700);
-  color: var(--color-surface-100);
+  background-color: #152238;
+  border-color: #1E3A5F;
+  color: #F8FAFC;
 }
 
+.dark .input::placeholder {
+  color: #64748B;
+}
+
+.dark .input:hover {
+  border-color: #1E3A5F;
+}
+
+.dark .input:focus {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/* ========================================
+   LABEL STYLES
+   ======================================== */
 .label {
   display: block;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--color-surface-700);
-  margin-bottom: 0.25rem;
+  color: #64748B;
+  margin-bottom: 8px;
+  letter-spacing: -0.006em;
 }
 
 .dark .label {
-  color: var(--color-surface-300);
+  color: #94A3B8;
 }
 
+/* ========================================
+   TYPOGRAPHY CLASSES
+   ======================================== */
+.text-display {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  line-height: 1.2;
+}
+
+.text-h1 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.019em;
+  line-height: 1.3;
+}
+
+.text-h2 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.017em;
+  line-height: 1.4;
+}
+
+.text-body {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.011em;
+  line-height: 1.5;
+}
+
+.text-small {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.006em;
+  line-height: 1.5;
+}
+
+.text-caption {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -112,4 +298,68 @@ body {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Smooth transitions for interactive elements */
+.transition-apple {
+  transition: all 0.2s ease;
+}
+
+/* Subtle glow effect for premium items */
+.glow-premium {
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+}
+
+.dark .glow-premium {
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.2);
+}
+
+/* Glass effect for overlays */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.dark .glass {
+  background: rgba(21, 34, 56, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Stat value animation */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-stat {
+  animation: countUp 0.4s ease-out forwards;
+}
+
+/* Toast slide up animation */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+/* Profit/Loss color utilities */
+.profit {
+  color: var(--color-success);
+}
+
+.loss {
+  color: var(--color-danger);
+}
+
+.dark .profit {
+  color: var(--color-dark-success);
+}
+
+.dark .loss {
+  color: var(--color-dark-danger);
 }

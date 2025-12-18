@@ -1,0 +1,530 @@
+"""
+NFL Stats API Integration Service
+
+Uses ESPN's hidden API to access NFL data.
+No API key required.
+"""
+
+from datetime import datetime, date, timedelta
+from typing import Optional, List, Dict, Any
+import httpx
+import logging
+
+logger = logging.getLogger(__name__)
+
+# ESPN API endpoints for NFL
+ESPN_NFL_BASE = "https://site.api.espn.com/apis/site/v2/sports/football/nfl"
+ESPN_NFL_SCOREBOARD = f"{ESPN_NFL_BASE}/scoreboard"
+ESPN_NFL_TEAMS = f"{ESPN_NFL_BASE}/teams"
+ESPN_NFL_STANDINGS = f"{ESPN_NFL_BASE}/standings"
+
+# NFL Team information with abbreviations
+NFL_TEAMS = {
+    "ARI": {"name": "Arizona Cardinals", "city": "Arizona"},
+    "ATL": {"name": "Atlanta Falcons", "city": "Atlanta"},
+    "BAL": {"name": "Baltimore Ravens", "city": "Baltimore"},
+    "BUF": {"name": "Buffalo Bills", "city": "Buffalo"},
+    "CAR": {"name": "Carolina Panthers", "city": "Carolina"},
+    "CHI": {"name": "Chicago Bears", "city": "Chicago"},
+    "CIN": {"name": "Cincinnati Bengals", "city": "Cincinnati"},
+    "CLE": {"name": "Cleveland Browns", "city": "Cleveland"},
+    "DAL": {"name": "Dallas Cowboys", "city": "Dallas"},
+    "DEN": {"name": "Denver Broncos", "city": "Denver"},
+    "DET": {"name": "Detroit Lions", "city": "Detroit"},
+    "GB": {"name": "Green Bay Packers", "city": "Green Bay"},
+    "HOU": {"name": "Houston Texans", "city": "Houston"},
+    "IND": {"name": "Indianapolis Colts", "city": "Indianapolis"},
+    "JAX": {"name": "Jacksonville Jaguars", "city": "Jacksonville"},
+    "KC": {"name": "Kansas City Chiefs", "city": "Kansas City"},
+    "LV": {"name": "Las Vegas Raiders", "city": "Las Vegas"},
+    "LAC": {"name": "Los Angeles Chargers", "city": "Los Angeles"},
+    "LAR": {"name": "Los Angeles Rams", "city": "Los Angeles"},
+    "MIA": {"name": "Miami Dolphins", "city": "Miami"},
+    "MIN": {"name": "Minnesota Vikings", "city": "Minnesota"},
+    "NE": {"name": "New England Patriots", "city": "New England"},
+    "NO": {"name": "New Orleans Saints", "city": "New Orleans"},
+    "NYG": {"name": "New York Giants", "city": "New York"},
+    "NYJ": {"name": "New York Jets", "city": "New York"},
+    "PHI": {"name": "Philadelphia Eagles", "city": "Philadelphia"},
+    "PIT": {"name": "Pittsburgh Steelers", "city": "Pittsburgh"},
+    "SF": {"name": "San Francisco 49ers", "city": "San Francisco"},
+    "SEA": {"name": "Seattle Seahawks", "city": "Seattle"},
+    "TB": {"name": "Tampa Bay Buccaneers", "city": "Tampa Bay"},
+    "TEN": {"name": "Tennessee Titans", "city": "Tennessee"},
+    "WAS": {"name": "Washington Commanders", "city": "Washington"},
+}
+
+
+async def _fetch_espn(url: str, params: Dict[str, Any] = None) -> Optional[Dict]:
+    """Fetch data from ESPN API with error handling."""
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPError as e:
+        logger.error(f"ESPN API error: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Error fetching ESPN data: {e}")
+        return None
+
+
+async def get_teams() -> List[Dict[str, Any]]:
+    """
+    Get all NFL teams.
+
+    Returns:
+        List of teams with ESPN IDs, names, and divisions.
+    """
+    data = await _fetch_espn(ESPN_NFL_TEAMS)
+
+    if not data or "sports" not in data:
+        # Return static team list as fallback
+        return [
+            {
+                "abbreviation": abbr,
+                "name": info["name"],
+                "city": info["city"]
+            }
+            for abbr, info in NFL_TEAMS.items()
+        ]
+
+    teams = []
+    try:
+        for team in data["sports"][0]["leagues"][0]["teams"]:
+            team_data = team.get("team", {})
+            teams.append({
+                "espn_id": team_data.get("id"),
+                "name": team_data.get("displayName", ""),
+                "short_name": team_data.get("shortDisplayName", ""),
+                "abbreviation": team_data.get("abbreviation", ""),
+                "location": team_data.get("location", ""),
+                "logo_url": team_data.get("logos", [{}])[0].get("href") if team_data.get("logos") else None,
+                "color": team_data.get("color"),
+            })
+    except (KeyError, IndexError) as e:
+        logger.warning(f"Error parsing teams data: {e}")
+        return [
+            {
+                "abbreviation": abbr,
+                "name": info["name"],
+                "city": info["city"]
+            }
+            for abbr, info in NFL_TEAMS.items()
+        ]
+
+    return teams
+
+
+async def get_scoreboard(game_date: date = None) -> List[Dict[str, Any]]:
+    """
+    Get NFL scoreboard for a specific date.
+
+    Args:
+        game_date: Date to get scoreboard for (defaults to today)
+
+    Returns:
+        List of games with scores and status
+    """
+    if game_date is None:
+        game_date = date.today()
+
+    params = {"dates": game_date.strftime("%Y%m%d")}
+    data = await _fetch_espn(ESPN_NFL_SCOREBOARD, params)
+
+    if not data:
+        return []
+
+    games = []
+    for event in data.get("events", []):
+        try:
+            competition = event.get("competitions", [{}])[0]
+            competitors = competition.get("competitors", [])
+
+            if len(competitors) < 2:
+                continue
+
+            # Find home and away teams
+            home_team = None
+            away_team = None
+            for team in competitors:
+                if team.get("homeAway") == "home":
+                    home_team = team
+                else:
+                    away_team = team
+
+            if not home_team or not away_team:
+                continue
+
+            # Get odds if available
+            odds = None
+            odds_data = competition.get("odds", [])
+            if odds_data:
+                odd = odds_data[0]
+                odds = {
+                    "spread": odd.get("spread"),
+                    "over_under": odd.get("overUnder"),
+                    "home_moneyline": odd.get("homeTeamOdds", {}).get("moneyLine"),
+                    "away_moneyline": odd.get("awayTeamOdds", {}).get("moneyLine"),
+                }
+
+            # Get broadcast info
+            broadcast = None
+            broadcasts = competition.get("broadcasts", [])
+            if broadcasts:
+                broadcast = broadcasts[0].get("names", [""])[0] if broadcasts[0].get("names") else None
+
+            games.append({
+                "id": event.get("id"),
+                "espn_id": event.get("id"),
+                "name": event.get("name"),
+                "status": event.get("status", {}).get("type", {}).get("description", ""),
+                "status_detail": event.get("status", {}).get("type", {}).get("detail", ""),
+                "game_date": event.get("date"),
+                "venue": competition.get("venue", {}).get("fullName", ""),
+                "week": event.get("week", {}).get("number"),
+                "home_team": {
+                    "id": home_team.get("team", {}).get("id"),
+                    "name": home_team.get("team", {}).get("displayName", ""),
+                    "abbreviation": home_team.get("team", {}).get("abbreviation", ""),
+                    "score": int(home_team.get("score", 0)) if home_team.get("score") else None,
+                    "record": home_team.get("records", [{}])[0].get("summary") if home_team.get("records") else None,
+                    "logo_url": home_team.get("team", {}).get("logo"),
+                },
+                "away_team": {
+                    "id": away_team.get("team", {}).get("id"),
+                    "name": away_team.get("team", {}).get("displayName", ""),
+                    "abbreviation": away_team.get("team", {}).get("abbreviation", ""),
+                    "score": int(away_team.get("score", 0)) if away_team.get("score") else None,
+                    "record": away_team.get("records", [{}])[0].get("summary") if away_team.get("records") else None,
+                    "logo_url": away_team.get("team", {}).get("logo"),
+                },
+                "odds": odds,
+                "broadcast": broadcast,
+                "quarter": event.get("status", {}).get("period"),
+                "time_remaining": event.get("status", {}).get("displayClock"),
+                "is_live": event.get("status", {}).get("type", {}).get("state") == "in",
+            })
+        except (KeyError, IndexError, TypeError) as e:
+            logger.warning(f"Error parsing game: {e}")
+            continue
+
+    return games
+
+
+async def get_current_week_games() -> List[Dict[str, Any]]:
+    """
+    Get games for the current NFL week.
+
+    Returns:
+        List of games for the current week
+    """
+    data = await _fetch_espn(ESPN_NFL_SCOREBOARD)
+
+    if not data:
+        return []
+
+    games = []
+    for event in data.get("events", []):
+        try:
+            competition = event.get("competitions", [{}])[0]
+            competitors = competition.get("competitors", [])
+
+            if len(competitors) < 2:
+                continue
+
+            home_team = None
+            away_team = None
+            for team in competitors:
+                if team.get("homeAway") == "home":
+                    home_team = team
+                else:
+                    away_team = team
+
+            if not home_team or not away_team:
+                continue
+
+            odds = None
+            odds_data = competition.get("odds", [])
+            if odds_data:
+                odd = odds_data[0]
+                odds = {
+                    "spread": odd.get("spread"),
+                    "over_under": odd.get("overUnder"),
+                }
+
+            broadcast = None
+            broadcasts = competition.get("broadcasts", [])
+            if broadcasts:
+                broadcast = broadcasts[0].get("names", [""])[0] if broadcasts[0].get("names") else None
+
+            games.append({
+                "id": event.get("id"),
+                "espn_id": event.get("id"),
+                "name": event.get("name"),
+                "status": event.get("status", {}).get("type", {}).get("description", ""),
+                "status_detail": event.get("status", {}).get("type", {}).get("detail", ""),
+                "game_date": event.get("date"),
+                "venue": competition.get("venue", {}).get("fullName", ""),
+                "week": event.get("week", {}).get("number"),
+                "home_team": {
+                    "id": home_team.get("team", {}).get("id"),
+                    "name": home_team.get("team", {}).get("displayName", ""),
+                    "abbreviation": home_team.get("team", {}).get("abbreviation", ""),
+                    "score": int(home_team.get("score", 0)) if home_team.get("score") else None,
+                    "record": home_team.get("records", [{}])[0].get("summary") if home_team.get("records") else None,
+                },
+                "away_team": {
+                    "id": away_team.get("team", {}).get("id"),
+                    "name": away_team.get("team", {}).get("displayName", ""),
+                    "abbreviation": away_team.get("team", {}).get("abbreviation", ""),
+                    "score": int(away_team.get("score", 0)) if away_team.get("score") else None,
+                    "record": away_team.get("records", [{}])[0].get("summary") if away_team.get("records") else None,
+                },
+                "odds": odds,
+                "broadcast": broadcast,
+                "quarter": event.get("status", {}).get("period"),
+                "time_remaining": event.get("status", {}).get("displayClock"),
+                "is_live": event.get("status", {}).get("type", {}).get("state") == "in",
+            })
+        except (KeyError, IndexError, TypeError) as e:
+            logger.warning(f"Error parsing game: {e}")
+            continue
+
+    return games
+
+
+async def get_standings() -> Dict[str, Any]:
+    """
+    Get current NFL standings by conference and division.
+
+    Returns:
+        Dictionary with AFC and NFC standings
+    """
+    data = await _fetch_espn(ESPN_NFL_STANDINGS)
+
+    if not data:
+        return {"error": "Unable to fetch standings"}
+
+    standings = {"AFC": {}, "NFC": {}}
+
+    try:
+        for child in data.get("children", []):
+            conference = child.get("name", "")
+            if conference not in ["AFC", "NFC"]:
+                continue
+
+            for division in child.get("children", []):
+                division_name = division.get("name", "").replace(conference + " ", "")
+                standings[conference][division_name] = []
+
+                for team_standing in division.get("standings", {}).get("entries", []):
+                    team = team_standing.get("team", {})
+                    stats = {}
+
+                    for stat in team_standing.get("stats", []):
+                        stats[stat.get("name")] = stat.get("value")
+
+                    standings[conference][division_name].append({
+                        "team_id": team.get("id"),
+                        "name": team.get("displayName"),
+                        "abbreviation": team.get("abbreviation"),
+                        "logo": team.get("logos", [{}])[0].get("href") if team.get("logos") else None,
+                        "wins": int(stats.get("wins", 0)),
+                        "losses": int(stats.get("losses", 0)),
+                        "ties": int(stats.get("ties", 0)),
+                        "win_pct": float(stats.get("winPercent", 0)),
+                        "points_for": int(stats.get("pointsFor", 0)),
+                        "points_against": int(stats.get("pointsAgainst", 0)),
+                        "point_diff": int(stats.get("pointDifferential", 0)),
+                        "division_record": stats.get("divisionRecord"),
+                        "conference_record": stats.get("conferenceRecord"),
+                    })
+    except (KeyError, IndexError) as e:
+        logger.warning(f"Error parsing standings: {e}")
+
+    return standings
+
+
+async def get_team_info(team_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Get detailed team information.
+
+    Args:
+        team_id: ESPN team ID
+
+    Returns:
+        Team info dictionary
+    """
+    url = f"{ESPN_NFL_TEAMS}/{team_id}"
+    data = await _fetch_espn(url)
+
+    if not data or "team" not in data:
+        return None
+
+    team = data["team"]
+
+    return {
+        "id": team.get("id"),
+        "name": team.get("displayName"),
+        "short_name": team.get("shortDisplayName"),
+        "abbreviation": team.get("abbreviation"),
+        "location": team.get("location"),
+        "color": team.get("color"),
+        "alternate_color": team.get("alternateColor"),
+        "logo": team.get("logos", [{}])[0].get("href") if team.get("logos") else None,
+        "venue": team.get("franchise", {}).get("venue", {}).get("fullName"),
+    }
+
+
+async def get_team_schedule(team_id: str) -> List[Dict[str, Any]]:
+    """
+    Get schedule for a specific team.
+
+    Args:
+        team_id: ESPN team ID
+
+    Returns:
+        List of games
+    """
+    url = f"{ESPN_NFL_TEAMS}/{team_id}/schedule"
+    data = await _fetch_espn(url)
+
+    if not data:
+        return []
+
+    games = []
+    for event in data.get("events", []):
+        try:
+            competition = event.get("competitions", [{}])[0]
+            competitors = competition.get("competitors", [])
+
+            if len(competitors) < 2:
+                continue
+
+            home_team = None
+            away_team = None
+            for team in competitors:
+                if team.get("homeAway") == "home":
+                    home_team = team
+                else:
+                    away_team = team
+
+            games.append({
+                "id": event.get("id"),
+                "name": event.get("name"),
+                "status": event.get("status", {}).get("type", {}).get("description", ""),
+                "game_date": event.get("date"),
+                "week": event.get("week", {}).get("number"),
+                "home_team": {
+                    "name": home_team.get("team", {}).get("displayName", "") if home_team else "",
+                    "score": int(home_team.get("score", 0)) if home_team and home_team.get("score") else None,
+                },
+                "away_team": {
+                    "name": away_team.get("team", {}).get("displayName", "") if away_team else "",
+                    "score": int(away_team.get("score", 0)) if away_team and away_team.get("score") else None,
+                },
+            })
+        except (KeyError, IndexError, TypeError) as e:
+            logger.warning(f"Error parsing schedule game: {e}")
+            continue
+
+    return games
+
+
+async def refresh_nfl_data(db) -> Dict[str, Any]:
+    """
+    Refresh NFL data in the database.
+
+    Args:
+        db: Database session
+
+    Returns:
+        Summary of refreshed data
+    """
+    from app.db import NFLTeam, NFLGame
+
+    result = {
+        "teams": 0,
+        "games": 0,
+    }
+
+    # Refresh teams
+    teams = await get_teams()
+    for team_data in teams:
+        try:
+            espn_id = team_data.get("espn_id")
+            if not espn_id:
+                continue
+
+            existing = db.query(NFLTeam).filter(NFLTeam.espn_id == espn_id).first()
+
+            if existing:
+                existing.name = team_data.get("name", existing.name)
+                existing.short_name = team_data.get("short_name", existing.short_name)
+                existing.abbreviation = team_data.get("abbreviation", existing.abbreviation)
+                existing.logo_url = team_data.get("logo_url", existing.logo_url)
+            else:
+                new_team = NFLTeam(
+                    espn_id=espn_id,
+                    name=team_data.get("name", ""),
+                    short_name=team_data.get("short_name", ""),
+                    abbreviation=team_data.get("abbreviation", ""),
+                    location=team_data.get("location", ""),
+                    logo_url=team_data.get("logo_url"),
+                )
+                db.add(new_team)
+
+            result["teams"] += 1
+        except Exception as e:
+            logger.warning(f"Error storing team: {e}")
+
+    db.commit()
+
+    # Refresh current week games
+    games = await get_current_week_games()
+    for game_data in games:
+        try:
+            espn_id = game_data.get("espn_id")
+            if not espn_id:
+                continue
+
+            existing = db.query(NFLGame).filter(NFLGame.espn_id == espn_id).first()
+
+            game_date = None
+            if game_data.get("game_date"):
+                try:
+                    game_date = datetime.fromisoformat(game_data["game_date"].replace("Z", "+00:00"))
+                except (ValueError, TypeError):
+                    pass
+
+            if existing:
+                existing.status = game_data.get("status", existing.status)
+                existing.home_score = game_data.get("home_team", {}).get("score")
+                existing.away_score = game_data.get("away_team", {}).get("score")
+            else:
+                odds = game_data.get("odds") or {}
+                new_game = NFLGame(
+                    espn_id=espn_id,
+                    status=game_data.get("status", "Scheduled"),
+                    game_date=game_date,
+                    venue=game_data.get("venue"),
+                    week=game_data.get("week"),
+                    home_team_name=game_data.get("home_team", {}).get("name", ""),
+                    home_score=game_data.get("home_team", {}).get("score"),
+                    away_team_name=game_data.get("away_team", {}).get("name", ""),
+                    away_score=game_data.get("away_team", {}).get("score"),
+                    spread=odds.get("spread"),
+                    over_under=odds.get("over_under"),
+                    broadcast=game_data.get("broadcast"),
+                )
+                db.add(new_game)
+
+            result["games"] += 1
+        except Exception as e:
+            logger.warning(f"Error storing game: {e}")
+
+    db.commit()
+
+    return result

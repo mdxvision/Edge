@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const result = await api.auth.refresh(refreshToken);
-      localStorage.setItem('session_token', result.session_token);
+      localStorage.setItem('session_token', result.access_token);
       localStorage.setItem('refresh_token', result.refresh_token);
       return true;
     } catch {

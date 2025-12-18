@@ -2,14 +2,17 @@ import os
 import httpx
 import secrets
 from typing import Optional, Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
-from app.db import User, TelegramUser
+from app.db import User, TelegramUser, TelegramLinkCode
 
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 TELEGRAM_API_BASE = "https://api.telegram.org/bot"
+
+# Link codes expire after 15 minutes
+LINK_CODE_EXPIRY_MINUTES = 15
 
 
 def is_telegram_configured() -> bool:
@@ -23,7 +26,7 @@ def get_bot_url() -> str:
 async def send_message(chat_id: str, text: str, parse_mode: str = "HTML") -> bool:
     if not TELEGRAM_BOT_TOKEN:
         return False
-    
+
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(
@@ -34,7 +37,7 @@ async def send_message(chat_id: str, text: str, parse_mode: str = "HTML") -> boo
                     "parse_mode": parse_mode
                 }
             )
-        
+
         return response.status_code == 200
     except Exception:
         return False
@@ -44,33 +47,71 @@ def generate_link_code() -> str:
     return secrets.token_hex(16)
 
 
-_pending_links: Dict[str, int] = {}
+def create_link_code(db: Session, user_id: int) -> str:
+    """Create a new link code persisted to the database."""
+    # Clean up any existing unused codes for this user
+    db.query(TelegramLinkCode).filter(
+        TelegramLinkCode.user_id == user_id,
+        TelegramLinkCode.is_used == False
+    ).delete()
 
-
-def create_link_code(user_id: int) -> str:
+    # Create new code
     code = generate_link_code()
-    _pending_links[code] = user_id
+    expires_at = datetime.utcnow() + timedelta(minutes=LINK_CODE_EXPIRY_MINUTES)
+
+    link_code = TelegramLinkCode(
+        user_id=user_id,
+        code=code,
+        expires_at=expires_at
+    )
+    db.add(link_code)
+    db.commit()
+
     return code
 
 
-def verify_link_code(code: str) -> Optional[int]:
-    return _pending_links.get(code)
+def verify_link_code(db: Session, code: str) -> Optional[int]:
+    """Verify a link code and return the user_id if valid."""
+    link_code = db.query(TelegramLinkCode).filter(
+        TelegramLinkCode.code == code,
+        TelegramLinkCode.is_used == False,
+        TelegramLinkCode.expires_at > datetime.utcnow()
+    ).first()
+
+    if link_code:
+        return link_code.user_id
+    return None
 
 
 def complete_link(db: Session, code: str, telegram_chat_id: str, telegram_username: Optional[str] = None) -> bool:
-    user_id = _pending_links.pop(code, None)
-    if not user_id:
+    """Complete the Telegram link process."""
+    # Find and validate the link code
+    link_code = db.query(TelegramLinkCode).filter(
+        TelegramLinkCode.code == code,
+        TelegramLinkCode.is_used == False,
+        TelegramLinkCode.expires_at > datetime.utcnow()
+    ).first()
+
+    if not link_code:
         return False
-    
+
+    user_id = link_code.user_id
+
+    # Mark code as used
+    link_code.is_used = True
+
+    # Check if this Telegram chat is already linked
     existing = db.query(TelegramUser).filter(
         TelegramUser.telegram_chat_id == telegram_chat_id
     ).first()
-    
+
     if existing:
         if existing.user_id != user_id:
             return False
+        db.commit()
         return True
-    
+
+    # Create new Telegram user link
     telegram_user = TelegramUser(
         user_id=user_id,
         telegram_chat_id=telegram_chat_id,
@@ -78,8 +119,17 @@ def complete_link(db: Session, code: str, telegram_chat_id: str, telegram_userna
     )
     db.add(telegram_user)
     db.commit()
-    
+
     return True
+
+
+def cleanup_expired_link_codes(db: Session) -> int:
+    """Clean up expired link codes. Returns count of deleted codes."""
+    result = db.query(TelegramLinkCode).filter(
+        TelegramLinkCode.expires_at < datetime.utcnow()
+    ).delete()
+    db.commit()
+    return result
 
 
 def get_telegram_user(db: Session, user_id: int) -> Optional[TelegramUser]:

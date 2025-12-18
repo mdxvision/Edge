@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button, Input, Card, Select } from '@/components/ui';
+import ErrorMessage from '@/components/ui/ErrorMessage';
 import { TrendingUp, Mail, Lock, User } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -9,7 +10,7 @@ type AuthMode = 'login' | 'register';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { loginWithToken, createClient } = useAuth();
+  const { loginWithToken } = useAuth();
   const [mode, setMode] = useState<AuthMode>('register');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -46,18 +47,22 @@ export default function Login() {
 
       if (result.requires_2fa) {
         setRequires2FA(true);
-        setError('Please enter your 2FA code');
+        setError('Enter your 2FA code to continue');
         setIsLoading(false);
         return;
       }
 
-      localStorage.setItem('session_token', result.session_token);
+      localStorage.setItem('session_token', result.access_token);
       localStorage.setItem('refresh_token', result.refresh_token);
 
-      await loginWithToken(result.session_token, result.refresh_token);
+      if (result.user?.client_id) {
+        localStorage.setItem('clientId', result.user.client_id.toString());
+      }
+
+      await loginWithToken(result.access_token, result.refresh_token);
       navigate('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to login');
+      setError(err instanceof Error ? err.message : 'Something\'s not right. Try again.');
     } finally {
       setIsLoading(false);
     }
@@ -68,17 +73,17 @@ export default function Login() {
     setError('');
 
     if (!registerData.confirmAge) {
-      setError('You must confirm you are 21 or older');
+      setError('Age verification required');
       return;
     }
 
     if (registerData.password !== registerData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords don\'t match');
       return;
     }
 
     if (registerData.password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError('Password needs at least 8 characters');
       return;
     }
 
@@ -89,63 +94,66 @@ export default function Login() {
         email: registerData.email,
         username: registerData.username,
         password: registerData.password,
-      });
-
-      localStorage.setItem('session_token', result.session_token);
-      localStorage.setItem('refresh_token', result.refresh_token);
-
-      await createClient({
-        name: registerData.name || registerData.username,
-        bankroll: parseFloat(registerData.bankroll),
+        initial_bankroll: parseFloat(registerData.bankroll),
         risk_profile: registerData.risk_profile,
       });
 
-      await loginWithToken(result.session_token, result.refresh_token);
+      localStorage.setItem('session_token', result.access_token);
+      localStorage.setItem('refresh_token', result.refresh_token);
+
+      if (result.user?.client_id) {
+        localStorage.setItem('clientId', result.user.client_id.toString());
+      }
+
+      await loginWithToken(result.access_token, result.refresh_token);
       navigate('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create account');
+      setError(err instanceof Error ? err.message : 'Something\'s not right. Try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-surface-50 to-surface-100 dark:from-surface-950 dark:to-surface-900">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-surface-50 dark:bg-surface-950">
+      <Card className="w-full max-w-md" padding="lg">
+        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-500/20 mb-4">
-            <TrendingUp className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-600 dark:bg-primary-500 mb-5">
+            <TrendingUp className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-surface-900 dark:text-white">
-            Welcome to EdgeBet
+          <h1 className="text-h1 text-surface-900 dark:text-white">
+            Welcome to EdgeBet.
           </h1>
-          <p className="text-surface-500 mt-2">
-            AI-powered sports betting analytics
+          <p className="text-surface-500 dark:text-surface-400 mt-2">
+            Intelligent edge detection. Beautifully simple.
           </p>
         </div>
 
-        <div className="mb-6 p-3 bg-warning-50 dark:bg-warning-500/10 rounded-lg">
-          <p className="text-xs text-warning-700 dark:text-warning-400 text-center">
-            <strong>SIMULATION ONLY</strong> - For educational purposes. No real money wagering.
+        {/* Warning Banner */}
+        <div className="mb-6 p-4 bg-warning-50 dark:bg-warning-500/10 rounded-xl border border-warning-100 dark:border-warning-500/20">
+          <p className="text-sm text-warning-700 dark:text-warning-400 text-center font-medium">
+            Simulation only. For educational purposes.
           </p>
         </div>
 
-        <div className="flex mb-6 border-b border-surface-200 dark:border-surface-700">
+        {/* Tab Switcher */}
+        <div className="flex mb-8 p-1 bg-surface-100 dark:bg-surface-800 rounded-xl">
           <button
-            className={`flex-1 pb-3 text-sm font-medium ${
+            className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
               mode === 'register'
-                ? 'text-primary-600 border-b-2 border-primary-600'
-                : 'text-surface-500 hover:text-surface-700 dark:hover:text-surface-300'
+                ? 'bg-white dark:bg-surface-700 text-surface-900 dark:text-white shadow-sm'
+                : 'text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300'
             }`}
             onClick={() => setMode('register')}
           >
-            Create Account
+            Get Started
           </button>
           <button
-            className={`flex-1 pb-3 text-sm font-medium ${
+            className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
               mode === 'login'
-                ? 'text-primary-600 border-b-2 border-primary-600'
-                : 'text-surface-500 hover:text-surface-700 dark:hover:text-surface-300'
+                ? 'bg-white dark:bg-surface-700 text-surface-900 dark:text-white shadow-sm'
+                : 'text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300'
             }`}
             onClick={() => setMode('login')}
           >
@@ -154,37 +162,37 @@ export default function Login() {
         </div>
 
         {mode === 'login' ? (
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div className="relative">
-              <Mail className="absolute left-3 top-9 w-4 h-4 text-surface-400" />
+              <Mail className="absolute left-4 top-[42px] w-5 h-5 text-surface-400" />
               <Input
                 label="Email"
                 type="email"
                 placeholder="you@example.com"
                 value={loginData.email}
                 onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                className="pl-10"
+                className="pl-12"
                 required
               />
             </div>
 
             <div className="relative">
-              <Lock className="absolute left-3 top-9 w-4 h-4 text-surface-400" />
+              <Lock className="absolute left-4 top-[42px] w-5 h-5 text-surface-400" />
               <Input
                 label="Password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Your password"
                 value={loginData.password}
                 onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                className="pl-10"
+                className="pl-12"
                 required
               />
             </div>
 
             {requires2FA && (
               <Input
-                label="2FA Code"
-                placeholder="Enter 6-digit code"
+                label="Two-Factor Code"
+                placeholder="6-digit code"
                 value={loginData.totp_code}
                 onChange={(e) => setLoginData({ ...loginData, totp_code: e.target.value })}
                 maxLength={6}
@@ -192,57 +200,60 @@ export default function Login() {
             )}
 
             {error && (
-              <p className="text-sm text-danger-500 text-center">{error}</p>
+              <ErrorMessage
+                message={error}
+                onDismiss={() => setError('')}
+              />
             )}
 
-            <Button type="submit" className="w-full" isLoading={isLoading}>
-              Sign In
+            <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
+              Continue
             </Button>
 
             <button
               type="button"
               onClick={() => navigate('/reset-password')}
-              className="w-full text-sm text-primary-600 hover:underline"
+              className="w-full text-sm text-primary-600 dark:text-primary-400 hover:underline font-medium"
             >
               Forgot password?
             </button>
           </form>
         ) : (
-          <form onSubmit={handleRegister} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-5">
             <div className="relative">
-              <Mail className="absolute left-3 top-9 w-4 h-4 text-surface-400" />
+              <Mail className="absolute left-4 top-[42px] w-5 h-5 text-surface-400" />
               <Input
                 label="Email"
                 type="email"
                 placeholder="you@example.com"
                 value={registerData.email}
                 onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                className="pl-10"
+                className="pl-12"
                 required
               />
             </div>
 
             <div className="relative">
-              <User className="absolute left-3 top-9 w-4 h-4 text-surface-400" />
+              <User className="absolute left-4 top-[42px] w-5 h-5 text-surface-400" />
               <Input
                 label="Username"
                 placeholder="Choose a username"
                 value={registerData.username}
                 onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
-                className="pl-10"
+                className="pl-12"
                 required
               />
             </div>
 
             <div className="relative">
-              <Lock className="absolute left-3 top-9 w-4 h-4 text-surface-400" />
+              <Lock className="absolute left-4 top-[42px] w-5 h-5 text-surface-400" />
               <Input
                 label="Password"
                 type="password"
-                placeholder="Create a password (min 8 characters)"
+                placeholder="At least 8 characters"
                 value={registerData.password}
                 onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                className="pl-10"
+                className="pl-12"
                 required
                 minLength={8}
               />
@@ -259,13 +270,13 @@ export default function Login() {
 
             <Input
               label="Display Name"
-              placeholder="Your name (shown on leaderboard)"
+              placeholder="How you appear on the leaderboard"
               value={registerData.name}
               onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
             />
 
             <Input
-              label="Starting Bankroll ($)"
+              label="Starting Bankroll"
               type="number"
               placeholder="10000"
               min="100"
@@ -280,40 +291,43 @@ export default function Login() {
               value={registerData.risk_profile}
               onChange={(e) => setRegisterData({ ...registerData, risk_profile: e.target.value })}
               options={[
-                { value: 'conservative', label: 'Conservative - Lower stakes, safer bets' },
-                { value: 'balanced', label: 'Balanced - Moderate risk and reward' },
-                { value: 'aggressive', label: 'Aggressive - Higher stakes, bigger swings' },
+                { value: 'conservative', label: 'Conservative — Smaller stakes, steadier returns' },
+                { value: 'balanced', label: 'Balanced — Moderate risk, moderate reward' },
+                { value: 'aggressive', label: 'Aggressive — Larger stakes, bigger swings' },
               ]}
             />
 
-            <label className="flex items-start gap-2 text-sm cursor-pointer">
+            <label className="flex items-start gap-3 text-sm cursor-pointer p-3 rounded-xl bg-surface-50 dark:bg-surface-800 border border-surface-200 dark:border-surface-700">
               <input
                 type="checkbox"
                 checked={registerData.confirmAge}
                 onChange={(e) => setRegisterData({ ...registerData, confirmAge: e.target.checked })}
-                className="mt-1 rounded border-surface-300 text-primary-600 focus:ring-primary-500"
+                className="mt-0.5 w-5 h-5 rounded-lg border-surface-300 text-primary-600 focus:ring-primary-500 focus:ring-offset-0"
                 required
               />
-              <span className="text-surface-600 dark:text-surface-400">
-                I confirm that I am <strong>21 years of age or older</strong> and agree to the{' '}
-                <a href="/terms" target="_blank" className="text-primary-600 hover:underline">
-                  Terms of Service
+              <span className="text-surface-600 dark:text-surface-300">
+                I confirm I am <strong className="text-surface-900 dark:text-white">21 or older</strong> and accept the{' '}
+                <a href="/terms" target="_blank" className="text-primary-600 dark:text-primary-400 hover:underline font-medium">
+                  Terms
                 </a>
               </span>
             </label>
 
             {error && (
-              <p className="text-sm text-danger-500 text-center">{error}</p>
+              <ErrorMessage
+                message={error}
+                onDismiss={() => setError('')}
+              />
             )}
 
-            <Button type="submit" className="w-full" isLoading={isLoading}>
-              Create Account
+            <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
+              Get Started
             </Button>
           </form>
         )}
 
-        <p className="text-xs text-surface-500 text-center mt-6">
-          By continuing, you acknowledge this is a simulation platform for educational purposes only.
+        <p className="text-xs text-surface-500 dark:text-surface-400 text-center mt-8">
+          This is a simulation platform for educational purposes.
         </p>
       </Card>
     </div>

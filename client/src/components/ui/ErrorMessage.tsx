@@ -11,7 +11,7 @@ interface ErrorMessageProps {
 }
 
 export default function ErrorMessage({
-  title = 'Something went wrong',
+  title = 'Something\'s not right',
   message,
   onRetry,
   onDismiss,

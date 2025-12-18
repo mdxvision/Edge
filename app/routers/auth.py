@@ -214,15 +214,24 @@ def get_current_user_info(
     db: Session = Depends(get_db)
 ):
     client = db.query(Client).filter(Client.id == user.client_id).first()
-    
+
     return {
         "id": user.id,
         "email": user.email,
         "username": user.username,
+        "display_name": user.display_name,
+        "preferred_currency": user.preferred_currency or "USD",
         "is_verified": user.is_verified,
+        "is_age_verified": user.is_age_verified or False,
+        "totp_enabled": user.totp_enabled or False,
         "last_login": user.last_login.isoformat() if user.last_login else None,
         "created_at": user.created_at.isoformat(),
         "client_id": user.client_id,
+        "subscription": {
+            "tier": user.subscription_tier or "free",
+            "status": user.subscription_status or "inactive",
+            "expires_at": user.subscription_expires.isoformat() if user.subscription_expires else None
+        },
         "client": {
             "id": client.id,
             "name": client.name,

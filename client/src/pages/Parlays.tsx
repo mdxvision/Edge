@@ -5,8 +5,10 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Badge from '@/components/ui/Badge';
+import EmptyState from '@/components/ui/EmptyState';
 import { api } from '@/lib/api';
 import { SPORTS } from '@/types';
+import { Layers, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 
 interface ParlayLeg {
   id: string;
@@ -68,18 +70,21 @@ export default function Parlays() {
   const analysis = analyzeMutation.data;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Parlay Builder</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Build and analyze parlays with correlated leg detection
+        <h1 className="text-display text-surface-900 dark:text-white">Parlay Lab</h1>
+        <p className="text-lg text-surface-500 dark:text-surface-400 mt-2">
+          Intelligent correlation detection. See your true edge.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4 dark:text-white">Add Leg</h2>
+        {/* Left Column - Build Parlay */}
+        <div className="space-y-6">
+          {/* Add Leg Card */}
+          <Card padding="lg">
+            <h2 className="text-h2 text-surface-900 dark:text-white mb-4">Add Pick</h2>
             <div className="space-y-3">
               <Input
                 placeholder="Selection (e.g., Chiefs -3.5)"
@@ -89,7 +94,7 @@ export default function Parlays() {
               <div className="grid grid-cols-2 gap-3">
                 <Input
                   type="number"
-                  placeholder="American Odds (-110, +150)"
+                  placeholder="Odds (-110, +150)"
                   value={newLeg.odds}
                   onChange={(e) => setNewLeg({ ...newLeg, odds: e.target.value })}
                 />
@@ -113,40 +118,44 @@ export default function Parlays() {
                 ))}
               </Select>
               <Button onClick={addLeg} disabled={!newLeg.selection || !newLeg.odds || !newLeg.probability}>
-                Add Leg
+                Add Pick
               </Button>
             </div>
           </Card>
 
-          <Card className="p-6">
+          {/* Parlay Legs Card */}
+          <Card padding="lg">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold dark:text-white">Your Parlay ({legs.length} legs)</h2>
+              <h2 className="text-h2 text-surface-900 dark:text-white">Your Parlay ({legs.length} picks)</h2>
               {legs.length > 0 && (
                 <Button size="sm" variant="outline" onClick={() => setLegs([])}>
-                  Clear All
+                  Clear
                 </Button>
               )}
             </div>
 
             {legs.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                Add legs to build your parlay
-              </p>
+              <EmptyState
+                icon={Layers}
+                title="No picks added"
+                description="Add picks to build your parlay."
+                className="py-6"
+              />
             ) : (
               <div className="space-y-3">
                 {legs.map((leg, idx) => (
                   <div
                     key={leg.id}
-                    className="flex items-center justify-between p-3 bg-surface-50 dark:bg-surface-800 rounded-lg"
+                    className="flex items-center justify-between p-4 bg-surface-50 dark:bg-surface-800 rounded-xl"
                   >
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-1">
                         <span className="text-sm font-medium text-surface-500">#{idx + 1}</span>
-                        <span className="font-medium dark:text-white">{leg.selection}</span>
-                        {leg.sport && <Badge variant="secondary">{leg.sport}</Badge>}
+                        <span className="font-semibold text-surface-900 dark:text-white">{leg.selection}</span>
+                        {leg.sport && <Badge variant="neutral">{leg.sport}</Badge>}
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatOdds(leg.odds)} | {formatPercent(leg.probability)} probability
+                      <p className="text-sm text-surface-500 dark:text-surface-400">
+                        {formatOdds(leg.odds)} · {formatPercent(leg.probability)} probability
                       </p>
                     </div>
                     <Button size="sm" variant="ghost" onClick={() => removeLeg(leg.id)}>
@@ -167,77 +176,81 @@ export default function Parlays() {
           </Card>
         </div>
 
-        <div className="space-y-4">
+        {/* Right Column - Analysis */}
+        <div className="space-y-6">
           {analysis && (
             <>
-              <Card className="p-6">
-                <h2 className="text-lg font-semibold mb-4 dark:text-white">Parlay Analysis</h2>
+              {/* Main Analysis */}
+              <Card padding="lg">
+                <h2 className="text-h2 text-surface-900 dark:text-white mb-4">Analysis</h2>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Combined Odds</p>
-                    <p className="text-xl font-bold dark:text-white">{formatOdds(analysis.combined_odds)}</p>
+                  <div className="p-4 bg-surface-50 dark:bg-surface-800 rounded-xl">
+                    <p className="text-sm text-surface-500 dark:text-surface-400">Combined Odds</p>
+                    <p className="text-xl font-bold text-surface-900 dark:text-white">{formatOdds(analysis.combined_odds)}</p>
                   </div>
-                  <div className="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Win Probability</p>
-                    <p className="text-xl font-bold dark:text-white">
+                  <div className="p-4 bg-surface-50 dark:bg-surface-800 rounded-xl">
+                    <p className="text-sm text-surface-500 dark:text-surface-400">Win Probability</p>
+                    <p className="text-xl font-bold text-surface-900 dark:text-white">
                       {formatPercent(analysis.adjusted_probability)}
                     </p>
                   </div>
-                  <div className="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Edge</p>
-                    <p
-                      className={`text-xl font-bold ${
-                        analysis.edge > 0 ? 'text-green-600' : 'text-red-600'
-                      }`}
-                    >
+                  <div className="p-4 bg-surface-50 dark:bg-surface-800 rounded-xl">
+                    <p className="text-sm text-surface-500 dark:text-surface-400">Edge</p>
+                    <p className={`text-xl font-bold flex items-center gap-1 ${
+                      analysis.edge > 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'
+                    }`}>
+                      {analysis.edge > 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
                       {formatPercent(analysis.edge)}
                     </p>
                   </div>
-                  <div className="p-3 bg-surface-50 dark:bg-surface-800 rounded-lg">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">EV per $</p>
-                    <p
-                      className={`text-xl font-bold ${
-                        analysis.ev_per_dollar > 0 ? 'text-green-600' : 'text-red-600'
-                      }`}
-                    >
+                  <div className="p-4 bg-surface-50 dark:bg-surface-800 rounded-xl">
+                    <p className="text-sm text-surface-500 dark:text-surface-400">Projected Edge</p>
+                    <p className={`text-xl font-bold ${
+                      analysis.ev_per_dollar > 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'
+                    }`}>
                       ${analysis.ev_per_dollar.toFixed(2)}
                     </p>
                   </div>
                 </div>
 
                 {analysis.correlation_adjustment !== 0 && (
-                  <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                      Correlation adjustment applied: {formatPercent(Math.abs(analysis.correlation_adjustment))}
-                      {analysis.correlation_adjustment > 0 ? ' boost' : ' reduction'}
-                    </p>
+                  <div className="mt-4 p-4 bg-warning-50 dark:bg-warning-500/10 border border-warning-200 dark:border-warning-500/30 rounded-xl">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-warning-600 dark:text-warning-400" />
+                      <p className="text-sm font-medium text-warning-700 dark:text-warning-300">
+                        Correlation Detected: {formatPercent(Math.abs(analysis.correlation_adjustment))}
+                        {analysis.correlation_adjustment > 0 ? ' boost' : ' reduction'}
+                      </p>
+                    </div>
                   </div>
                 )}
 
-                <div
-                  className={`mt-4 p-4 rounded-lg ${
+                <div className={`mt-4 p-4 rounded-xl flex items-center gap-3 ${
+                  analysis.is_positive_ev
+                    ? 'bg-success-50 dark:bg-success-500/10 border border-success-200 dark:border-success-500/30'
+                    : 'bg-danger-50 dark:bg-danger-500/10 border border-danger-200 dark:border-danger-500/30'
+                }`}>
+                  {analysis.is_positive_ev ? (
+                    <CheckCircle className="w-6 h-6 text-success-600 dark:text-success-400" />
+                  ) : (
+                    <XCircle className="w-6 h-6 text-danger-600 dark:text-danger-400" />
+                  )}
+                  <p className={`font-semibold ${
                     analysis.is_positive_ev
-                      ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
-                      : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
-                  }`}
-                >
-                  <p
-                    className={`font-medium ${
-                      analysis.is_positive_ev
-                        ? 'text-green-800 dark:text-green-200'
-                        : 'text-red-800 dark:text-red-200'
-                    }`}
-                  >
+                      ? 'text-success-700 dark:text-success-300'
+                      : 'text-danger-700 dark:text-danger-300'
+                  }`}>
                     {analysis.is_positive_ev ? '+EV Parlay' : 'Negative EV'}
                   </p>
                 </div>
               </Card>
 
-              <Card className="p-6">
-                <h2 className="text-lg font-semibold mb-4 dark:text-white">Risk Assessment</h2>
+              {/* Risk Assessment */}
+              <Card padding="lg">
+                <h2 className="text-h2 text-surface-900 dark:text-white mb-4">Risk Assessment</h2>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 dark:text-gray-300">Risk Level</span>
+                    <span className="text-surface-600 dark:text-surface-400">Risk Level</span>
                     <Badge
                       variant={
                         analysis.risk_assessment.risk_level === 'low'
@@ -251,43 +264,40 @@ export default function Parlays() {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 dark:text-gray-300">Win Probability</span>
-                    <span className="font-medium dark:text-white">
+                    <span className="text-surface-600 dark:text-surface-400">Win Probability</span>
+                    <span className="font-medium text-surface-900 dark:text-white">
                       {formatPercent(analysis.risk_assessment.win_probability)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600 dark:text-gray-300">Max Stake (% of bankroll)</span>
-                    <span className="font-medium dark:text-white">
-                      {analysis.risk_assessment.suggested_max_stake_percent.toFixed(1)}%
+                    <span className="text-surface-600 dark:text-surface-400">Max Stake</span>
+                    <span className="font-medium text-surface-900 dark:text-white">
+                      {analysis.risk_assessment.suggested_max_stake_percent.toFixed(1)}% of bankroll
                     </span>
                   </div>
-                  <div className="pt-3 border-t dark:border-gray-700">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="pt-4 border-t border-surface-200 dark:border-surface-700">
+                    <p className="text-sm text-surface-600 dark:text-surface-400">
                       {analysis.risk_assessment.recommendation}
                     </p>
                   </div>
                 </div>
               </Card>
 
-              <Card className="p-6">
-                <h2 className="text-lg font-semibold mb-4 dark:text-white">Leg Breakdown</h2>
+              {/* Leg Breakdown */}
+              <Card padding="lg">
+                <h2 className="text-h2 text-surface-900 dark:text-white mb-4">Pick Breakdown</h2>
                 <div className="space-y-2">
                   {analysis.legs.map((leg, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-2 border-b dark:border-gray-700 last:border-0"
+                      className="flex items-center justify-between p-3 border-b border-surface-200 dark:border-surface-700 last:border-0"
                     >
-                      <span className="text-gray-700 dark:text-gray-300">{leg.selection}</span>
-                      <div className="text-right">
-                        <span
-                          className={`text-sm font-medium ${
-                            leg.edge > 0 ? 'text-green-600' : 'text-red-600'
-                          }`}
-                        >
-                          {formatPercent(leg.edge)} edge
-                        </span>
-                      </div>
+                      <span className="text-surface-700 dark:text-surface-300">{leg.selection}</span>
+                      <span className={`text-sm font-medium ${
+                        leg.edge > 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'
+                      }`}>
+                        {formatPercent(leg.edge)} edge
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -296,10 +306,11 @@ export default function Parlays() {
           )}
 
           {!analysis && legs.length >= 2 && (
-            <Card className="p-6">
+            <Card padding="lg">
               <div className="text-center py-8">
-                <p className="text-gray-500 dark:text-gray-400 mb-4">
-                  Click "Analyze Parlay" to see detailed analysis
+                <Layers className="w-12 h-12 text-surface-400 mx-auto mb-4" />
+                <p className="text-surface-500 dark:text-surface-400">
+                  Analyze to see your edge.
                 </p>
               </div>
             </Card>

@@ -12,3 +12,7 @@ export { default as Parlays } from './Parlays';
 export { default as Leaderboard } from './Leaderboard';
 export { default as Terms } from './Terms';
 export { default as ResetPassword } from './ResetPassword';
+export { default as PowerRatings } from './PowerRatings';
+export { default as PaperTrading } from './PaperTrading';
+export { default as Pricing } from './Pricing';
+export { default as EdgeTracker } from './EdgeTracker';

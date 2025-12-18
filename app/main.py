@@ -5,6 +5,13 @@ from contextlib import asynccontextmanager
 import time
 import os
 
+# Set timezone to EST
+os.environ['TZ'] = 'America/New_York'
+try:
+    time.tzset()
+except AttributeError:
+    pass  # tzset not available on Windows
+
 from app.db import init_db
 from app.services.data_ingestion import seed_sample_data
 from app.routers import health, clients, recommendations, games
@@ -20,10 +27,34 @@ from app.routers.currency import router as currency_router
 from app.routers.odds import router as odds_router
 from app.routers.telegram import router as telegram_router
 from app.routers.account import router as account_router
+from app.routers.analytics import router as analytics_router
+from app.routers.jobs import router as jobs_router
+from app.routers.mlb import router as mlb_router
+from app.routers.nba import router as nba_router
+from app.routers.nfl import router as nfl_router
+from app.routers.cbb import router as cbb_router
+from app.routers.soccer import router as soccer_router
+from app.routers.weather import router as weather_router
+from app.routers.coaches import router as coaches_router
+from app.routers.officials import router as officials_router
+from app.routers.lines import router as lines_router
+from app.routers.situations import router as situations_router
+from app.routers.social import router as social_router
+from app.routers.predictions import router as predictions_router
+from app.routers.power_ratings import router as power_ratings_router
+from app.routers.paper_trading import router as paper_trading_router
+from app.routers.h2h import router as h2h_router
+from app.routers.situational_trends import router as situational_trends_router
+from app.routers.prediction_accuracy import router as prediction_accuracy_router
+from app.routers.billing import router as billing_router
+from app.routers.api_keys import router as api_keys_router
+from app.routers.devices import router as devices_router
+from app.routers.tracker import router as tracker_router
 from app.middleware.rate_limit import RateLimitMiddleware, AuthRateLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.utils.logging import setup_logging, request_logger
 from app.services.currency import seed_default_rates
+from app.services.data_scheduler import start_schedulers, stop_schedulers
 
 logger = setup_logging(level=os.environ.get("LOG_LEVEL", "INFO"))
 
@@ -38,7 +69,16 @@ async def lifespan(app: FastAPI):
         seed_default_rates(db)
     finally:
         db.close()
+
+    # Start data refresh schedulers for MLB/NBA/CBB/Soccer
+    start_schedulers()
+    logger.info("MLB, NBA, CBB, and Soccer data schedulers started")
+
     yield
+
+    # Cleanup on shutdown
+    stop_schedulers()
+    logger.info("Data schedulers stopped")
 
 
 app = FastAPI(
@@ -106,7 +146,28 @@ Authorization: Bearer <session_token>
         {"name": "webhooks", "description": "Webhook integrations"},
         {"name": "currency", "description": "Multi-currency support"},
         {"name": "historical", "description": "Historical data and ML model management"},
-        {"name": "dfs", "description": "Daily Fantasy Sports optimization"}
+        {"name": "dfs", "description": "Daily Fantasy Sports optimization"},
+        {"name": "analytics", "description": "Advanced analytics, CLV analysis, and line movements"},
+        {"name": "MLB", "description": "Real-time MLB data from MLB Stats API"},
+        {"name": "NBA", "description": "Real-time NBA data from NBA API"},
+        {"name": "NFL", "description": "Real-time NFL data from ESPN API"},
+        {"name": "College Basketball", "description": "NCAA Men's College Basketball data from ESPN"},
+        {"name": "Soccer", "description": "European soccer data from Football-Data.org"},
+        {"name": "Weather", "description": "Weather data and impact analysis for betting edges"},
+        {"name": "coaches", "description": "Coach DNA - Situational records and behavioral analysis"},
+        {"name": "officials", "description": "Referee/Umpire tendencies and O/U impact analysis"},
+        {"name": "lines", "description": "Line movement tracking, steam moves, and sharp money detection"},
+        {"name": "situations", "description": "Rest, travel, motivation, and schedule spot analysis"},
+        {"name": "social", "description": "Social sentiment analysis and public betting percentages"},
+        {"name": "predictions", "description": "Unified ML predictions combining all edge factors"},
+        {"name": "power-ratings", "description": "Team power ratings, ATS records, and spread predictions"},
+        {"name": "paper-trading", "description": "Virtual bankroll and paper trading for strategy validation"},
+        {"name": "Head-to-Head", "description": "Historical H2H matchup data and rivalry analysis"},
+        {"name": "Situational Trends", "description": "Team performance in various betting situations"},
+        {"name": "Prediction Accuracy", "description": "Track and analyze prediction accuracy and factor performance"},
+        {"name": "billing", "description": "Subscription management and Stripe checkout"},
+        {"name": "api-keys", "description": "API key management for programmatic access (Pro tier)"},
+        {"name": "devices", "description": "Device registration for push notifications"}
     ]
 )
 
@@ -140,6 +201,29 @@ app.include_router(telegram_router)
 app.include_router(account_router)
 app.include_router(historical_router)
 app.include_router(dfs_router)
+app.include_router(analytics_router)
+app.include_router(jobs_router)
+app.include_router(mlb_router)
+app.include_router(nba_router)
+app.include_router(nfl_router)
+app.include_router(cbb_router)
+app.include_router(soccer_router)
+app.include_router(weather_router)
+app.include_router(coaches_router)
+app.include_router(officials_router)
+app.include_router(lines_router)
+app.include_router(situations_router)
+app.include_router(social_router)
+app.include_router(predictions_router)
+app.include_router(power_ratings_router)
+app.include_router(paper_trading_router)
+app.include_router(h2h_router)
+app.include_router(situational_trends_router)
+app.include_router(prediction_accuracy_router)
+app.include_router(billing_router)
+app.include_router(api_keys_router)
+app.include_router(devices_router)
+app.include_router(tracker_router)
 
 
 @app.middleware("http")

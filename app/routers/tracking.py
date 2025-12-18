@@ -5,7 +5,8 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 from app.db import get_db, User
-from app.services.auth import validate_session
+from app.routers.auth import require_auth
+from app.middleware.age_verification import require_age_verified
 from app.services.bet_tracking import (
     place_bet, settle_bet, get_user_bets, get_bet_by_id,
     delete_bet, get_user_stats, get_profit_by_period,
@@ -14,20 +15,6 @@ from app.services.bet_tracking import (
 from app.services.audit import log_action
 
 router = APIRouter(prefix="/tracking", tags=["tracking"])
-
-
-def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    token = auth_header.split(" ")[1]
-    user = validate_session(db, token)
-    
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid or expired session")
-    
-    return user
 
 
 class PlaceBetRequest(BaseModel):
@@ -87,7 +74,7 @@ class StatsResponse(BaseModel):
 def create_bet(
     data: PlaceBetRequest,
     request: Request,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_age_verified),
     db: Session = Depends(get_db)
 ):
     bet = place_bet(
@@ -138,7 +125,7 @@ def list_bets(
     sport: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_auth),
     db: Session = Depends(get_db)
 ):
     bets = get_user_bets(db, user.id, status, sport, limit, offset)
@@ -167,7 +154,7 @@ def list_bets(
 @router.get("/bets/{bet_id}", response_model=BetResponse)
 def get_bet(
     bet_id: int,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_auth),
     db: Session = Depends(get_db)
 ):
     bet = get_bet_by_id(db, bet_id, user.id)
@@ -198,7 +185,7 @@ def settle_bet_endpoint(
     bet_id: int,
     data: SettleBetRequest,
     request: Request,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_age_verified),
     db: Session = Depends(get_db)
 ):
     bet = get_bet_by_id(db, bet_id, user.id)
@@ -240,7 +227,7 @@ def settle_bet_endpoint(
 @router.delete("/bets/{bet_id}")
 def delete_bet_endpoint(
     bet_id: int,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_auth),
     db: Session = Depends(get_db)
 ):
     bet = get_bet_by_id(db, bet_id, user.id)
@@ -257,7 +244,7 @@ def delete_bet_endpoint(
 @router.get("/stats", response_model=StatsResponse)
 def get_stats(
     currency: str = "USD",
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_auth),
     db: Session = Depends(get_db)
 ):
     stats = get_user_stats(db, user.id, currency)
@@ -268,7 +255,7 @@ def get_stats(
 def get_daily_profit(
     days: int = 30,
     currency: str = "USD",
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_auth),
     db: Session = Depends(get_db)
 ):
     return get_profit_by_period(db, user.id, days, currency)
@@ -277,7 +264,7 @@ def get_daily_profit(
 @router.get("/profit/by-sport")
 def get_sport_profit(
     currency: str = "USD",
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_auth),
     db: Session = Depends(get_db)
 ):
     return get_profit_by_sport(db, user.id, currency)

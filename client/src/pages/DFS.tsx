@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Card, Button, Badge } from '@/components/ui';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import EmptyState from '@/components/ui/EmptyState';
+import ErrorMessage from '@/components/ui/ErrorMessage';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import type { DFSProjection, OptimizeResult, DFSStack, DFSLineup } from '@/types';
 import {
   Zap,
   TrendingUp,
-  DollarSign,
   Users,
   Target,
   Layers,
@@ -14,7 +16,7 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
-  Info
+  Sparkles
 } from 'lucide-react';
 
 const DFS_SPORTS = [
@@ -26,7 +28,7 @@ const DFS_SPORTS = [
 
 const PLATFORMS = ['DraftKings', 'FanDuel'];
 const LINEUP_TYPES = [
-  { id: 'balanced', name: 'Balanced', desc: 'Best value plays' },
+  { id: 'balanced', name: 'Balanced', desc: 'Precision value plays' },
   { id: 'cash', name: 'Cash Game', desc: 'High floor, consistent' },
   { id: 'gpp', name: 'GPP Tournament', desc: 'High ceiling, contrarian' },
 ];
@@ -41,6 +43,7 @@ export default function DFS() {
   const [savedLineups, setSavedLineups] = useState<DFSLineup[]>([]);
   const [stacks, setStacks] = useState<DFSStack[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [showProjections, setShowProjections] = useState(false);
   const [showStacks, setShowStacks] = useState(false);
@@ -57,6 +60,7 @@ export default function DFS() {
 
   async function loadData() {
     setIsLoading(true);
+    setError(null);
     try {
       const [projData, stackData] = await Promise.all([
         api.dfs.getProjections(selectedSport, selectedPlatform, 50),
@@ -66,6 +70,7 @@ export default function DFS() {
       setStacks(stackData.stacks);
     } catch (err) {
       console.error('Failed to load DFS data:', err);
+      setError('Couldn\'t load this. Try again.');
     } finally {
       setIsLoading(false);
     }
@@ -112,12 +117,20 @@ export default function DFS() {
 
   if (isLoading && projections.length === 0) {
     return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-surface-200 dark:bg-surface-800 rounded w-48" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 h-96 bg-surface-200 dark:bg-surface-800 rounded-xl" />
-          <div className="h-96 bg-surface-200 dark:bg-surface-800 rounded-xl" />
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner size="lg" text="Analyzing..." />
+      </div>
+    );
+  }
+
+  if (error && projections.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <ErrorMessage
+          message={error}
+          variant="fullpage"
+          onRetry={loadData}
+        />
       </div>
     );
   }
@@ -126,11 +139,11 @@ export default function DFS() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900 dark:text-white">
-            DFS Lineup Optimizer
+          <h1 className="text-display text-surface-900 dark:text-white">
+            Lineups
           </h1>
-          <p className="text-surface-500 mt-1">
-            Build optimal lineups with player projections and correlation analysis
+          <p className="text-lg text-surface-500 dark:text-surface-400 mt-2">
+            Precision projections. Intelligent correlation.
           </p>
         </div>
       </div>
@@ -175,7 +188,7 @@ export default function DFS() {
               <div className="flex items-center gap-3">
                 <Zap className="w-5 h-5 text-warning-500" />
                 <h2 className="font-semibold text-surface-900 dark:text-white">
-                  Optimize Lineup
+                  Build Optimal Lineup
                 </h2>
               </div>
             </div>
@@ -205,14 +218,14 @@ export default function DFS() {
               className="w-full"
             >
               <RefreshCw className={`w-4 h-4 ${isOptimizing ? 'animate-spin' : ''}`} />
-              {isOptimizing ? 'Optimizing...' : 'Generate Optimal Lineup'}
+              {isOptimizing ? 'Analyzing...' : 'Build Optimal Lineup'}
             </Button>
 
             {currentLineup && currentLineup.success && currentLineup.lineup && (
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-medium text-surface-900 dark:text-white">
-                    Optimized Lineup
+                    Optimal Lineup
                   </h3>
                   <div className="flex items-center gap-4 text-sm">
                     <span className="text-surface-500">
@@ -221,7 +234,7 @@ export default function DFS() {
                       </span>
                     </span>
                     <span className="text-surface-500">
-                      Proj: <span className="font-medium text-success-600 dark:text-success-500">
+                      Projected: <span className="font-medium text-success-600 dark:text-success-500">
                         {currentLineup.projected_points} pts
                       </span>
                     </span>
@@ -295,7 +308,7 @@ export default function DFS() {
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 <h2 className="font-semibold text-surface-900 dark:text-white">
-                  Player Projections
+                  Precision Projections
                 </h2>
                 <Badge variant="neutral">{projections.length}</Badge>
               </div>
@@ -365,11 +378,12 @@ export default function DFS() {
             </div>
 
             {savedLineups.length === 0 ? (
-              <div className="text-center py-6 text-surface-500">
-                <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No saved lineups</p>
-                <p className="text-xs mt-1">Generate a lineup to get started</p>
-              </div>
+              <EmptyState
+                icon={Target}
+                title="No saved lineups"
+                description="Build a lineup to get started."
+                className="py-6"
+              />
             ) : (
               <div className="space-y-3">
                 {savedLineups.slice(0, 5).map((lineup) => (
@@ -460,13 +474,13 @@ export default function DFS() {
 
           <Card className="border-primary-200 dark:border-primary-500/30 bg-primary-50/50 dark:bg-primary-500/5">
             <div className="flex items-start gap-3">
-              <Info className="w-5 h-5 text-primary-600 dark:text-primary-400 mt-0.5" />
+              <Sparkles className="w-5 h-5 text-primary-600 dark:text-primary-400 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-primary-900 dark:text-primary-100 text-sm">
-                  DFS Tips
+                  The Edge
                 </h3>
                 <ul className="text-xs text-primary-700 dark:text-primary-300 mt-2 space-y-1">
-                  <li>Cash games: Prioritize floor & consistency</li>
+                  <li>Cash: Prioritize floor and consistency</li>
                   <li>GPP: Stack correlated players for upside</li>
                   <li>Value plays (5x+) are key to winning</li>
                   <li>Monitor ownership to find leverage</li>

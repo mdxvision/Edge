@@ -5,8 +5,11 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Badge from '@/components/ui/Badge';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import EmptyState from '@/components/ui/EmptyState';
 import { api } from '@/lib/api';
 import { SPORTS } from '@/types';
+import { ClipboardList, Trophy, Target, DollarSign, Percent, Activity } from 'lucide-react';
 
 export default function Tracking() {
   const queryClient = useQueryClient();
@@ -68,21 +71,32 @@ export default function Tracking() {
     return amount >= 0 ? `+$${amount.toFixed(2)}` : `-$${Math.abs(amount).toFixed(2)}`;
   };
 
+  const getBetStatusLabel = (status: string, result?: string | null) => {
+    if (status === 'pending') return 'In Play';
+    if (result === 'won') return 'Cashed ✓';
+    if (result === 'lost') return 'Missed';
+    return result?.toUpperCase() || status;
+  };
+
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Bet Tracking</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Track your bets and performance</p>
+          <h1 className="text-display text-surface-900 dark:text-white">Your Bets</h1>
+          <p className="text-lg text-surface-500 dark:text-surface-400 mt-2">
+            Track performance. See your edge.
+          </p>
         </div>
-        <Button onClick={() => setShowAddBet(!showAddBet)}>
-          {showAddBet ? 'Cancel' : 'Track New Bet'}
+        <Button onClick={() => setShowAddBet(!showAddBet)} size="lg">
+          {showAddBet ? 'Cancel' : 'Track a Bet'}
         </Button>
       </div>
 
+      {/* Add Bet Form */}
       {showAddBet && (
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4 dark:text-white">Add New Bet</h2>
+        <Card padding="lg">
+          <h2 className="text-h2 text-surface-900 dark:text-white mb-6">Track a Bet</h2>
           <form onSubmit={handleAddBet} className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Select name="sport" required>
               <option value="">Select Sport</option>
@@ -99,54 +113,85 @@ export default function Tracking() {
               <option value="future">Future</option>
             </Select>
             <Input name="selection" placeholder="Selection (e.g., Team A -3.5)" required />
-            <Input name="odds" type="number" placeholder="Odds (-110, +150, etc)" required />
+            <Input name="odds" type="number" placeholder="Odds (-110, +150)" required />
             <Input name="stake" type="number" step="0.01" placeholder="Stake ($)" required />
             <Input name="sportsbook" placeholder="Sportsbook (optional)" />
             <div className="md:col-span-3">
               <Button type="submit" disabled={placeBetMutation.isPending}>
-                {placeBetMutation.isPending ? 'Adding...' : 'Add Bet'}
+                {placeBetMutation.isPending ? 'Adding...' : 'Track This'}
               </Button>
             </div>
           </form>
         </Card>
       )}
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Profit</p>
-          <p className={`text-2xl font-bold ${(stats?.total_profit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {stats ? formatMoney(stats.total_profit) : '$0.00'}
-          </p>
+        <Card padding="md">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-success-50 dark:bg-success-500/10">
+              <DollarSign className="w-6 h-6 text-success-600 dark:text-success-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-surface-500 dark:text-surface-400">Performance</p>
+              <p className={`text-2xl font-bold ${(stats?.total_profit || 0) >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}`}>
+                {stats ? formatMoney(stats.total_profit) : '$0.00'}
+              </p>
+            </div>
+          </div>
         </Card>
-        <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Win Rate</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {stats?.win_rate.toFixed(1) || 0}%
-          </p>
+        <Card padding="md">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-primary-50 dark:bg-primary-500/10">
+              <Target className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-surface-500 dark:text-surface-400">Precision Rate</p>
+              <p className="text-2xl font-bold text-surface-900 dark:text-white">
+                {stats?.win_rate.toFixed(1) || 0}%
+              </p>
+            </div>
+          </div>
         </Card>
-        <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">ROI</p>
-          <p className={`text-2xl font-bold ${(stats?.roi || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {stats?.roi.toFixed(2) || 0}%
-          </p>
+        <Card padding="md">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-warning-50 dark:bg-warning-500/10">
+              <Percent className="w-6 h-6 text-warning-600 dark:text-warning-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-surface-500 dark:text-surface-400">ROI</p>
+              <p className={`text-2xl font-bold ${(stats?.roi || 0) >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}`}>
+                {stats?.roi.toFixed(2) || 0}%
+              </p>
+            </div>
+          </div>
         </Card>
-        <Card className="p-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Current Streak</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {stats?.current_streak || 0} W
-          </p>
+        <Card padding="md">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-primary-50 dark:bg-primary-500/10">
+              <Activity className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-surface-500 dark:text-surface-400">Current Streak</p>
+              <p className="text-2xl font-bold text-surface-900 dark:text-white">
+                {stats?.current_streak || 0} W
+              </p>
+            </div>
+          </div>
         </Card>
       </div>
 
+      {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Bets List */}
         <div className="lg:col-span-2">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold dark:text-white">Your Bets</h2>
+          <Card padding="lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h2 className="text-h2 text-surface-900 dark:text-white">All Bets</h2>
               <div className="flex gap-2">
                 <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                   <option value="">All Status</option>
-                  <option value="pending">Pending</option>
+                  <option value="pending">In Play</option>
                   <option value="settled">Settled</option>
                 </Select>
                 <Select value={sportFilter} onChange={(e) => setSportFilter(e.target.value)}>
@@ -159,31 +204,41 @@ export default function Tracking() {
             </div>
 
             {betsLoading ? (
-              <p className="text-gray-500">Loading bets...</p>
+              <div className="flex justify-center py-8">
+                <LoadingSpinner text="Analyzing..." />
+              </div>
             ) : bets?.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-8">No bets tracked yet</p>
+              <EmptyState
+                icon={ClipboardList}
+                title="No bets yet"
+                description="Track your first bet to see performance."
+                action={{
+                  label: 'Track a Bet',
+                  onClick: () => setShowAddBet(true),
+                }}
+              />
             ) : (
               <div className="space-y-3">
                 {bets?.map(bet => (
-                  <div key={bet.id} className="border dark:border-gray-700 rounded-lg p-4">
+                  <div key={bet.id} className="border border-surface-200 dark:border-surface-700 rounded-xl p-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary">{bet.sport}</Badge>
-                          <Badge variant="outline">{bet.bet_type}</Badge>
-                          <Badge variant={bet.status === 'pending' ? 'default' : bet.result === 'won' ? 'success' : 'destructive'}>
-                            {bet.status === 'pending' ? 'Pending' : bet.result?.toUpperCase()}
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <Badge variant="primary">{bet.sport}</Badge>
+                          <Badge variant="neutral">{bet.bet_type}</Badge>
+                          <Badge variant={bet.status === 'pending' ? 'warning' : bet.result === 'won' ? 'success' : 'danger'}>
+                            {getBetStatusLabel(bet.status, bet.result)}
                           </Badge>
                         </div>
-                        <p className="font-medium mt-2 dark:text-white">{bet.selection}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {formatOdds(bet.odds)} | ${bet.stake.toFixed(2)} stake
-                          {bet.sportsbook && ` | ${bet.sportsbook}`}
+                        <p className="font-semibold text-surface-900 dark:text-white">{bet.selection}</p>
+                        <p className="text-sm text-surface-500 dark:text-surface-400 mt-1">
+                          {formatOdds(bet.odds)} · ${bet.stake.toFixed(2)} stake
+                          {bet.sportsbook && ` · ${bet.sportsbook}`}
                         </p>
                       </div>
                       <div className="text-right">
                         {bet.status === 'settled' && bet.profit_loss !== null && (
-                          <p className={`text-lg font-bold ${bet.profit_loss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <p className={`text-lg font-bold ${bet.profit_loss >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}`}>
                             {formatMoney(bet.profit_loss)}
                           </p>
                         )}
@@ -194,14 +249,14 @@ export default function Tracking() {
                               variant="outline"
                               onClick={() => settleBetMutation.mutate({ betId: bet.id, result: 'won' })}
                             >
-                              Won
+                              Cashed
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => settleBetMutation.mutate({ betId: bet.id, result: 'lost' })}
                             >
-                              Lost
+                              Missed
                             </Button>
                             <Button
                               size="sm"
@@ -221,31 +276,38 @@ export default function Tracking() {
           </Card>
         </div>
 
-        <div>
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4 dark:text-white">Leaderboard</h2>
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Leaderboard Preview */}
+          <Card padding="lg">
+            <h2 className="text-h2 text-surface-900 dark:text-white mb-4">Leaderboard</h2>
             {leaderboard?.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-4">No entries yet</p>
+              <EmptyState
+                icon={Trophy}
+                title="No entries yet"
+                description="The leaderboard updates weekly."
+                className="py-4"
+              />
             ) : (
               <div className="space-y-3">
                 {leaderboard?.map((entry, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-2 border-b dark:border-gray-700 last:border-0">
+                  <div key={idx} className="flex items-center justify-between py-2 border-b border-surface-200 dark:border-surface-700 last:border-0">
                     <div className="flex items-center gap-3">
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${
-                        idx === 0 ? 'bg-yellow-100 text-yellow-800' :
-                        idx === 1 ? 'bg-gray-100 text-gray-800' :
-                        idx === 2 ? 'bg-orange-100 text-orange-800' :
-                        'bg-gray-50 text-gray-600'
+                      <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
+                        idx === 0 ? 'bg-warning-100 text-warning-700 dark:bg-warning-500/20 dark:text-warning-400' :
+                        idx === 1 ? 'bg-surface-200 text-surface-700 dark:bg-surface-700 dark:text-surface-300' :
+                        idx === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' :
+                        'bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-400'
                       }`}>
                         {entry.rank}
                       </span>
-                      <span className="font-medium dark:text-white">{entry.display_name}</span>
+                      <span className="font-medium text-surface-900 dark:text-white">{entry.display_name}</span>
                     </div>
                     <div className="text-right">
-                      <p className={`font-bold ${entry.total_profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className={`font-bold ${entry.total_profit >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}`}>
                         {formatMoney(entry.total_profit)}
                       </p>
-                      <p className="text-xs text-gray-500">{entry.roi_percentage.toFixed(1)}% ROI</p>
+                      <p className="text-xs text-surface-500 dark:text-surface-400">{entry.roi_percentage.toFixed(1)}% ROI</p>
                     </div>
                   </div>
                 ))}
@@ -253,39 +315,42 @@ export default function Tracking() {
             )}
           </Card>
 
-          <Card className="p-6 mt-4">
-            <h2 className="text-lg font-semibold mb-4 dark:text-white">Performance Stats</h2>
+          {/* Performance Stats */}
+          <Card padding="lg">
+            <h2 className="text-h2 text-surface-900 dark:text-white mb-4">Your Edge</h2>
             {statsLoading ? (
-              <p className="text-gray-500">Loading...</p>
+              <div className="flex justify-center py-4">
+                <LoadingSpinner size="sm" />
+              </div>
             ) : stats ? (
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Total Bets</span>
-                  <span className="font-medium dark:text-white">{stats.total_bets}</span>
+                  <span className="text-surface-500 dark:text-surface-400">Total Bets</span>
+                  <span className="font-medium text-surface-900 dark:text-white">{stats.total_bets}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Won / Lost</span>
-                  <span className="font-medium dark:text-white">{stats.winning_bets} / {stats.losing_bets}</span>
+                  <span className="text-surface-500 dark:text-surface-400">Cashed / Missed</span>
+                  <span className="font-medium text-surface-900 dark:text-white">{stats.winning_bets} / {stats.losing_bets}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Total Staked</span>
-                  <span className="font-medium dark:text-white">${stats.total_staked.toFixed(2)}</span>
+                  <span className="text-surface-500 dark:text-surface-400">Total Staked</span>
+                  <span className="font-medium text-surface-900 dark:text-white">${stats.total_staked.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Avg Odds</span>
-                  <span className="font-medium dark:text-white">{formatOdds(stats.average_odds)}</span>
+                  <span className="text-surface-500 dark:text-surface-400">Avg Odds</span>
+                  <span className="font-medium text-surface-900 dark:text-white">{formatOdds(stats.average_odds)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Best Win</span>
-                  <span className="font-medium text-green-600">${stats.best_win.toFixed(2)}</span>
+                  <span className="text-surface-500 dark:text-surface-400">Best Win</span>
+                  <span className="font-medium text-success-600 dark:text-success-400">${stats.best_win.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Worst Loss</span>
-                  <span className="font-medium text-red-600">-${Math.abs(stats.worst_loss).toFixed(2)}</span>
+                  <span className="text-surface-500 dark:text-surface-400">Worst Loss</span>
+                  <span className="font-medium text-danger-600 dark:text-danger-400">-${Math.abs(stats.worst_loss).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Best Streak</span>
-                  <span className="font-medium dark:text-white">{stats.best_streak} wins</span>
+                  <span className="text-surface-500 dark:text-surface-400">Best Streak</span>
+                  <span className="font-medium text-surface-900 dark:text-white">{stats.best_streak} wins</span>
                 </div>
               </div>
             ) : null}

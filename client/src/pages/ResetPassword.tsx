@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Input, Card } from '@/components/ui';
+import ErrorMessage from '@/components/ui/ErrorMessage';
 import { TrendingUp, Mail, Lock, CheckCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -29,7 +30,7 @@ export default function ResetPassword() {
       await api.account.forgotPassword(email);
       setMode('success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send reset email');
+      setError(err instanceof Error ? err.message : 'Something\'s not right. Try again.');
     } finally {
       setIsLoading(false);
     }
@@ -40,12 +41,12 @@ export default function ResetPassword() {
     setError('');
 
     if (passwords.password !== passwords.confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords don\'t match.');
       return;
     }
 
     if (passwords.password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError('Use at least 8 characters.');
       return;
     }
 
@@ -55,7 +56,7 @@ export default function ResetPassword() {
       await api.account.resetPassword(token!, passwords.password);
       setMode('success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reset password');
+      setError(err instanceof Error ? err.message : 'Something\'s not right. Try again.');
     } finally {
       setIsLoading(false);
     }
@@ -74,9 +75,9 @@ export default function ResetPassword() {
             {mode === 'success' && 'Success!'}
           </h1>
           <p className="text-surface-500 mt-2">
-            {mode === 'request' && 'Enter your email to receive a reset link'}
-            {mode === 'reset' && 'Enter your new password below'}
-            {mode === 'success' && (token ? 'Your password has been reset' : 'Check your email for the reset link')}
+            {mode === 'request' && 'Enter your email for a reset link.'}
+            {mode === 'reset' && 'Create your new password.'}
+            {mode === 'success' && (token ? 'Your password has been reset.' : 'Check your email for the reset link.')}
           </p>
         </div>
 
@@ -96,7 +97,10 @@ export default function ResetPassword() {
             </div>
 
             {error && (
-              <p className="text-sm text-danger-500 text-center">{error}</p>
+              <ErrorMessage
+                message={error}
+                onDismiss={() => setError('')}
+              />
             )}
 
             <Button type="submit" className="w-full" isLoading={isLoading}>
@@ -139,7 +143,10 @@ export default function ResetPassword() {
             />
 
             {error && (
-              <p className="text-sm text-danger-500 text-center">{error}</p>
+              <ErrorMessage
+                message={error}
+                onDismiss={() => setError('')}
+              />
             )}
 
             <Button type="submit" className="w-full" isLoading={isLoading}>
@@ -155,8 +162,8 @@ export default function ResetPassword() {
             </div>
             <p className="text-surface-600 dark:text-surface-400">
               {token
-                ? 'Your password has been successfully reset. You can now login with your new password.'
-                : 'If an account exists with that email, you will receive a password reset link shortly.'}
+                ? 'Password reset complete. Sign in with your new password.'
+                : 'If an account exists, you\'ll receive a reset link shortly.'}
             </p>
             <Button onClick={() => navigate('/login')} className="w-full">
               Go to Login

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
 from app.db import get_db, User
-from app.services.auth import validate_session
+from app.routers.auth import require_auth
 from app.services.telegram_bot import (
     is_telegram_configured, create_link_code,
     get_telegram_user, unlink_telegram, process_webhook_update
@@ -12,20 +12,6 @@ from app.services.telegram_bot import (
 from app.services.audit import log_action
 
 router = APIRouter(prefix="/telegram", tags=["telegram"])
-
-
-def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    token = auth_header.split(" ")[1]
-    user = validate_session(db, token)
-    
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid or expired session")
-    
-    return user
 
 
 class TelegramStatusResponse(BaseModel):
@@ -51,7 +37,7 @@ class UpdateNotificationsRequest(BaseModel):
 
 @router.get("/status", response_model=TelegramStatusResponse)
 def get_telegram_status(
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_auth),
     db: Session = Depends(get_db)
 ):
     configured = is_telegram_configured()
@@ -68,23 +54,24 @@ def get_telegram_status(
 
 
 @router.post("/link", response_model=LinkCodeResponse)
-def generate_link_code(
+def generate_link_code_endpoint(
     request: Request,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_auth),
     db: Session = Depends(get_db)
 ):
     if not is_telegram_configured():
         raise HTTPException(status_code=503, detail="Telegram bot not configured")
-    
+
     existing = get_telegram_user(db, user.id)
     if existing:
         raise HTTPException(status_code=400, detail="Telegram already linked")
-    
-    code = create_link_code(user.id)
-    
+
+    # Now passes db session for database persistence
+    code = create_link_code(db, user.id)
+
     import os
     bot_username = os.environ.get("TELEGRAM_BOT_USERNAME", "EdgeBetBot")
-    
+
     return LinkCodeResponse(
         code=code,
         bot_url=f"https://t.me/{bot_username}",
@@ -95,7 +82,7 @@ def generate_link_code(
 @router.delete("/unlink")
 def unlink_telegram_account(
     request: Request,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_auth),
     db: Session = Depends(get_db)
 ):
     if not unlink_telegram(db, user.id):
@@ -112,7 +99,7 @@ def unlink_telegram_account(
 @router.patch("/notifications", response_model=TelegramStatusResponse)
 def update_notifications(
     data: UpdateNotificationsRequest,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_auth),
     db: Session = Depends(get_db)
 ):
     telegram_user = get_telegram_user(db, user.id)

@@ -4,7 +4,10 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Badge from '@/components/ui/Badge';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import EmptyState from '@/components/ui/EmptyState';
 import { api } from '@/lib/api';
+import { Monitor, Activity, Key, Smartphone, AlertTriangle } from 'lucide-react';
 
 export default function Security() {
   const queryClient = useQueryClient();
@@ -86,31 +89,43 @@ export default function Security() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Security Settings</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your account security</p>
+        <h1 className="text-display text-surface-900 dark:text-white">Security</h1>
+        <p className="text-lg text-surface-500 dark:text-surface-400 mt-2">
+          Your account. Protected.
+        </p>
       </div>
 
+      {/* 2FA and Sessions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4 dark:text-white">Two-Factor Authentication</h2>
-          
+        {/* Two-Factor Authentication */}
+        <Card padding="lg">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-xl bg-primary-50 dark:bg-primary-500/10">
+              <Key className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+            </div>
+            <h2 className="text-h2 text-surface-900 dark:text-white">Two-Factor</h2>
+          </div>
+
           {statusLoading ? (
-            <p className="text-gray-500">Loading...</p>
+            <div className="flex justify-center py-4">
+              <LoadingSpinner size="sm" text="Analyzing..." />
+            </div>
           ) : twoFAStatus?.enabled ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
                 <Badge variant="success">Enabled</Badge>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-sm text-surface-500 dark:text-surface-400">
                   {twoFAStatus.backup_codes_remaining} backup codes remaining
                 </span>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-surface-600 dark:text-surface-400">
                 Your account is protected with two-factor authentication.
               </p>
-              <div className="border-t dark:border-gray-700 pt-4">
-                <p className="text-sm font-medium mb-2 dark:text-white">Disable 2FA</p>
+              <div className="pt-6 border-t border-surface-200 dark:border-surface-700">
+                <p className="text-sm font-semibold text-surface-900 dark:text-white mb-3">Disable 2FA</p>
                 <div className="flex gap-2">
                   <Input
                     type="text"
@@ -120,7 +135,7 @@ export default function Security() {
                     maxLength={6}
                   />
                   <Button
-                    variant="destructive"
+                    variant="danger"
                     onClick={() => disable2FAMutation.mutate(disableCode)}
                     disabled={disableCode.length !== 6 || disable2FAMutation.isPending}
                   >
@@ -130,32 +145,35 @@ export default function Security() {
               </div>
             </div>
           ) : showSetup2FA && setupData ? (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="space-y-6">
+              <p className="text-sm text-surface-600 dark:text-surface-400">
                 Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
               </p>
-              <div className="flex justify-center p-4 bg-white rounded-lg">
+              <div className="flex justify-center p-4 bg-white rounded-xl">
                 <img
                   src={`data:image/png;base64,${setupData.qr_code}`}
                   alt="2FA QR Code"
                   className="w-48 h-48"
                 />
               </div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+              <div className="p-4 bg-surface-50 dark:bg-surface-800 rounded-xl">
+                <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">
                   Manual entry key:
                 </p>
-                <code className="text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded dark:text-white">
+                <code className="text-sm bg-surface-100 dark:bg-surface-700 px-3 py-1.5 rounded-lg text-surface-900 dark:text-white font-mono">
                   {setupData.secret}
                 </code>
               </div>
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2">
-                  Save your backup codes!
-                </p>
+              <div className="p-4 bg-warning-50 dark:bg-warning-500/10 border border-warning-200 dark:border-warning-500/30 rounded-xl">
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertTriangle className="w-5 h-5 text-warning-600 dark:text-warning-400" />
+                  <p className="font-semibold text-warning-700 dark:text-warning-300">
+                    Save your backup codes!
+                  </p>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   {setupData.backup_codes.map((code, idx) => (
-                    <code key={idx} className="text-sm bg-white dark:bg-gray-800 px-2 py-1 rounded text-center dark:text-white">
+                    <code key={idx} className="text-sm bg-white dark:bg-surface-800 px-3 py-2 rounded-lg text-center text-surface-900 dark:text-white font-mono">
                       {code}
                     </code>
                   ))}
@@ -176,28 +194,35 @@ export default function Security() {
                   Verify & Enable
                 </Button>
               </div>
-              <Button variant="outline" onClick={() => setShowSetup2FA(false)}>
+              <Button variant="outline" onClick={() => setShowSetup2FA(false)} className="w-full">
                 Cancel
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-surface-600 dark:text-surface-400">
                 Add an extra layer of security to your account. Two-factor authentication is required for all users.
               </p>
               <Button
                 onClick={() => setup2FAMutation.mutate()}
                 disabled={setup2FAMutation.isPending}
               >
-                {setup2FAMutation.isPending ? 'Setting up...' : 'Set Up 2FA'}
+                <Smartphone className="w-4 h-4" />
+                {setup2FAMutation.isPending ? 'Turning on...' : 'Turn On'}
               </Button>
             </div>
           )}
         </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold dark:text-white">Active Sessions</h2>
+        {/* Active Sessions */}
+        <Card padding="lg">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-surface-100 dark:bg-surface-800">
+                <Monitor className="w-5 h-5 text-surface-600 dark:text-surface-400" />
+              </div>
+              <h2 className="text-h2 text-surface-900 dark:text-white">Active Sessions</h2>
+            </div>
             <Button
               size="sm"
               variant="outline"
@@ -209,26 +234,33 @@ export default function Security() {
           </div>
 
           {sessionsLoading ? (
-            <p className="text-gray-500">Loading...</p>
+            <div className="flex justify-center py-4">
+              <LoadingSpinner size="sm" />
+            </div>
           ) : sessions?.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400">No active sessions</p>
+            <EmptyState
+              icon={Monitor}
+              title="No active sessions"
+              description="Your sessions will appear here"
+              className="py-4"
+            />
           ) : (
             <div className="space-y-3">
               {sessions?.map(session => (
                 <div
                   key={session.id}
-                  className="flex items-center justify-between p-3 border dark:border-gray-700 rounded-lg"
+                  className="flex items-center justify-between p-4 border border-surface-200 dark:border-surface-700 rounded-xl"
                 >
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium dark:text-white">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-surface-900 dark:text-white">
                         {parseUserAgent(session.user_agent)}
                       </span>
                       {session.is_current && (
                         <Badge variant="success">Current</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-surface-500 dark:text-surface-400">
                       {session.ip_address || 'Unknown IP'} • {formatDate(session.created_at)}
                     </p>
                   </div>
@@ -248,46 +280,58 @@ export default function Security() {
         </Card>
       </div>
 
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4 dark:text-white">Recent Security Activity</h2>
-        
+      {/* Audit Logs */}
+      <Card padding="lg">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-xl bg-surface-100 dark:bg-surface-800">
+            <Activity className="w-5 h-5 text-surface-600 dark:text-surface-400" />
+          </div>
+          <h2 className="text-h2 text-surface-900 dark:text-white">Recent Security Activity</h2>
+        </div>
+
         {logsLoading ? (
-          <p className="text-gray-500">Loading...</p>
+          <div className="flex justify-center py-8">
+            <LoadingSpinner text="Analyzing..." />
+          </div>
         ) : auditLogs?.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400">No recent activity</p>
+          <EmptyState
+            icon={Activity}
+            title="No recent activity"
+            description="Your security activity will appear here"
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-sm text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
-                  <th className="pb-2 pr-4">Action</th>
-                  <th className="pb-2 pr-4">IP Address</th>
-                  <th className="pb-2 pr-4">Status</th>
-                  <th className="pb-2">Time</th>
+                <tr className="text-left text-sm text-surface-500 dark:text-surface-400 border-b border-surface-200 dark:border-surface-700">
+                  <th className="pb-4 pr-4 font-medium">Action</th>
+                  <th className="pb-4 pr-4 font-medium">IP Address</th>
+                  <th className="pb-4 pr-4 font-medium">Status</th>
+                  <th className="pb-4 font-medium">Time</th>
                 </tr>
               </thead>
               <tbody>
                 {auditLogs?.map(log => (
-                  <tr key={log.id} className="border-b dark:border-gray-700 last:border-0">
-                    <td className="py-3 pr-4">
-                      <span className="font-medium dark:text-white">
+                  <tr key={log.id} className="border-b border-surface-200 dark:border-surface-700 last:border-0">
+                    <td className="py-4 pr-4">
+                      <span className="font-medium text-surface-900 dark:text-white">
                         {log.action.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                       </span>
                       {log.resource_type && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
+                        <span className="text-sm text-surface-500 dark:text-surface-400 ml-2">
                           ({log.resource_type})
                         </span>
                       )}
                     </td>
-                    <td className="py-3 pr-4 text-gray-600 dark:text-gray-300">
+                    <td className="py-4 pr-4 text-surface-600 dark:text-surface-400">
                       {log.ip_address || 'Unknown'}
                     </td>
-                    <td className="py-3 pr-4">
-                      <Badge variant={log.status === 'success' ? 'success' : 'destructive'}>
+                    <td className="py-4 pr-4">
+                      <Badge variant={log.status === 'success' ? 'success' : 'danger'}>
                         {log.status}
                       </Badge>
                     </td>
-                    <td className="py-3 text-gray-600 dark:text-gray-300">
+                    <td className="py-4 text-surface-600 dark:text-surface-400">
                       {formatDate(log.created_at)}
                     </td>
                   </tr>

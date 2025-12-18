@@ -1,169 +1,242 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Badge, Button } from '@/components/ui';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import EmptyState from '@/components/ui/EmptyState';
+import ErrorMessage from '@/components/ui/ErrorMessage';
+import TopPicks from '@/components/TopPicks';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import type { Recommendation, Game } from '@/types';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Target, 
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Target,
   ChevronRight,
   Trophy,
-  Clock
+  Clock,
+  Percent,
+  Sparkles,
+  Zap
 } from 'lucide-react';
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
 
 export default function Dashboard() {
   const { client } = useAuth();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [games, setGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    if (!client) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [recs, gamesData] = await Promise.all([
+        api.recommendations.latest(client.id, 5),
+        api.games.list(),
+      ]);
+      setRecommendations(recs);
+      setGames(gamesData.slice(0, 5));
+    } catch (err) {
+      console.error('Failed to fetch dashboard data:', err);
+      setError('Couldn\'t load this. Try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchData() {
-      if (!client) return;
-      try {
-        const [recs, gamesData] = await Promise.all([
-          api.recommendations.latest(client.id, 5),
-          api.games.list(),
-        ]);
-        setRecommendations(recs);
-        setGames(gamesData.slice(0, 5));
-      } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
     fetchData();
   }, [client]);
 
-  const stats = [
-    {
-      label: 'Bankroll',
-      value: `$${client?.bankroll.toLocaleString() || '0'}`,
-      icon: DollarSign,
-      color: 'text-primary-600 dark:text-primary-400',
-      bg: 'bg-primary-50 dark:bg-primary-500/10',
-    },
-    {
-      label: 'Active Picks',
-      value: recommendations.length.toString(),
-      icon: Target,
-      color: 'text-success-600 dark:text-success-500',
-      bg: 'bg-success-50 dark:bg-success-500/10',
-    },
-    {
-      label: 'Avg Edge',
-      value: recommendations.length > 0
-        ? `+${(recommendations.reduce((acc, r) => acc + r.edge, 0) / recommendations.length * 100).toFixed(1)}%`
-        : '0%',
-      icon: TrendingUp,
-      color: 'text-warning-600 dark:text-warning-500',
-      bg: 'bg-warning-50 dark:bg-warning-500/10',
-    },
-    {
-      label: 'Risk Profile',
-      value: client?.risk_profile ? client.risk_profile.charAt(0).toUpperCase() + client.risk_profile.slice(1) : 'Balanced',
-      icon: Trophy,
-      color: 'text-surface-600 dark:text-surface-400',
-      bg: 'bg-surface-100 dark:bg-surface-800',
-    },
-  ];
+  // Calculate stats
+  const highEdgePicks = recommendations.filter(r => r.edge > 0.05).length;
+  const avgEdge = recommendations.length > 0
+    ? (recommendations.reduce((acc, r) => acc + r.edge, 0) / recommendations.length * 100)
+    : 0;
+  const totalPotential = recommendations.reduce((acc, r) => acc + r.expected_value, 0);
 
   if (isLoading) {
     return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-surface-200 dark:bg-surface-800 rounded w-48" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-surface-200 dark:bg-surface-800 rounded-xl" />
-          ))}
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <LoadingSpinner size="lg" text="Analyzing..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <ErrorMessage
+          message={error}
+          variant="fullpage"
+          onRetry={fetchData}
+        />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-surface-900 dark:text-white">
-          Welcome back, {client?.name}
+    <div className="space-y-8">
+      {/* Hero Greeting Section */}
+      <div className="pt-2">
+        <h1 className="text-display text-surface-900 dark:text-white">
+          {getGreeting()}, {client?.name?.split(' ')[0] || 'there'}.
         </h1>
-        <p className="text-surface-500 mt-1">
-          Here's your betting analytics overview
+        <p className="text-lg text-surface-500 dark:text-surface-400 mt-2">
+          {highEdgePicks > 0 ? (
+            <>
+              <span className="text-success-500 dark:text-success-400 font-semibold">{highEdgePicks} curated picks</span>. Ready when you are.
+            </>
+          ) : recommendations.length > 0 ? (
+            'Your edge is working.'
+          ) : (
+            'Picks refresh at 6 AM ET.'
+          )}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <Card key={stat.label} padding="md" data-testid="stats-card">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-xl ${stat.bg}`}>
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card padding="md" data-testid="stats-card">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-primary-50 dark:bg-primary-500/10">
+              <DollarSign className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-surface-500 dark:text-surface-400">Bankroll</p>
+              <p className="text-2xl font-bold text-surface-900 dark:text-white">
+                ${client?.bankroll?.toLocaleString() || '0'}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card padding="md" data-testid="stats-card">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-success-50 dark:bg-success-500/10">
+              <Target className="w-6 h-6 text-success-600 dark:text-success-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-surface-500 dark:text-surface-400">Curated Picks</p>
+              <p className="text-2xl font-bold text-surface-900 dark:text-white">
+                {recommendations.length}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card padding="md" data-testid="stats-card">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-warning-50 dark:bg-warning-500/10">
+              <Percent className="w-6 h-6 text-warning-600 dark:text-warning-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-surface-500 dark:text-surface-400">Precision Rate</p>
+              <p className="text-2xl font-bold text-surface-900 dark:text-white">
+                {avgEdge > 0 ? `+${avgEdge.toFixed(1)}%` : '0%'}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card padding="md" data-testid="stats-card">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-premium-500/10 dark:bg-premium-500/10">
+              <Sparkles className="w-6 h-6 text-premium-600 dark:text-premium-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-surface-500 dark:text-surface-400">Projected Edge</p>
+              <p className="text-2xl font-bold text-surface-900 dark:text-white">
+                ${totalPotential.toFixed(0)}
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Featured: Top Picks Widget */}
+      <div className="grid grid-cols-1 gap-6">
+        <TopPicks limit={5} showHeader={true} />
+      </div>
+
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Legacy Recommendations */}
+        <Card padding="none">
+          <div className="p-5 border-b border-surface-200 dark:border-surface-700 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary-50 dark:bg-primary-500/10">
+                <Zap className="w-5 h-5 text-primary-600 dark:text-primary-400" />
               </div>
               <div>
-                <p className="text-sm text-surface-500">{stat.label}</p>
-                <p className="text-xl font-semibold text-surface-900 dark:text-white">
-                  {stat.value}
+                <h2 className="text-h2 text-surface-900 dark:text-white">
+                  Quick Picks
+                </h2>
+                <p className="text-sm text-surface-500 dark:text-surface-400 mt-0.5">
+                  Curated for your profile
                 </p>
               </div>
             </div>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card padding="none">
-          <div className="p-4 border-b border-surface-200 dark:border-surface-800 flex items-center justify-between">
-            <h2 className="font-semibold text-surface-900 dark:text-white">
-              Top Recommendations
-            </h2>
             <Link to="/recommendations">
               <Button variant="ghost" size="sm">
-                View All <ChevronRight className="w-4 h-4" />
+                See All <ChevronRight className="w-4 h-4" />
               </Button>
             </Link>
           </div>
-          <div className="divide-y divide-surface-200 dark:divide-surface-800">
+
+          <div className="divide-y divide-surface-100 dark:divide-surface-800">
             {recommendations.length === 0 ? (
-              <div className="p-8 text-center text-surface-500">
-                <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>No recommendations yet</p>
-                <Link to="/recommendations">
-                  <Button variant="primary" size="sm" className="mt-3">
-                    Generate Picks
-                  </Button>
-                </Link>
+              <div className="p-6">
+                <EmptyState
+                  icon={Target}
+                  title="No picks yet"
+                  description="Picks refresh at 6 AM ET."
+                  action={{
+                    label: 'Generate Picks',
+                    onClick: () => window.location.href = '/recommendations',
+                  }}
+                />
               </div>
             ) : (
               recommendations.map((rec) => (
-                <div key={rec.id} className="p-4 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-surface-900 dark:text-white">
+                <div
+                  key={rec.id}
+                  className="p-4 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors duration-200"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-surface-900 dark:text-white truncate">
                         {rec.game_info}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="neutral">{rec.sport}</Badge>
-                        <span className="text-xs text-surface-500">
-                          {rec.market_type} • {rec.selection}
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <Badge variant="neutral" size="sm">{rec.sport}</Badge>
+                        <span className="text-sm text-surface-500 dark:text-surface-400">
+                          {rec.market_type} · {rec.selection}
                         </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1">
+                    <div className="text-right flex-shrink-0">
+                      <div className="flex items-center gap-1.5 justify-end">
                         {rec.edge > 0 ? (
-                          <TrendingUp className="w-4 h-4 text-success-500" />
+                          <TrendingUp className="w-4 h-4 text-success-500 dark:text-success-400" />
                         ) : (
-                          <TrendingDown className="w-4 h-4 text-danger-500" />
+                          <TrendingDown className="w-4 h-4 text-danger-500 dark:text-danger-400" />
                         )}
-                        <span className={`font-semibold ${rec.edge > 0 ? 'text-success-600' : 'text-danger-600'}`}>
+                        <span className={`font-bold ${rec.edge > 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}`}>
                           {rec.edge > 0 ? '+' : ''}{(rec.edge * 100).toFixed(1)}%
                         </span>
                       </div>
-                      <p className="text-xs text-surface-500 mt-1">
+                      <p className="text-sm text-surface-500 dark:text-surface-400 mt-0.5">
                         ${rec.suggested_stake.toFixed(0)} stake
                       </p>
                     </div>
@@ -174,44 +247,70 @@ export default function Dashboard() {
           </div>
         </Card>
 
+        {/* Upcoming Games */}
         <Card padding="none">
-          <div className="p-4 border-b border-surface-200 dark:border-surface-800 flex items-center justify-between">
-            <h2 className="font-semibold text-surface-900 dark:text-white">
-              Upcoming Games
-            </h2>
+          <div className="p-5 border-b border-surface-200 dark:border-surface-700 flex items-center justify-between">
+            <div>
+              <h2 className="text-h2 text-surface-900 dark:text-white">
+                Upcoming
+              </h2>
+              <p className="text-sm text-surface-500 dark:text-surface-400 mt-0.5">
+                Games to watch
+              </p>
+            </div>
             <Link to="/games">
               <Button variant="ghost" size="sm">
-                View All <ChevronRight className="w-4 h-4" />
+                See All <ChevronRight className="w-4 h-4" />
               </Button>
             </Link>
           </div>
-          <div className="divide-y divide-surface-200 dark:divide-surface-800">
+
+          <div className="divide-y divide-surface-100 dark:divide-surface-800">
             {games.length === 0 ? (
-              <div className="p-8 text-center text-surface-500">
-                <Trophy className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>No upcoming games</p>
+              <div className="p-6">
+                <EmptyState
+                  icon={Trophy}
+                  title="No games scheduled"
+                  description="Check back later."
+                />
               </div>
             ) : (
               games.map((game) => (
-                <div key={game.id} className="p-4 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-surface-900 dark:text-white">
+                <div
+                  key={game.id}
+                  className="p-4 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors duration-200"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-surface-900 dark:text-white truncate">
                         {game.home_team_name || game.competitor1_name} vs{' '}
                         {game.away_team_name || game.competitor2_name}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="neutral">{game.sport}</Badge>
-                        <span className="text-xs text-surface-500">{game.league}</span>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <Badge variant="neutral" size="sm">{game.sport}</Badge>
+                        {game.league && (
+                          <span className="text-sm text-surface-500 dark:text-surface-400">
+                            {game.league}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 text-surface-500">
+                    <div className="text-right flex-shrink-0">
+                      <div className="flex items-center gap-1.5 text-surface-500 dark:text-surface-400 justify-end">
                         <Clock className="w-4 h-4" />
-                        <span className="text-xs">
-                          {new Date(game.start_time).toLocaleDateString()}
+                        <span className="text-sm font-medium">
+                          {new Date(game.start_time).toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric'
+                          })}
                         </span>
                       </div>
+                      <p className="text-sm text-surface-400 dark:text-surface-500 mt-0.5">
+                        {new Date(game.start_time).toLocaleTimeString(undefined, {
+                          hour: 'numeric',
+                          minute: '2-digit'
+                        })}
+                      </p>
                     </div>
                   </div>
                 </div>

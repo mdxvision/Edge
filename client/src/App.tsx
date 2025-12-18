@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Layout } from './components/layout';
-import { Login, Dashboard, Games, Recommendations, Profile, Models, DFS, Tracking, Security, Alerts, Parlays, Leaderboard, Terms, ResetPassword } from './pages';
+import { Login, Dashboard, Games, Recommendations, Profile, Models, DFS, Tracking, Security, Alerts, Parlays, Leaderboard, Terms, ResetPassword, PowerRatings, PaperTrading, Pricing, EdgeTracker } from './pages';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,9 +86,13 @@ function AppRoutes() {
         <Route path="leaderboard" element={<Leaderboard />} />
         <Route path="dfs" element={<DFS />} />
         <Route path="models" element={<Models />} />
+        <Route path="power-ratings" element={<PowerRatings />} />
+        <Route path="paper-trading" element={<PaperTrading />} />
+        <Route path="edge-tracker" element={<EdgeTracker />} />
         <Route path="alerts" element={<Alerts />} />
         <Route path="security" element={<Security />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="pricing" element={<Pricing />} />
         <Route path="terms" element={<Terms />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
