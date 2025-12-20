@@ -1,6 +1,6 @@
 # EdgeBet Implementation & Testing Status Tracker
 
-**Last Updated:** December 2, 2024
+**Last Updated:** December 20, 2025
 
 ---
 
@@ -12,6 +12,8 @@
 | Phase 2: Advanced ML & Historical Data | Complete | 100% |
 | Phase 3: DFS Integration | Complete | 100% |
 | Phase 4: Production Readiness | Complete | 100% |
+| Phase 5: Advanced Features | Complete | 100% |
+| Phase 6: Edge Tracker & Live Picks | Complete | 100% |
 
 ---
 
@@ -146,7 +148,17 @@
 
 ### Recommendations
 - `POST /clients/{id}/recommendations/run` - Generate recommendations
-- `GET /clients/{id}/recommendations/latest` - Get recommendations
+- `GET /clients/{id}/recommendations/latest` - Get recommendations (auto-refreshes)
+
+### Edge Tracker
+- `POST /tracker/picks` - Log a new pick
+- `GET /tracker/picks` - Get tracked picks (sorted by game_time)
+- `GET /tracker/picks/{id}` - Get pick details
+- `PATCH /tracker/picks/{id}` - Update pick result
+- `DELETE /tracker/picks/{id}` - Delete pick
+- `GET /tracker/summary` - Get tracker stats
+- `GET /tracker/rankings` - Get ranked picks by edge
+- `POST /tracker/validate` - Validate picks against results
 
 ### Historical/ML
 - `POST /historical/seed` - Seed data
@@ -210,26 +222,69 @@
 
 ---
 
+## Phase 5: Advanced Features (COMPLETE)
+
+### Completed Tasks
+
+| ID | Task | Status | Notes |
+|----|------|--------|-------|
+| 5.1 | Parlay Builder | Done | Correlation detection and EV analysis |
+| 5.2 | Leaderboard system | Done | Display names and rankings |
+| 5.3 | Multi-currency support | Done | USD, EUR, GBP, CAD, AUD, BTC, ETH |
+| 5.4 | Custom alerts system | Done | Email/push/telegram notifications |
+| 5.5 | Webhook infrastructure | Done | External integrations |
+| 5.6 | Telegram bot | Done | Linking workflow, notifications |
+| 5.7 | Terms of Service | Done | 21+ age verification |
+| 5.8 | Account recovery | Done | Password reset flow |
+| 5.9 | 2FA (TOTP) | Done | Authenticator apps, backup codes |
+| 5.10 | The Odds API integration | Done | Real-time odds for NFL/NBA |
+
+---
+
+## Phase 6: Edge Tracker & Live Picks (COMPLETE)
+
+### Completed Tasks
+
+| ID | Task | Status | Notes |
+|----|------|--------|-------|
+| 6.1 | Edge Tracker service | Done | Pick logging and validation |
+| 6.2 | Realistic edge bounds | Done | 2-10% edge, 45-85% confidence |
+| 6.3 | Power ratings → probability | Done | Elo formula for win probability |
+| 6.4 | 8 factor score confidence | Done | Uses UnifiedPrediction factors |
+| 6.5 | 48-hour game window | Done | Only today/tomorrow games |
+| 6.6 | Stale data cleanup | Done | Auto-clear >24 hour recommendations |
+| 6.7 | Edge Tracker UI | Done | PickLogger, Dashboard integration |
+| 6.8 | Game time sorting | Done | Picks sorted by game_time |
+| 6.9 | refresh_odds.py utility | Done | Script to fetch fresh odds |
+| 6.10 | Rate limit toggle | Done | DISABLE_RATE_LIMIT for testing |
+| 6.11 | Daily pick operations | Done | 10 NBA picks for Dec 20, 2025 |
+
+---
+
 ## Future Enhancements (Post-MVP)
 
-| Feature | Priority | Description |
-|---------|----------|-------------|
-| Redis caching | Medium | Distributed cache for scalability |
-| Real-time odds | High | Live odds API integration |
-| Player statistics | Medium | External player data APIs |
-| Email verification | Low | User email confirmation |
-| 2FA | Medium | Two-factor authentication |
-| Webhook notifications | Low | Bet result notifications |
+| Feature | Priority | Status | Description |
+|---------|----------|--------|-------------|
+| Redis caching | Medium | Pending | Distributed cache for scalability |
+| ~~Real-time odds~~ | ~~High~~ | **DONE** | ~~Live odds API integration~~ (The Odds API) |
+| Player statistics | Medium | Pending | External player data APIs |
+| Email verification | Low | Pending | User email confirmation |
+| ~~2FA~~ | ~~Medium~~ | **DONE** | ~~Two-factor authentication~~ (TOTP) |
+| ~~Webhook notifications~~ | ~~Low~~ | **DONE** | ~~Bet result notifications~~ |
 
 ---
 
 ## Notes
 
-- All 51 backend tests passing
+- All backend tests passing (with DISABLE_RATE_LIMIT=true for tests)
 - Frontend fully responsive with dark/light mode
 - API documentation at /docs and /redoc
 - Simulation-only mode enforced throughout
 - PostgreSQL database connected and operational
 - Secure authentication with token hashing and rotation
-- Rate limiting protects against abuse
+- Rate limiting protects against abuse (can be disabled for testing)
 - Security headers prevent common attacks
+- Edge Tracker active with 10 NBA picks for December 20, 2025
+- Realistic edge bounds: 2-10% edge, 45-85% confidence
+- The Odds API integrated for NFL and NBA real-time odds
+- Picks sorted by game_time for chronological display

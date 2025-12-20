@@ -3,7 +3,7 @@
 ## Overview
 A comprehensive global sports analytics and betting recommendation system covering 15 sports worldwide. The platform uses machine learning models to identify value bets and provides personalized recommendations based on client risk profiles with full transparency on every pick.
 
-**Current State**: All Phases Complete - Production Ready with Full Feature Set
+**Current State**: All Phases Complete + Edge Tracker Active - Production Ready
 
 ## Progress Summary
 
@@ -14,8 +14,27 @@ A comprehensive global sports analytics and betting recommendation system coveri
 | Phase 3: DFS Integration | Complete | 100% |
 | Phase 4: Production Readiness | Complete | 100% |
 | Phase 5: Advanced Features | Complete | 100% |
+| Phase 6: Edge Tracker & Live Picks | Active | 100% |
 
 ## Recent Changes
+
+- 2025-12-20: Daily Pick Operations
+  - Added 10 NBA picks for December 20, 2025 to Edge Tracker
+  - Improved edge calculation with realistic 2-10% bounds
+  - Enhanced UI components (PickLogger, Dashboard, Sidebar)
+  - Sort picks by game_time instead of created_at
+
+- 2025-12-17: Edge Tracker & Realistic Predictions
+  - Edge Tracker system for logging and tracking picks
+  - Power ratings (Elo formula) → win probability calculation
+  - 8 factor score confidence calculation from UnifiedPrediction
+  - 48-hour game window (only today/tomorrow games)
+  - Max 10% edge cap, 45-85% confidence range
+  - Fresh picks generation clears stale data (>24 hours)
+  - The Odds API integration for NFL and NBA
+  - refresh_odds.py utility script
+  - Rate limit toggle (DISABLE_RATE_LIMIT env var for testing)
+
 - 2024-12-02: Authentication System Finalized
   - Fixed Login.tsx with proper tabbed UI (Create Account / Sign In)
   - Added refresh token handling and session renewal in AuthContext
@@ -64,7 +83,9 @@ app/                 # FastAPI Backend
 ├── schemas/         # Pydantic validation schemas
 ├── services/        # Business logic
 │   ├── data_ingestion.py
-│   ├── edge_engine.py
+│   ├── edge_engine.py      # Value bet detection (realistic 2-10% bounds)
+│   ├── edge_aggregator.py  # Multi-factor edge analysis
+│   ├── edge_tracker.py     # Pick tracking and validation
 │   ├── bankroll.py
 │   ├── auth.py          # Authentication service
 │   ├── totp.py          # 2FA TOTP service
@@ -76,10 +97,11 @@ app/                 # FastAPI Backend
 │   ├── telegram_bot.py  # Telegram integration
 │   ├── bet_tracking.py  # Bet tracking
 │   ├── parlay.py        # Parlay analysis
-│   ├── odds_api.py      # Real-time odds
+│   ├── odds_api.py      # Real-time odds (The Odds API)
 │   ├── dfs_projections.py
 │   └── lineup_optimizer.py
 ├── routers/         # API endpoints
+│   ├── tracker.py       # Edge Tracker pick logging
 │   ├── auth.py          # Authentication routes
 │   ├── security.py      # 2FA and session management
 │   ├── account.py       # Profile and age verification
@@ -114,13 +136,19 @@ client/              # React TypeScript Frontend
 │   │   ├── Alerts.tsx
 │   │   ├── Security.tsx
 │   │   ├── Profile.tsx
-│   │   └── Terms.tsx
+│   │   ├── Terms.tsx
+│   │   ├── EdgeTracker.tsx    # Pick tracking dashboard
+│   │   ├── PaperTrading.tsx   # Paper trading simulation
+│   │   └── PowerRatings.tsx   # Team power ratings
 │   ├── components/  # Reusable UI components
+│   │   ├── PickLogger.tsx     # Pick entry form
 │   ├── context/     # Auth context provider
 │   └── lib/         # API client
 ├── cypress/         # E2E tests
 │   └── e2e/         # Test specs
 └── vite.config.ts   # Vite + TailwindCSS v4 config
+scripts/             # Utility scripts
+└── refresh_odds.py  # Fetch fresh odds from The Odds API
 tests/               # Pytest API tests
 docs/                # Documentation
 .github/workflows/   # CI configuration
@@ -214,7 +242,17 @@ cd client && npm run cypress:run
 
 ### Recommendations
 - POST /clients/{id}/recommendations/run - Generate recommendations
-- GET /clients/{id}/recommendations/latest - Get latest recommendations
+- GET /clients/{id}/recommendations/latest - Get latest recommendations (auto-refreshes with real games)
+
+### Edge Tracker (Pick Logging)
+- POST /tracker/picks - Log a new pick
+- GET /tracker/picks - Get all tracked picks (sorted by game_time)
+- GET /tracker/picks/{id} - Get pick details
+- PATCH /tracker/picks/{id} - Update pick (result, notes)
+- DELETE /tracker/picks/{id} - Delete pick
+- GET /tracker/summary - Get tracker stats (ROI, win rate, streaks)
+- GET /tracker/rankings - Get ranked picks by edge
+- POST /tracker/validate - Validate picks against actual results
 
 ### Bet Tracking
 - POST /tracking/bets - Place a bet
@@ -319,3 +357,23 @@ cd client && npm run cypress:run
 
 ## Implementation Tracker
 See `docs/IMPLEMENTATION_STATUS.md` for complete implementation details.
+
+## Edge Calculation Logic
+
+The platform uses realistic edge bounds for sports betting:
+
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Min Edge | 2% | Below this = no bet |
+| Max Edge | 10% | Anything higher is unrealistic |
+| Min Confidence | 45% | Underdogs can have lower prob |
+| Max Confidence | 85% | Markets are efficient at extremes |
+| Stale Data | 24 hours | Auto-clear old recommendations |
+| Game Window | 48 hours | Only today/tomorrow games |
+
+### How Edge is Calculated:
+1. Get power ratings (Elo) for both teams
+2. Calculate win probability using Elo formula: `1 / (1 + 10^(-ratingDiff/400))`
+3. Get implied probability from sportsbook odds
+4. Edge = Model Probability - Implied Probability
+5. Confidence = Average of 8 factor scores (or 60% default)
