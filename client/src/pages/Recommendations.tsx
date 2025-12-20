@@ -111,14 +111,14 @@ export default function Recommendations() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-display text-surface-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Curated Picks
           </h1>
-          <p className="text-lg text-surface-500 dark:text-surface-400 mt-2">
+          <p className="text-lg text-gray-600 dark:text-slate-300 mt-2">
             Intelligent edge detection. Personalized for you.
           </p>
         </div>
@@ -157,12 +157,12 @@ export default function Recommendations() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card padding="md">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-primary-50 dark:bg-primary-500/10">
-              <Target className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
+              <Target className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <p className="text-sm font-medium text-surface-500 dark:text-surface-400">Curated Picks</p>
-              <p className="text-2xl font-bold text-surface-900 dark:text-white">
+              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Curated Picks</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {filteredRecs.length}
               </p>
             </div>
@@ -170,12 +170,12 @@ export default function Recommendations() {
         </Card>
         <Card padding="md">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-success-50 dark:bg-success-500/10">
-              <Percent className="w-6 h-6 text-success-600 dark:text-success-400" />
+            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
+              <Percent className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <p className="text-sm font-medium text-surface-500 dark:text-surface-400">Precision Rate</p>
-              <p className="text-2xl font-bold text-success-600 dark:text-success-400">
+              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Precision Rate</p>
+              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                 +{(avgEdge * 100).toFixed(1)}%
               </p>
             </div>
@@ -183,12 +183,12 @@ export default function Recommendations() {
         </Card>
         <Card padding="md">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-warning-50 dark:bg-warning-500/10">
-              <DollarSign className="w-6 h-6 text-warning-600 dark:text-warning-400" />
+            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10">
+              <DollarSign className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <p className="text-sm font-medium text-surface-500 dark:text-surface-400">Total Stake</p>
-              <p className="text-2xl font-bold text-surface-900 dark:text-white">
+              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Total Stake</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 ${totalStake.toLocaleString()}
               </p>
             </div>
@@ -213,7 +213,7 @@ export default function Recommendations() {
         ) : (
           filteredRecs.map((rec) => (
             <Card key={rec.id} padding="none">
-              <div className="p-5 md:p-6">
+              <div className="p-4 md:p-5">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -221,74 +221,74 @@ export default function Recommendations() {
                       <Badge variant="neutral">{rec.market_type}</Badge>
                       <Badge variant="outline">{rec.sportsbook}</Badge>
                     </div>
-                    <h3 className="text-lg font-semibold text-surface-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {rec.game_info}
                     </h3>
-                    <p className="text-surface-500 dark:text-surface-400 mt-1">
+                    <p className="text-gray-600 dark:text-slate-400 mt-1">
                       {rec.selection} {rec.line_value ? `(${rec.line_value > 0 ? '+' : ''}${rec.line_value})` : ''} @ {rec.american_odds > 0 ? '+' : ''}{rec.american_odds}
                     </p>
                   </div>
 
                   <div className="flex flex-wrap lg:flex-nowrap items-center gap-6">
                     <div className="text-center">
-                      <p className="text-caption text-surface-500 dark:text-surface-400">Edge</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Edge</p>
                       <div className="flex items-center gap-1.5 mt-1">
                         {rec.edge > 0 ? (
-                          <TrendingUp className="w-4 h-4 text-success-500 dark:text-success-400" />
+                          <TrendingUp className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                         ) : (
-                          <TrendingDown className="w-4 h-4 text-danger-500 dark:text-danger-400" />
+                          <TrendingDown className="w-4 h-4 text-red-500 dark:text-red-400" />
                         )}
-                        <span className={`text-lg font-bold ${rec.edge > 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'}`}>
+                        <span className={`text-lg font-bold ${rec.edge > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                           {rec.edge > 0 ? '+' : ''}{(rec.edge * 100).toFixed(1)}%
                         </span>
                       </div>
                     </div>
 
                     <div className="text-center">
-                      <p className="text-caption text-surface-500 dark:text-surface-400">Confidence</p>
-                      <p className="text-lg font-bold text-surface-900 dark:text-white mt-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Confidence</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
                         {(rec.model_probability * 100).toFixed(0)}%
                       </p>
                     </div>
 
                     <div className="text-center">
-                      <p className="text-caption text-surface-500 dark:text-surface-400">Stake</p>
-                      <p className="text-lg font-bold text-primary-600 dark:text-primary-400 mt-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Stake</p>
+                      <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">
                         ${rec.suggested_stake.toFixed(0)}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4 p-4 bg-surface-50 dark:bg-surface-800/50 rounded-xl">
+                <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
                   <div className="flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-primary-500 dark:text-primary-400 mt-0.5 shrink-0" />
+                    <Sparkles className="w-5 h-5 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-surface-900 dark:text-white mb-1">The Edge</p>
-                      <p className="text-sm text-surface-600 dark:text-surface-400">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">The Edge</p>
+                      <p className="text-sm text-gray-600 dark:text-slate-400">
                         {rec.explanation}
                       </p>
                     </div>
                   </div>
 
                   {/* Edge Factor Badges */}
-                  <div className="mt-3 pt-3 border-t border-surface-200 dark:border-surface-700 flex flex-wrap gap-2">
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600 flex flex-wrap gap-2">
                     {rec.edge > 0.05 && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
                         <TrendingUp className="w-3 h-3" />
                         Strong Value
                       </span>
                     )}
                     {/* Line movement */}
                     {rec.edge > 0.03 && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-400">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-400">
                         <ArrowLeftRight className="w-3 h-3" />
                         Line Tracked
                       </span>
                     )}
                     {/* Official tendency */}
                     {(rec.sport === 'NFL' || rec.sport === 'NBA' || rec.sport === 'MLB') && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-400">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-400">
                         <User className="w-3 h-3" />
                         Official Factor
                       </span>
@@ -296,11 +296,11 @@ export default function Recommendations() {
                     {/* Situational factors */}
                     {(rec.sport === 'NFL' || rec.sport === 'NBA') && rec.edge > 0.02 && (
                       <>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-400">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
                           <Moon className="w-3 h-3" />
                           Rest Analyzed
                         </span>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-400">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
                           <Plane className="w-3 h-3" />
                           Travel Factor
                         </span>

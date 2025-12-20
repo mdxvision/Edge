@@ -20,7 +20,6 @@ import {
   Plus,
   Percent,
   Award,
-  Flame,
   History
 } from 'lucide-react';
 
@@ -411,8 +410,8 @@ export default function PaperTrading() {
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Badge variant="default">{bet.sport}</Badge>
-                    <Badge variant="secondary">{bet.bet_type}</Badge>
+                    <Badge variant="neutral">{bet.sport}</Badge>
+                    <Badge variant="outline">{bet.bet_type}</Badge>
                   </div>
                   <p className="font-semibold text-surface-900 dark:text-white">{bet.selection}</p>
                   <p className="text-sm text-surface-500 dark:text-surface-400">
@@ -511,7 +510,7 @@ export default function PaperTrading() {
                       <p className="text-xs text-surface-400">{bet.bet_type}</p>
                     </td>
                     <td className="py-3 pr-4">
-                      <Badge variant="secondary">{bet.sport}</Badge>
+                      <Badge variant="neutral">{bet.sport}</Badge>
                     </td>
                     <td className="py-3 pr-4 text-center text-surface-600 dark:text-surface-400">
                       {formatOdds(bet.odds)}
@@ -524,7 +523,7 @@ export default function PaperTrading() {
                     </td>
                     <td className="py-3">
                       <Badge
-                        variant={bet.status === 'won' ? 'success' : bet.status === 'lost' ? 'error' : 'default'}
+                        variant={bet.status === 'won' ? 'success' : bet.status === 'lost' ? 'danger' : 'neutral'}
                       >
                         {bet.status.toUpperCase()}
                       </Badge>

@@ -461,7 +461,7 @@ async def get_tracker_summary(db: Session = Depends(get_db)):
     streaks = tracker.get_streak_analysis()
     by_sport = tracker.get_stats_by_sport()
     by_confidence = tracker.get_stats_by_confidence_tier()
-    recent_picks = tracker.get_picks(limit=10)
+    recent_picks = tracker.get_picks(limit=20)
     bankroll = tracker.get_bankroll_history()
 
     # Get validation status

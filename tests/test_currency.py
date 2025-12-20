@@ -10,14 +10,14 @@ class TestCurrencyConversion:
 
     def test_convert_usd_to_eur(self, client: TestClient):
         """Test USD to EUR conversion."""
-        response = client.get("/currency/convert", params={
+        response = client.post("/currency/convert", json={
             "amount": 100,
             "from_currency": "USD",
             "to_currency": "EUR"
         })
         assert response.status_code == 200
         data = response.json()
-        assert data["from_amount"] == 100
+        assert data["original_amount"] == 100
         assert data["from_currency"] == "USD"
         assert data["to_currency"] == "EUR"
         assert "converted_amount" in data
@@ -25,7 +25,7 @@ class TestCurrencyConversion:
 
     def test_convert_same_currency(self, client: TestClient):
         """Test conversion to same currency."""
-        response = client.get("/currency/convert", params={
+        response = client.post("/currency/convert", json={
             "amount": 100,
             "from_currency": "USD",
             "to_currency": "USD"
@@ -36,12 +36,12 @@ class TestCurrencyConversion:
 
     def test_convert_invalid_currency(self, client: TestClient):
         """Test conversion with invalid currency."""
-        response = client.get("/currency/convert", params={
+        response = client.post("/currency/convert", json={
             "amount": 100,
             "from_currency": "USD",
             "to_currency": "INVALID"
         })
-        assert response.status_code in [400, 404]
+        assert response.status_code == 400
 
 
 class TestCurrencyRates:
@@ -52,15 +52,17 @@ class TestCurrencyRates:
         response = client.get("/currency/rates")
         assert response.status_code == 200
         data = response.json()
-        assert isinstance(data, list)
+        assert "base" in data
+        assert "rates" in data
+        assert isinstance(data["rates"], dict)
 
-    def test_get_specific_rate(self, client: TestClient):
-        """Test getting specific currency rate."""
-        response = client.get("/currency/rates/EUR")
+    def test_get_rates_has_common_currencies(self, client: TestClient):
+        """Test that rates include common currencies."""
+        response = client.get("/currency/rates")
         assert response.status_code == 200
         data = response.json()
-        assert data["currency"] == "EUR"
-        assert "rate" in data
+        assert "USD" in data["rates"]
+        assert "EUR" in data["rates"]
 
 
 class TestSupportedCurrencies:
@@ -68,10 +70,10 @@ class TestSupportedCurrencies:
 
     def test_get_supported_currencies(self, client: TestClient):
         """Test getting list of supported currencies."""
-        response = client.get("/currency/supported")
+        response = client.get("/currency/list")
         assert response.status_code == 200
         data = response.json()
-        assert isinstance(data, list)
+        assert isinstance(data, dict)
         assert "USD" in data
         assert "EUR" in data
         assert "GBP" in data

@@ -397,7 +397,7 @@ export default function Games() {
   const renderMLBGames = () => (
     <div className="grid gap-4">
       {mlbGames.length === 0 ? (
-        <Card padding="lg">
+        <Card padding="lg" className="bg-white dark:bg-slate-800">
           <EmptyState
             icon={Trophy}
             title="No MLB games today"
@@ -406,37 +406,37 @@ export default function Games() {
         </Card>
       ) : (
         mlbGames.map((game) => (
-          <Card key={game.id || game.game_pk} padding="md" hover>
+          <Card key={game.id || game.game_pk} padding="md" hover className="bg-white dark:bg-slate-800">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
                   {getStatusBadge(game.status)}
                   {game.inning && game.inning_state && (
-                    <span className="text-sm font-medium text-surface-600 dark:text-surface-400">
+                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">
                       {game.inning_state} {game.inning}
                     </span>
                   )}
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-surface-900 dark:text-white">
+                    <span className="font-medium text-gray-900 dark:text-white">
                       {game.away_team.name}
                     </span>
-                    <span className="text-xl font-bold text-surface-900 dark:text-white">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
                       {game.away_team.score ?? '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-surface-900 dark:text-white">
+                    <span className="font-medium text-gray-900 dark:text-white">
                       {game.home_team.name}
                     </span>
-                    <span className="text-xl font-bold text-surface-900 dark:text-white">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
                       {game.home_team.score ?? '-'}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-2 text-sm text-surface-500 dark:text-surface-400">
+              <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   <span>{game.game_time_display || new Date(game.game_date).toLocaleDateString('en-US', {
@@ -455,7 +455,7 @@ export default function Games() {
                 )}
                 {/* Weather Impact for MLB */}
                 {game.venue && (
-                  <div className="mt-2 pt-2 border-t border-surface-200 dark:border-surface-700">
+                  <div className="mt-2 pt-2 border-t border-gray-200 dark:border-slate-700">
                     <WeatherImpact
                       sport="mlb"
                       venue={game.venue}
@@ -484,7 +484,7 @@ export default function Games() {
   const renderNBAGames = () => (
     <div className="grid gap-4">
       {nbaGames.length === 0 ? (
-        <Card padding="lg">
+        <Card padding="lg" className="bg-white dark:bg-slate-800">
           <EmptyState
             icon={Trophy}
             title="No NBA games today"
@@ -493,7 +493,7 @@ export default function Games() {
         </Card>
       ) : (
         nbaGames.map((game) => (
-          <Card key={game.game_id} padding="md" hover>
+          <Card key={game.game_id} padding="md" hover className="bg-white dark:bg-slate-800">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -502,26 +502,26 @@ export default function Games() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-surface-900 dark:text-white">
+                      <span className="font-medium text-gray-900 dark:text-white">
                         {game.away_team.name || `Team ${game.away_team.id}`}
                       </span>
                       {game.odds?.moneyline_away && (
-                        <span className="text-xs text-surface-500">
+                        <span className="text-xs text-gray-500">
                           ({game.odds.moneyline_away > 0 ? '+' : ''}{game.odds.moneyline_away})
                         </span>
                       )}
                     </div>
-                    <span className="text-xl font-bold text-surface-900 dark:text-white">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
                       {game.away_team.score ?? '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-surface-900 dark:text-white">
+                      <span className="font-medium text-gray-900 dark:text-white">
                         {game.home_team.name || `Team ${game.home_team.id}`}
                       </span>
                       {game.odds?.moneyline_home && (
-                        <span className="text-xs text-surface-500">
+                        <span className="text-xs text-gray-500">
                           ({game.odds.moneyline_home > 0 ? '+' : ''}{game.odds.moneyline_home})
                         </span>
                       )}
@@ -531,13 +531,13 @@ export default function Games() {
                         </Badge>
                       )}
                     </div>
-                    <span className="text-xl font-bold text-surface-900 dark:text-white">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
                       {game.home_team.score ?? '-'}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-2 text-sm text-surface-500 dark:text-surface-400">
+              <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   <span>{game.game_time_display || game.game_status || game.game_date}</span>
@@ -578,7 +578,7 @@ export default function Games() {
 
             {/* Betting Buttons */}
             {game.odds && (
-              <div className="mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
                 <div className="flex flex-wrap gap-2">
                   {/* Away Spread */}
                   {game.odds.spread !== null && (() => {
@@ -601,8 +601,8 @@ export default function Games() {
                         disabled={logged}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           logged
-                            ? 'bg-green-500/20 text-green-400 cursor-not-allowed'
-                            : 'bg-surface-700 hover:bg-surface-600 text-white'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.spread_odds)})`}
@@ -631,8 +631,8 @@ export default function Games() {
                         disabled={logged}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           logged
-                            ? 'bg-green-500/20 text-green-400 cursor-not-allowed'
-                            : 'bg-surface-700 hover:bg-surface-600 text-white'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.spread_odds)})`}
@@ -660,8 +660,8 @@ export default function Games() {
                         disabled={logged}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           logged
-                            ? 'bg-green-500/20 text-green-400 cursor-not-allowed'
-                            : 'bg-surface-700 hover:bg-surface-600 text-white'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.over_odds)})`}
@@ -689,8 +689,8 @@ export default function Games() {
                         disabled={logged}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           logged
-                            ? 'bg-green-500/20 text-green-400 cursor-not-allowed'
-                            : 'bg-surface-700 hover:bg-surface-600 text-white'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.under_odds)})`}
@@ -717,8 +717,8 @@ export default function Games() {
                         disabled={logged}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           logged
-                            ? 'bg-green-500/20 text-green-400 cursor-not-allowed'
-                            : 'bg-surface-700 hover:bg-surface-600 text-white'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.moneyline_away)})`}
@@ -745,8 +745,8 @@ export default function Games() {
                         disabled={logged}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           logged
-                            ? 'bg-green-500/20 text-green-400 cursor-not-allowed'
-                            : 'bg-surface-700 hover:bg-surface-600 text-white'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.moneyline_home)})`}
@@ -765,7 +765,7 @@ export default function Games() {
   const renderNFLGames = () => (
     <div className="grid gap-4">
       {nflGames.length === 0 ? (
-        <Card padding="lg">
+        <Card padding="lg" className="bg-white dark:bg-slate-800">
           <EmptyState
             icon={Trophy}
             title="No NFL games this week"
@@ -774,7 +774,7 @@ export default function Games() {
         </Card>
       ) : (
         nflGames.map((game) => (
-          <Card key={game.id || game.espn_id} padding="md" hover>
+          <Card key={game.id || game.espn_id} padding="md" hover className="bg-white dark:bg-slate-800">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -783,7 +783,7 @@ export default function Games() {
                     <Badge variant="outline">Week {game.week}</Badge>
                   )}
                   {game.quarter && game.time_remaining && (
-                    <span className="text-sm font-medium text-surface-600 dark:text-surface-400">
+                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">
                       Q{game.quarter} - {game.time_remaining}
                     </span>
                   )}
@@ -791,33 +791,33 @@ export default function Games() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-surface-900 dark:text-white">
+                      <span className="font-medium text-gray-900 dark:text-white">
                         {game.away_team.name}
                       </span>
                       {game.away_team.record && (
-                        <span className="text-xs text-surface-500">({game.away_team.record})</span>
+                        <span className="text-xs text-gray-500">({game.away_team.record})</span>
                       )}
                     </div>
-                    <span className="text-xl font-bold text-surface-900 dark:text-white">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
                       {game.away_team.score ?? '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-surface-900 dark:text-white">
+                      <span className="font-medium text-gray-900 dark:text-white">
                         {game.home_team.name}
                       </span>
                       {game.home_team.record && (
-                        <span className="text-xs text-surface-500">({game.home_team.record})</span>
+                        <span className="text-xs text-gray-500">({game.home_team.record})</span>
                       )}
                     </div>
-                    <span className="text-xl font-bold text-surface-900 dark:text-white">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
                       {game.home_team.score ?? '-'}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-2 text-sm text-surface-500 dark:text-surface-400">
+              <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   <span>{game.game_time_display || new Date(game.game_date).toLocaleDateString('en-US', {
@@ -847,15 +847,15 @@ export default function Games() {
                       team2={game.away_team.name}
                       compact
                     />
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-400">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400">
                       <ArrowLeftRight className="w-3 h-3" />
                       Lines
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-400">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400">
                       <Moon className="w-3 h-3" />
                       Rest
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-400">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400">
                       <Plane className="w-3 h-3" />
                       Travel
                     </span>
@@ -875,7 +875,7 @@ export default function Games() {
                 )}
                 {/* Weather Impact */}
                 {game.venue && (
-                  <div className="mt-2 pt-2 border-t border-surface-200 dark:border-surface-700">
+                  <div className="mt-2 pt-2 border-t border-gray-200 dark:border-slate-700">
                     <WeatherImpact
                       sport="nfl"
                       venue={game.venue}
@@ -889,7 +889,7 @@ export default function Games() {
 
             {/* NFL Betting Buttons */}
             {game.odds && (game.odds.spread !== null || game.odds.over_under !== null) && (
-              <div className="mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
                 <div className="flex flex-wrap gap-2">
                   {/* Away Spread */}
                   {game.odds.spread !== null && (() => {
@@ -913,8 +913,8 @@ export default function Games() {
                         disabled={logged}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           logged
-                            ? 'bg-green-500/20 text-green-400 cursor-not-allowed'
-                            : 'bg-surface-700 hover:bg-surface-600 text-white'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (-110)`}
@@ -944,8 +944,8 @@ export default function Games() {
                         disabled={logged}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           logged
-                            ? 'bg-green-500/20 text-green-400 cursor-not-allowed'
-                            : 'bg-surface-700 hover:bg-surface-600 text-white'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (-110)`}
@@ -974,8 +974,8 @@ export default function Games() {
                         disabled={logged}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           logged
-                            ? 'bg-green-500/20 text-green-400 cursor-not-allowed'
-                            : 'bg-surface-700 hover:bg-surface-600 text-white'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (-110)`}
@@ -1004,8 +1004,8 @@ export default function Games() {
                         disabled={logged}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           logged
-                            ? 'bg-green-500/20 text-green-400 cursor-not-allowed'
-                            : 'bg-surface-700 hover:bg-surface-600 text-white'
+                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (-110)`}
@@ -1024,7 +1024,7 @@ export default function Games() {
   const renderCBBGames = () => (
     <div className="grid gap-4">
       {cbbGames.length === 0 ? (
-        <Card padding="lg">
+        <Card padding="lg" className="bg-white dark:bg-slate-800">
           <EmptyState
             icon={Trophy}
             title="No college basketball games today"
@@ -1033,7 +1033,7 @@ export default function Games() {
         </Card>
       ) : (
         cbbGames.map((game, idx) => (
-          <Card key={game.game_id || game.espn_id || idx} padding="md" hover>
+          <Card key={game.game_id || game.espn_id || idx} padding="md" hover className="bg-white dark:bg-slate-800">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -1043,16 +1043,16 @@ export default function Games() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {game.away_team.rank && game.away_team.rank <= 25 && (
-                        <span className="text-primary-500 font-semibold">#{game.away_team.rank}</span>
+                        <span className="text-emerald-500 font-semibold">#{game.away_team.rank}</span>
                       )}
-                      <span className="font-medium text-surface-900 dark:text-white">
+                      <span className="font-medium text-gray-900 dark:text-white">
                         {game.away_team.name}
                       </span>
                       {game.away_team.record && (
-                        <span className="text-xs text-surface-500">({game.away_team.record})</span>
+                        <span className="text-xs text-gray-500">({game.away_team.record})</span>
                       )}
                     </div>
-                    <span className="text-xl font-bold text-surface-900 dark:text-white">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
                       {game.status?.toLowerCase().includes('progress') || game.status?.toLowerCase().includes('final')
                         ? (game.away_team.score ?? '-')
                         : '-'}
@@ -1061,16 +1061,16 @@ export default function Games() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {game.home_team.rank && game.home_team.rank <= 25 && (
-                        <span className="text-primary-500 font-semibold">#{game.home_team.rank}</span>
+                        <span className="text-emerald-500 font-semibold">#{game.home_team.rank}</span>
                       )}
-                      <span className="font-medium text-surface-900 dark:text-white">
+                      <span className="font-medium text-gray-900 dark:text-white">
                         {game.home_team.name}
                       </span>
                       {game.home_team.record && (
-                        <span className="text-xs text-surface-500">({game.home_team.record})</span>
+                        <span className="text-xs text-gray-500">({game.home_team.record})</span>
                       )}
                     </div>
-                    <span className="text-xl font-bold text-surface-900 dark:text-white">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
                       {game.status?.toLowerCase().includes('progress') || game.status?.toLowerCase().includes('final')
                         ? (game.home_team.score ?? '-')
                         : '-'}
@@ -1078,10 +1078,10 @@ export default function Games() {
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-2 text-sm text-surface-500 dark:text-surface-400">
+              <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>{game.game_time_display || game.status_detail || new Date(game.game_date || game.date).toLocaleDateString('en-US', {
+                  <span>{game.game_time_display || game.status_detail || new Date(game.game_date || game.date || new Date()).toLocaleDateString('en-US', {
                     weekday: 'short',
                     month: 'short',
                     day: 'numeric',
@@ -1112,7 +1112,7 @@ export default function Games() {
   const renderSoccerMatches = () => (
     <div className="grid gap-4">
       {soccerMatches.length === 0 ? (
-        <Card padding="lg">
+        <Card padding="lg" className="bg-white dark:bg-slate-800">
           <EmptyState
             icon={Trophy}
             title="No soccer matches today"
@@ -1121,38 +1121,38 @@ export default function Games() {
         </Card>
       ) : (
         soccerMatches.map((match) => (
-          <Card key={match.id} padding="md" hover>
+          <Card key={match.id} padding="md" hover className="bg-white dark:bg-slate-800">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
                   {getStatusBadge(match.status)}
                   <Badge variant="outline">{match.competition}</Badge>
                   {match.matchday && (
-                    <span className="text-sm text-surface-500 dark:text-surface-400">
+                    <span className="text-sm text-gray-600 dark:text-slate-400">
                       Matchday {match.matchday}
                     </span>
                   )}
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-surface-900 dark:text-white">
+                    <span className="font-medium text-gray-900 dark:text-white">
                       {match.home_team.name}
                     </span>
-                    <span className="text-xl font-bold text-surface-900 dark:text-white">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
                       {match.home_team.score ?? '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-surface-900 dark:text-white">
+                    <span className="font-medium text-gray-900 dark:text-white">
                       {match.away_team.name}
                     </span>
-                    <span className="text-xl font-bold text-surface-900 dark:text-white">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
                       {match.away_team.score ?? '-'}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-2 text-sm text-surface-500 dark:text-surface-400">
+              <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   <span>{match.game_time_display || new Date(match.match_date).toLocaleDateString('en-US', {
@@ -1171,7 +1171,7 @@ export default function Games() {
                 )}
                 {/* Weather Impact for Soccer */}
                 {match.venue && (
-                  <div className="mt-2 pt-2 border-t border-surface-200 dark:border-surface-700">
+                  <div className="mt-2 pt-2 border-t border-gray-200 dark:border-slate-700">
                     <WeatherImpact
                       sport="soccer"
                       venue={match.venue}
@@ -1243,14 +1243,14 @@ export default function Games() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-display text-surface-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Live Scoreboard
           </h1>
-          <p className="text-lg text-surface-500 dark:text-surface-400 mt-2">
+          <p className="text-lg text-gray-600 dark:text-slate-300 mt-2">
             Real-time scores. Every league.
           </p>
         </div>
@@ -1265,7 +1265,7 @@ export default function Games() {
       </div>
 
       {/* Sport Tabs */}
-      <div className="border-b border-surface-200 dark:border-surface-700">
+      <div className="border-b border-gray-200 dark:border-slate-700">
         <nav className="flex gap-1 -mb-px overflow-x-auto">
           {(Object.keys(SPORT_CONFIG) as SportTab[]).map((sport) => (
             <button
@@ -1274,8 +1274,8 @@ export default function Games() {
               className={`
                 flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap
                 ${activeTab === sport
-                  ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                  : 'border-transparent text-surface-500 hover:text-surface-700 hover:border-surface-300 dark:text-surface-400 dark:hover:text-surface-300'
+                  ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-300'
                 }
               `}
             >
@@ -1287,10 +1287,10 @@ export default function Games() {
       </div>
 
       {/* Results count */}
-      <p className="text-sm text-surface-500 dark:text-surface-400">
+      <p className="text-sm text-gray-600 dark:text-slate-400">
         {getGameCount()} {activeTab === 'soccer' ? 'matches' : 'games'}
         {activeTab === 'nba' && nbaGames.some(g => g.game_status?.toLowerCase() === 'live') && (
-          <span className="ml-2 text-green-500 font-medium">
+          <span className="ml-2 text-emerald-500 font-medium">
             ({nbaGames.filter(g => g.game_status?.toLowerCase() === 'live').length} live)
           </span>
         )}

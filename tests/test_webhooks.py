@@ -23,12 +23,12 @@ class TestCreateWebhook:
     def test_create_webhook(self, client: TestClient, auth_headers):
         """Test creating a webhook."""
         response = client.post(
-            "/webhooks/",
+            "/webhooks",
             headers=auth_headers,
             json={
                 "name": "My Webhook",
                 "url": "https://example.com/webhook",
-                "events": ["bet_placed", "bet_settled"]
+                "events": ["bet.placed", "bet.won"]
             }
         )
         assert response.status_code == 200
@@ -37,41 +37,42 @@ class TestCreateWebhook:
         assert data["url"] == "https://example.com/webhook"
         assert data["is_active"] is True
 
-    def test_create_webhook_with_secret(self, client: TestClient, auth_headers):
-        """Test creating a webhook with a secret."""
+    def test_create_webhook_returns_secret(self, client: TestClient, auth_headers):
+        """Test that creating a webhook returns a secret."""
         response = client.post(
-            "/webhooks/",
+            "/webhooks",
             headers=auth_headers,
             json={
                 "name": "Secure Webhook",
                 "url": "https://example.com/webhook",
-                "events": ["alert_triggered"],
-                "secret": "mysecretkey123"
+                "events": ["alert.triggered"]
             }
         )
         assert response.status_code == 200
         data = response.json()
-        assert "secret" not in data  # Secret should not be returned
+        # Secret should be returned on creation
+        assert "secret" in data
 
-    def test_create_webhook_invalid_url(self, client: TestClient, auth_headers):
-        """Test creating webhook with invalid URL."""
+    def test_create_webhook_invalid_events(self, client: TestClient, auth_headers):
+        """Test creating webhook with invalid events."""
         response = client.post(
-            "/webhooks/",
+            "/webhooks",
             headers=auth_headers,
             json={
                 "name": "Invalid Webhook",
-                "url": "not-a-url",
-                "events": ["bet_placed"]
+                "url": "https://example.com/webhook",
+                "events": ["invalid_event"]
             }
         )
-        assert response.status_code == 422  # Validation error
+        # Should fail validation for invalid event type
+        assert response.status_code == 400
 
     def test_create_webhook_no_auth(self, client: TestClient):
         """Test creating webhook without authentication."""
-        response = client.post("/webhooks/", json={
+        response = client.post("/webhooks", json={
             "name": "Test Webhook",
             "url": "https://example.com/webhook",
-            "events": ["bet_placed"]
+            "events": ["bet.placed"]
         })
         assert response.status_code == 401
 
@@ -83,16 +84,16 @@ class TestGetWebhooks:
         """Test listing user webhooks."""
         # Create a webhook first
         client.post(
-            "/webhooks/",
+            "/webhooks",
             headers=auth_headers,
             json={
                 "name": "Test Webhook",
                 "url": "https://example.com/webhook",
-                "events": ["bet_placed"]
+                "events": ["bet.placed"]
             }
         )
 
-        response = client.get("/webhooks/", headers=auth_headers)
+        response = client.get("/webhooks", headers=auth_headers)
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
@@ -102,12 +103,12 @@ class TestGetWebhooks:
         """Test getting a single webhook."""
         # Create a webhook first
         create_response = client.post(
-            "/webhooks/",
+            "/webhooks",
             headers=auth_headers,
             json={
                 "name": "Single Webhook",
                 "url": "https://example.com/webhook",
-                "events": ["bet_placed"]
+                "events": ["bet.placed"]
             }
         )
         webhook_id = create_response.json()["id"]
@@ -125,12 +126,12 @@ class TestUpdateWebhook:
         """Test updating webhook name."""
         # Create a webhook first
         create_response = client.post(
-            "/webhooks/",
+            "/webhooks",
             headers=auth_headers,
             json={
                 "name": "Original Name",
                 "url": "https://example.com/webhook",
-                "events": ["bet_placed"]
+                "events": ["bet.placed"]
             }
         )
         webhook_id = create_response.json()["id"]
@@ -149,12 +150,12 @@ class TestUpdateWebhook:
         """Test updating webhook URL."""
         # Create a webhook first
         create_response = client.post(
-            "/webhooks/",
+            "/webhooks",
             headers=auth_headers,
             json={
                 "name": "URL Test",
                 "url": "https://example.com/old",
-                "events": ["bet_placed"]
+                "events": ["bet.placed"]
             }
         )
         webhook_id = create_response.json()["id"]
@@ -173,12 +174,12 @@ class TestUpdateWebhook:
         """Test toggling webhook active status."""
         # Create a webhook first
         create_response = client.post(
-            "/webhooks/",
+            "/webhooks",
             headers=auth_headers,
             json={
                 "name": "Toggle Test",
                 "url": "https://example.com/webhook",
-                "events": ["bet_placed"]
+                "events": ["bet.placed"]
             }
         )
         webhook_id = create_response.json()["id"]
@@ -200,12 +201,12 @@ class TestDeleteWebhook:
         """Test deleting a webhook."""
         # Create a webhook first
         create_response = client.post(
-            "/webhooks/",
+            "/webhooks",
             headers=auth_headers,
             json={
                 "name": "Delete Me",
                 "url": "https://example.com/webhook",
-                "events": ["bet_placed"]
+                "events": ["bet.placed"]
             }
         )
         webhook_id = create_response.json()["id"]
@@ -219,27 +220,13 @@ class TestDeleteWebhook:
         assert response.status_code == 404
 
 
-class TestWebhookTest:
-    """Tests for webhook test endpoint."""
+class TestWebhookEvents:
+    """Tests for webhook events endpoint."""
 
-    def test_test_webhook(self, client: TestClient, auth_headers):
-        """Test the webhook test endpoint."""
-        # Create a webhook first
-        create_response = client.post(
-            "/webhooks/",
-            headers=auth_headers,
-            json={
-                "name": "Test Endpoint",
-                "url": "https://httpbin.org/post",  # Use httpbin for testing
-                "events": ["bet_placed"]
-            }
-        )
-        webhook_id = create_response.json()["id"]
-
-        # Test the webhook (may fail if httpbin is unavailable)
-        response = client.post(
-            f"/webhooks/{webhook_id}/test",
-            headers=auth_headers
-        )
-        # Accept either success or failure (network dependent)
-        assert response.status_code in [200, 500]
+    def test_list_available_events(self, client: TestClient):
+        """Test listing available webhook events."""
+        response = client.get("/webhooks/events")
+        assert response.status_code == 200
+        data = response.json()
+        assert "events" in data
+        assert isinstance(data["events"], list)

@@ -54,32 +54,32 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile Header Bar */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 glass border-b border-surface-200 dark:border-surface-800 flex items-center justify-between px-4">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-gray-200 dark:border-slate-700 flex items-center justify-between px-4">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2.5 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
+          className="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors duration-200"
           aria-label="Toggle menu"
         >
           {isOpen ? (
-            <X className="w-5 h-5 text-surface-700 dark:text-surface-300" />
+            <X className="w-5 h-5 text-gray-700 dark:text-slate-300" />
           ) : (
-            <Menu className="w-5 h-5 text-surface-700 dark:text-surface-300" />
+            <Menu className="w-5 h-5 text-gray-700 dark:text-slate-300" />
           )}
         </button>
 
-        <h1 className="text-lg font-bold text-surface-900 dark:text-white tracking-tight">
+        <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
           EdgeBet
         </h1>
 
         <button
           onClick={toggleTheme}
-          className="p-2.5 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
+          className="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors duration-200"
           aria-label="Toggle theme"
         >
           {theme === 'dark' ? (
-            <Sun className="w-5 h-5 text-surface-700 dark:text-surface-300" />
+            <Sun className="w-5 h-5 text-gray-700 dark:text-slate-300" />
           ) : (
-            <Moon className="w-5 h-5 text-surface-700 dark:text-surface-300" />
+            <Moon className="w-5 h-5 text-gray-700 dark:text-slate-300" />
           )}
         </button>
       </header>
@@ -96,23 +96,23 @@ export default function Sidebar() {
       <aside
         className={clsx(
           'fixed lg:static inset-y-0 left-0 z-40 w-72',
-          'bg-white dark:bg-surface-950',
-          'border-r border-surface-200 dark:border-surface-800',
+          'bg-white dark:bg-slate-900',
+          'border-r border-gray-200 dark:border-slate-700',
           'flex flex-col transition-transform duration-300 ease-out',
           'pt-16 lg:pt-0',
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
         {/* Desktop Logo */}
-        <div className="hidden lg:flex items-center gap-3 p-6 border-b border-surface-200 dark:border-surface-800">
-          <div className="w-10 h-10 rounded-xl bg-primary-600 dark:bg-primary-500 flex items-center justify-center">
+        <div className="hidden lg:flex items-center gap-3 p-6 border-b border-gray-200 dark:border-slate-700">
+          <div className="w-10 h-10 rounded-xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center">
             <TrendingUp className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-surface-900 dark:text-white tracking-tight">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
               EdgeBet
             </h1>
-            <p className="text-xs text-surface-500 dark:text-surface-400">
+            <p className="text-xs text-gray-500 dark:text-slate-400">
               Intelligent Edge
             </p>
           </div>
@@ -127,11 +127,11 @@ export default function Sidebar() {
               onClick={() => setIsOpen(false)}
               className={({ isActive }) =>
                 clsx(
-                  'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium',
+                  'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium',
                   'transition-all duration-200 ease-out',
                   isActive
-                    ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400'
-                    : 'text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-800'
+                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'
+                    : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800'
                 )
               }
             >
@@ -142,13 +142,13 @@ export default function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-surface-200 dark:border-surface-800 space-y-2">
+        <div className="p-4 border-t border-gray-200 dark:border-slate-700 space-y-2">
           {client && (
-            <div className="px-4 py-3 rounded-xl bg-surface-50 dark:bg-surface-800">
-              <p className="font-semibold text-surface-900 dark:text-white truncate">
+            <div className="px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-800">
+              <p className="font-semibold text-gray-900 dark:text-white truncate">
                 {client.name}
               </p>
-              <p className="text-sm text-surface-500 dark:text-surface-400">
+              <p className="text-sm text-gray-500 dark:text-slate-400">
                 ${client.bankroll.toLocaleString()} bankroll
               </p>
             </div>
@@ -157,7 +157,7 @@ export default function Sidebar() {
           {/* Desktop Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="hidden lg:flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-800 transition-colors duration-200"
+            className="hidden lg:flex items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors duration-200"
           >
             {theme === 'dark' ? (
               <Sun className="w-5 h-5" />
@@ -169,7 +169,7 @@ export default function Sidebar() {
 
           <button
             onClick={logout}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-danger-600 hover:bg-danger-50 dark:text-danger-400 dark:hover:bg-danger-500/10 transition-colors duration-200"
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors duration-200"
           >
             <LogOut className="w-5 h-5" />
             Sign Out

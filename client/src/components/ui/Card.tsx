@@ -22,17 +22,22 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     const paddingSizes = {
       none: '',
       sm: 'p-4',
-      md: 'p-5 md:p-6',
-      lg: 'p-6 md:p-8',
+      md: 'p-4 md:p-5',
+      lg: 'p-5 md:p-6',
     };
 
     return (
       <div
         ref={ref}
         className={clsx(
-          'card',
+          // Light mode
+          'bg-white border border-gray-200 shadow-sm',
+          // Dark mode
+          'dark:bg-slate-800 dark:border-slate-700 dark:shadow-none',
+          // Common
+          'rounded-lg transition-all duration-200',
           paddingSizes[padding],
-          hover && 'hover:translate-y-[-2px] cursor-pointer',
+          hover && 'hover:shadow-md hover:border-gray-300 dark:hover:border-slate-600 cursor-pointer',
           className
         )}
         {...props}
@@ -53,7 +58,7 @@ const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
         ref={ref}
         className={clsx(
           'flex items-start justify-between gap-4 pb-4 mb-4',
-          'border-b border-surface-200 dark:border-surface-800',
+          'border-b border-gray-200 dark:border-slate-700',
           className
         )}
         {...props}
@@ -61,12 +66,12 @@ const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
         {(title || subtitle) ? (
           <div className="min-w-0 flex-1">
             {title && (
-              <h3 className="text-lg font-semibold text-surface-900 dark:text-white truncate">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                 {title}
               </h3>
             )}
             {subtitle && (
-              <p className="text-sm text-surface-500 dark:text-surface-400 mt-0.5">
+              <p className="text-sm text-gray-600 dark:text-slate-400 mt-0.5">
                 {subtitle}
               </p>
             )}
@@ -88,7 +93,7 @@ const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
         ref={ref}
         className={clsx(
           'pt-4 mt-4',
-          'border-t border-surface-200 dark:border-surface-800',
+          'border-t border-gray-200 dark:border-slate-700',
           className
         )}
         {...props}
@@ -118,30 +123,30 @@ function StatCard({ label, value, change, icon, className }: StatCardProps) {
     <Card padding="md" className={className}>
       <div className="flex items-start justify-between">
         <div className="space-y-2">
-          <p className="text-sm font-medium text-surface-500 dark:text-surface-400">
+          <p className="text-sm font-medium text-gray-600 dark:text-slate-400">
             {label}
           </p>
-          <p className="text-2xl font-bold text-surface-900 dark:text-white animate-stat">
+          <p className="text-2xl font-bold text-gray-900 dark:text-white animate-stat">
             {value}
           </p>
           {change && (
             <div className={clsx(
               'flex items-center gap-1 text-sm font-medium',
-              change.type === 'increase' && 'text-success-500 dark:text-success-400',
-              change.type === 'decrease' && 'text-danger-500 dark:text-danger-400',
-              change.type === 'neutral' && 'text-surface-500 dark:text-surface-400'
+              change.type === 'increase' && 'text-emerald-600 dark:text-emerald-400',
+              change.type === 'decrease' && 'text-red-500 dark:text-red-400',
+              change.type === 'neutral' && 'text-gray-500 dark:text-slate-400'
             )}>
               <span>
                 {change.type === 'increase' && '+'}
                 {change.type === 'decrease' && '-'}
                 {Math.abs(change.value)}%
               </span>
-              <span className="text-surface-400 dark:text-surface-500">vs last period</span>
+              <span className="text-gray-400 dark:text-slate-500">vs last period</span>
             </div>
           )}
         </div>
         {icon && (
-          <div className="p-3 rounded-xl bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400">
+          <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
             {icon}
           </div>
         )}

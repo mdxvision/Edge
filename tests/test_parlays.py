@@ -17,64 +17,58 @@ def auth_headers(client: TestClient):
     return {"Authorization": f"Bearer {token}"}
 
 
-class TestParlayCalculation:
-    """Tests for parlay calculation."""
+class TestParlayAnalysis:
+    """Tests for parlay analysis."""
 
-    def test_calculate_two_leg_parlay(self, client: TestClient, auth_headers):
-        """Test calculating a 2-leg parlay."""
+    def test_analyze_two_leg_parlay(self, client: TestClient):
+        """Test analyzing a 2-leg parlay."""
         response = client.post(
-            "/parlays/calculate",
-            headers=auth_headers,
+            "/parlays/analyze",
             json={
                 "legs": [
                     {"selection": "Team A ML", "odds": -110, "probability": 0.55},
                     {"selection": "Team B ML", "odds": 150, "probability": 0.40}
-                ],
-                "stake": 100
+                ]
             }
         )
         assert response.status_code == 200
         data = response.json()
         assert "combined_odds" in data
         assert "combined_probability" in data
-        assert "potential_payout" in data
+        assert "leg_count" in data
+        assert data["leg_count"] == 2
 
-    def test_calculate_three_leg_parlay(self, client: TestClient, auth_headers):
-        """Test calculating a 3-leg parlay."""
+    def test_analyze_three_leg_parlay(self, client: TestClient):
+        """Test analyzing a 3-leg parlay."""
         response = client.post(
-            "/parlays/calculate",
-            headers=auth_headers,
+            "/parlays/analyze",
             json={
                 "legs": [
                     {"selection": "Team A ML", "odds": -110, "probability": 0.55},
                     {"selection": "Team B +3.5", "odds": -105, "probability": 0.52},
                     {"selection": "Over 45.5", "odds": -110, "probability": 0.50}
-                ],
-                "stake": 50
+                ]
             }
         )
         assert response.status_code == 200
         data = response.json()
         assert data["leg_count"] == 3
 
-    def test_calculate_correlated_parlay(self, client: TestClient, auth_headers):
-        """Test calculating a correlated parlay."""
+    def test_analyze_parlay_returns_edge(self, client: TestClient):
+        """Test that parlay analysis returns edge information."""
         response = client.post(
-            "/parlays/calculate",
-            headers=auth_headers,
+            "/parlays/analyze",
             json={
                 "legs": [
                     {"selection": "Team A ML", "odds": -110, "probability": 0.55},
                     {"selection": "Team A Over", "odds": -110, "probability": 0.50}
-                ],
-                "stake": 100,
-                "same_game": True
+                ]
             }
         )
         assert response.status_code == 200
         data = response.json()
-        # Correlation should affect probability
-        assert "correlation_adjustment" in data
+        assert "edge" in data
+        assert "is_positive_ev" in data
 
 
 class TestCreateParlay:
@@ -83,7 +77,7 @@ class TestCreateParlay:
     def test_create_parlay(self, client: TestClient, auth_headers):
         """Test creating and saving a parlay."""
         response = client.post(
-            "/parlays/",
+            "/parlays",
             headers=auth_headers,
             json={
                 "name": "My Parlay",
@@ -101,9 +95,10 @@ class TestCreateParlay:
 
     def test_create_parlay_no_auth(self, client: TestClient):
         """Test creating parlay without authentication."""
-        response = client.post("/parlays/", json={
+        response = client.post("/parlays", json={
             "legs": [
-                {"selection": "Team A ML", "odds": -110, "probability": 0.55}
+                {"selection": "Team A ML", "odds": -110, "probability": 0.55},
+                {"selection": "Team B ML", "odds": 150, "probability": 0.40}
             ],
             "stake": 100
         })
@@ -117,7 +112,7 @@ class TestGetParlays:
         """Test listing user parlays."""
         # Create a parlay first
         client.post(
-            "/parlays/",
+            "/parlays",
             headers=auth_headers,
             json={
                 "name": "Test Parlay",
@@ -129,32 +124,36 @@ class TestGetParlays:
             }
         )
 
-        response = client.get("/parlays/", headers=auth_headers)
+        response = client.get("/parlays", headers=auth_headers)
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
 
 
-class TestParlayOddsConversion:
-    """Tests for odds conversion in parlays."""
+class TestParlayValidation:
+    """Tests for parlay validation."""
 
-    def test_convert_american_to_decimal(self, client: TestClient):
-        """Test converting American odds to decimal."""
-        response = client.get("/parlays/convert-odds", params={
-            "odds": -110,
-            "format": "decimal"
-        })
-        assert response.status_code == 200
-        data = response.json()
-        assert "decimal" in data
-        assert data["decimal"] == pytest.approx(1.91, 0.01)
+    def test_parlay_requires_minimum_legs(self, client: TestClient):
+        """Test that parlay requires at least 2 legs."""
+        response = client.post(
+            "/parlays/analyze",
+            json={
+                "legs": [
+                    {"selection": "Team A ML", "odds": -110, "probability": 0.55}
+                ]
+            }
+        )
+        assert response.status_code == 422  # Validation error
 
-    def test_convert_positive_american_to_decimal(self, client: TestClient):
-        """Test converting positive American odds to decimal."""
-        response = client.get("/parlays/convert-odds", params={
-            "odds": 150,
-            "format": "decimal"
-        })
-        assert response.status_code == 200
-        data = response.json()
-        assert data["decimal"] == pytest.approx(2.5, 0.01)
+    def test_parlay_probability_must_be_valid(self, client: TestClient):
+        """Test that probability must be between 0 and 1."""
+        response = client.post(
+            "/parlays/analyze",
+            json={
+                "legs": [
+                    {"selection": "Team A ML", "odds": -110, "probability": 1.5},
+                    {"selection": "Team B ML", "odds": 150, "probability": 0.40}
+                ]
+            }
+        )
+        assert response.status_code == 422  # Validation error

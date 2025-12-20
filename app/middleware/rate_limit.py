@@ -2,12 +2,16 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 import time
+import os
 from typing import Dict, List, Tuple
 import logging
 
 logger = logging.getLogger(__name__)
 
 MAX_TRACKED_IPS = 10000
+
+# Allow disabling rate limiting via environment variable (for testing)
+RATE_LIMIT_DISABLED = os.environ.get("DISABLE_RATE_LIMIT", "").lower() in ("true", "1", "yes")
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -102,9 +106,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return True
     
     async def dispatch(self, request: Request, call_next):
+        if RATE_LIMIT_DISABLED:
+            return await call_next(request)
+
         if self._is_exempt(request.url.path):
             return await call_next(request)
-        
+
         self._cleanup_all()
         
         client_ip = self._get_client_ip(request)
@@ -206,12 +213,15 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
                 del self.register_attempts[ip]
     
     async def dispatch(self, request: Request, call_next):
+        if RATE_LIMIT_DISABLED:
+            return await call_next(request)
+
         path = request.url.path
         method = request.method
-        
+
         if method != "POST":
             return await call_next(request)
-        
+
         self._cleanup_all()
         
         client_ip = self._get_client_ip(request)

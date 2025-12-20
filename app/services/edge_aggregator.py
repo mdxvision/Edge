@@ -31,18 +31,23 @@ EDGE_WEIGHTS = {
 
 # Confidence thresholds
 CONFIDENCE_THRESHOLDS = {
-    "VERY_HIGH": 0.80,
-    "HIGH": 0.70,
-    "MEDIUM": 0.60,
-    "LOW": 0.50,
+    "VERY_HIGH": 0.75,
+    "HIGH": 0.65,
+    "MEDIUM": 0.55,
+    "LOW": 0.45,
 }
 
-# Recommendation thresholds
+# Maximum realistic edge for sports betting
+MAX_REALISTIC_EDGE = 10.0  # 10% max edge in percentage points
+MAX_REALISTIC_CONFIDENCE = 0.85  # 85% max confidence
+MIN_REALISTIC_CONFIDENCE = 0.45  # 45% min confidence
+
+# Recommendation thresholds - more conservative
 RECOMMENDATION_MAP = {
-    0.80: ("STRONG BET", 2.0),  # 2 units
-    0.70: ("BET", 1.5),         # 1.5 units
-    0.60: ("LEAN", 1.0),        # 1 unit
-    0.50: ("MONITOR", 0.5),     # 0.5 units
+    0.70: ("STRONG BET", 2.0),  # 2 units - high confidence
+    0.60: ("BET", 1.5),         # 1.5 units
+    0.52: ("LEAN", 1.0),        # 1 unit
+    0.48: ("MONITOR", 0.5),     # 0.5 units
     0.00: ("AVOID", 0.0),       # No bet
 }
 
@@ -550,11 +555,15 @@ def _generate_prediction(
         predicted_side = f"{away_team}"
         raw_edge = abs(net_edge)
 
+    # Cap edge at realistic maximum (10% max)
+    raw_edge = min(raw_edge, MAX_REALISTIC_EDGE)
+
     # Calculate confidence based on alignment and edge strength
-    base_confidence = analysis.get("alignment_score", 0.5) * 0.6
-    edge_confidence = min(0.4, raw_edge / 10)
-    confidence = base_confidence + edge_confidence
-    confidence = max(0.30, min(0.95, confidence))
+    # More conservative calculation for realistic confidence values
+    base_confidence = analysis.get("alignment_score", 0.5) * 0.4
+    edge_confidence = min(0.25, raw_edge / 15)  # More conservative edge contribution
+    confidence = base_confidence + edge_confidence + 0.25  # +0.25 baseline
+    confidence = max(MIN_REALISTIC_CONFIDENCE, min(MAX_REALISTIC_CONFIDENCE, confidence))
 
     # Get confidence label
     if confidence >= CONFIDENCE_THRESHOLDS["VERY_HIGH"]:
@@ -566,15 +575,19 @@ def _generate_prediction(
     else:
         confidence_label = "LOW"
 
-    # Get recommendation
-    recommendation = "AVOID"
-    unit_size = 0.0
+    # Get recommendation - only recommend bets if there's actual edge
+    if raw_edge < 1.5:  # Less than 1.5% edge = no bet
+        recommendation = "AVOID"
+        unit_size = 0.0
+    else:
+        recommendation = "AVOID"
+        unit_size = 0.0
 
-    for threshold, (rec, units) in RECOMMENDATION_MAP.items():
-        if confidence >= threshold:
-            recommendation = rec
-            unit_size = units
-            break
+        for threshold, (rec, units) in RECOMMENDATION_MAP.items():
+            if confidence >= threshold:
+                recommendation = rec
+                unit_size = units
+                break
 
     # Calculate Kelly fraction
     # Kelly = (bp - q) / b where b = odds, p = probability, q = 1-p
@@ -780,30 +793,27 @@ async def get_ranked_picks(
     sport: Optional[str] = None,
     limit: int = 20
 ) -> List[Dict[str, Any]]:
-    """Rank all games by edge strength."""
+    """
+    Rank all games by edge strength.
+
+    Only returns games from the next 48 hours to ensure we're showing
+    actual upcoming games, not fake/old data.
+    """
     from datetime import date as date_type
 
-    # Get games for the date
-    if date:
-        try:
-            target_date = datetime.fromisoformat(date)
-        except:
-            target_date = datetime.utcnow()
-    else:
-        target_date = datetime.utcnow()
-
-    start = datetime.combine(target_date.date(), datetime.min.time())
-    end = start + timedelta(days=1)
+    # Get games for the next 48 hours only (today and tomorrow)
+    now = datetime.utcnow()
+    end = now + timedelta(hours=48)
 
     query = db.query(Game).filter(
-        Game.start_time >= start,
-        Game.start_time < end
+        Game.start_time >= now,
+        Game.start_time <= end
     )
 
     if sport:
         query = query.filter(Game.sport == sport)
 
-    games = query.limit(50).all()
+    games = query.order_by(Game.start_time).limit(50).all()
 
     # Get predictions for each game
     picks = []
@@ -844,13 +854,22 @@ async def get_top_picks(
     sport: Optional[str] = None,
     limit: int = 5
 ) -> List[Dict[str, Any]]:
-    """Get the best picks of the day."""
-    picks = await get_ranked_picks(db, sport=sport, limit=limit)
+    """
+    Get the best picks of the day.
 
-    # Filter to only BET or STRONG BET recommendations
+    Only returns picks with actual positive edge (2%+) and
+    recommendations of BET, STRONG BET, or LEAN.
+
+    If no quality picks are found, returns empty list rather than
+    showing picks with no edge.
+    """
+    picks = await get_ranked_picks(db, sport=sport, limit=20)
+
+    # Filter to only picks with actual edge (2%+) and actionable recommendations
     top_picks = [
         p for p in picks
         if p.get("recommendation") in ["BET", "STRONG BET", "LEAN"]
+        and p.get("edge_value", 0) >= 1.5  # At least 1.5% edge
     ][:limit]
 
     return top_picks

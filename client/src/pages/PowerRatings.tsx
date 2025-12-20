@@ -2,10 +2,8 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Card from '@/components/ui/Card';
 import Select from '@/components/ui/Select';
-import Badge from '@/components/ui/Badge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';
-import { api } from '@/lib/api';
 import {
   TrendingUp,
   TrendingDown,
@@ -14,9 +12,7 @@ import {
   Target,
   BarChart3,
   Flame,
-  Snowflake,
-  ChevronUp,
-  ChevronDown
+  Snowflake
 } from 'lucide-react';
 
 interface PowerRating {

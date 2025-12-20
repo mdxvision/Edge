@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Card, Badge, Button } from '@/components/ui';
-import { Input } from '@/components/ui/Input';
+import { useState, type ChangeEvent } from 'react';
+import { Card, Button } from '@/components/ui';
+import Input from '@/components/ui/Input';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
   Target,
@@ -72,7 +72,7 @@ export default function PickLogger({ game, defaultSport = 'NFL', onPickLogged }:
   const [awayTeam, setAwayTeam] = useState(
     typeof game?.away_team === 'string' ? game.away_team : game?.away_team?.name || ''
   );
-  const [gameTime, setGameTime] = useState(game?.game_time || game?.game_date || new Date().toISOString());
+  const [gameTime] = useState(game?.game_time || game?.game_date || new Date().toISOString());
   const [pickType, setPickType] = useState<'spread' | 'moneyline' | 'total'>('spread');
   const [pick, setPick] = useState('');
   const [lineValue, setLineValue] = useState<number | ''>('');
@@ -80,11 +80,6 @@ export default function PickLogger({ game, defaultSport = 'NFL', onPickLogged }:
   const [confidence, setConfidence] = useState(70);
   const [factors, setFactors] = useState<Record<string, FactorScore>>(DEFAULT_FACTORS);
   const [showFactors, setShowFactors] = useState(false);
-
-  const getTeamName = (team: string | { name: string } | undefined): string => {
-    if (!team) return '';
-    return typeof team === 'string' ? team : team.name;
-  };
 
   const handleFactorChange = (factorName: string, score: number) => {
     setFactors(prev => ({
@@ -209,7 +204,7 @@ export default function PickLogger({ game, defaultSport = 'NFL', onPickLogged }:
             <label className="block text-xs text-gray-400 mb-1">Away Team</label>
             <Input
               value={awayTeam}
-              onChange={(e) => setAwayTeam(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setAwayTeam(e.target.value)}
               placeholder="Away team"
               className="text-sm"
             />
@@ -218,7 +213,7 @@ export default function PickLogger({ game, defaultSport = 'NFL', onPickLogged }:
             <label className="block text-xs text-gray-400 mb-1">Home Team</label>
             <Input
               value={homeTeam}
-              onChange={(e) => setHomeTeam(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setHomeTeam(e.target.value)}
               placeholder="Home team"
               className="text-sm"
             />
@@ -243,7 +238,7 @@ export default function PickLogger({ game, defaultSport = 'NFL', onPickLogged }:
             <label className="block text-xs text-gray-400 mb-1">Pick</label>
             <Input
               value={pick}
-              onChange={(e) => setPick(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPick(e.target.value)}
               placeholder={
                 pickType === 'spread' ? 'Chiefs -3' :
                 pickType === 'total' ? 'Over 45.5' : 'Chiefs ML'
@@ -257,7 +252,7 @@ export default function PickLogger({ game, defaultSport = 'NFL', onPickLogged }:
               type="number"
               step="0.5"
               value={lineValue}
-              onChange={(e) => setLineValue(e.target.value ? parseFloat(e.target.value) : '')}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setLineValue(e.target.value ? parseFloat(e.target.value) : '')}
               placeholder="-3 or 45.5"
               className="text-sm"
             />
@@ -271,7 +266,7 @@ export default function PickLogger({ game, defaultSport = 'NFL', onPickLogged }:
             <Input
               type="number"
               value={odds}
-              onChange={(e) => setOdds(parseInt(e.target.value) || -110)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setOdds(parseInt(e.target.value) || -110)}
               placeholder="-110"
               className="text-sm"
             />

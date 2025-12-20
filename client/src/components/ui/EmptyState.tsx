@@ -27,16 +27,16 @@ export default function EmptyState({
         className
       )}
     >
-      <div className="w-16 h-16 rounded-full bg-surface-100 dark:bg-surface-800 flex items-center justify-center mb-4">
-        <Icon className="w-8 h-8 text-surface-400 dark:text-surface-500" />
+      <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center mb-4">
+        <Icon className="w-8 h-8 text-gray-400 dark:text-slate-500" />
       </div>
 
-      <h3 className="text-lg font-semibold text-surface-900 dark:text-white mb-1">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
         {title}
       </h3>
 
       {description && (
-        <p className="text-sm text-surface-500 dark:text-surface-400 max-w-sm mb-4">
+        <p className="text-sm text-gray-500 dark:text-slate-400 max-w-sm mb-4">
           {description}
         </p>
       )}
@@ -44,7 +44,7 @@ export default function EmptyState({
       {action && (
         <button
           onClick={action.onClick}
-          className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors"
+          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors"
         >
           {action.label}
         </button>

@@ -456,7 +456,7 @@ class EdgeTracker:
         if end_date:
             query = query.filter(TrackedPick.created_at <= end_date)
 
-        picks = query.order_by(desc(TrackedPick.created_at)).limit(limit).all()
+        picks = query.order_by(desc(TrackedPick.game_time)).limit(limit).all()
 
         return [self._pick_to_dict(p) for p in picks]
 

@@ -6,12 +6,24 @@ from app.models import SPORT_MODEL_REGISTRY
 from app.utils.odds import american_to_implied_probability, expected_value, edge as calc_edge
 from app.schemas.bets import BetCandidate
 from app.config import TEAM_SPORTS, INDIVIDUAL_SPORTS, SUPPORTED_SPORTS
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Maximum realistic edge for sports betting (anything higher is likely a bug)
+MAX_REALISTIC_EDGE = 0.15  # 15% max edge
+MIN_REALISTIC_CONFIDENCE = 0.45  # 45% minimum
+MAX_REALISTIC_CONFIDENCE = 0.85  # 85% maximum
 
 
-def get_upcoming_games(db: Session, sport: str, days_ahead: int = 30) -> List[Game]:
-    now = datetime.now() - timedelta(days=365)
-    end = now + timedelta(days=days_ahead + 365)
-    
+def get_upcoming_games(db: Session, sport: str, days_ahead: int = 2) -> List[Game]:
+    """
+    Get games for the next 48 hours only.
+    Only returns games that are actually scheduled for today or tomorrow.
+    """
+    now = datetime.utcnow()
+    end = now + timedelta(days=days_ahead)
+
     return db.query(Game).filter(
         Game.sport == sport,
         Game.start_time >= now,
@@ -84,51 +96,84 @@ def map_selection_to_probability(
 
 def find_value_bets_for_sport(
     sport: str,
-    min_edge: float = 0.03,
+    min_edge: float = 0.02,  # Lowered to 2% to find more realistic edges
     db: Session = None
 ) -> List[BetCandidate]:
+    """
+    Find value bets for a sport using real games from the database.
+
+    Edge calculation:
+    - Get odds from sportsbook (e.g., -110 = 52.4% implied)
+    - Use power ratings to estimate actual win probability
+    - Edge = (actual probability - implied probability)
+    - Only return picks with 2%+ edge and realistic confidence
+    """
     close_db = False
     if db is None:
         db = SessionLocal()
         close_db = True
-    
+
     try:
         if sport not in SPORT_MODEL_REGISTRY:
             return []
-        
+
         model = SPORT_MODEL_REGISTRY[sport]
         games = get_upcoming_games(db, sport)
-        
+
         if not games:
+            logger.info(f"No upcoming games found for {sport}")
             return []
-        
+
         game_data_list = [build_game_data(g, db) for g in games]
         predictions_list = model.predict_game_probabilities(game_data_list)
-        
+
         predictions_by_game = {p["game_id"]: p for p in predictions_list}
-        
+
         value_bets = []
-        
+        seen_games = set()  # Track unique games to avoid duplicates
+
         for game, game_data in zip(games, game_data_list):
             predictions = predictions_by_game.get(game.id, {})
-            
+
+            # Skip if no markets/lines (no real odds data)
+            if not game.markets:
+                continue
+
             for market in game.markets:
                 for line in market.lines:
+                    # Skip if no valid odds
+                    if not line.american_odds or abs(line.american_odds) < 100:
+                        continue
+
                     model_prob = map_selection_to_probability(
-                        market.selection, 
+                        market.selection,
                         predictions,
                         sport
                     )
-                    
+
                     if model_prob is None:
                         continue
-                    
+
+                    # Ensure model probability is realistic (not too close to 0 or 1)
+                    model_prob = max(MIN_REALISTIC_CONFIDENCE, min(MAX_REALISTIC_CONFIDENCE, model_prob))
+
                     implied_prob = american_to_implied_probability(line.american_odds)
                     edge_value = calc_edge(model_prob, implied_prob)
-                    
-                    if edge_value >= min_edge:
+
+                    # Cap edge at realistic maximum
+                    if edge_value > MAX_REALISTIC_EDGE:
+                        edge_value = MAX_REALISTIC_EDGE
+
+                    # Only include positive edges meeting minimum threshold
+                    if edge_value >= min_edge and edge_value <= MAX_REALISTIC_EDGE:
+                        # Avoid duplicate picks for the same game
+                        game_key = f"{game.id}_{market.market_type}_{market.selection}"
+                        if game_key in seen_games:
+                            continue
+                        seen_games.add(game_key)
+
                         ev = expected_value(model_prob, line.american_odds, 1.0)
-                        
+
                         candidate = BetCandidate(
                             game_id=game.id,
                             sport=sport,
@@ -151,12 +196,13 @@ def find_value_bets_for_sport(
                             market_type=market.market_type,
                             description=market.description
                         )
-                        
+
                         value_bets.append(candidate)
-        
+
+        # Sort by edge and limit to top picks
         value_bets.sort(key=lambda x: x.edge, reverse=True)
-        return value_bets
-        
+        return value_bets[:20]  # Limit to top 20 picks
+
     finally:
         if close_db:
             db.close()

@@ -21,40 +21,40 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary: clsx(
-        'bg-primary-600 text-white',
-        'hover:bg-primary-700',
-        'focus-visible:ring-primary-500/30',
-        'dark:bg-primary-500 dark:hover:bg-primary-400'
+        'bg-emerald-600 text-white',
+        'hover:bg-emerald-500',
+        'focus-visible:ring-emerald-500/30',
+        'dark:bg-emerald-600 dark:hover:bg-emerald-500'
       ),
       secondary: clsx(
-        'bg-surface-100 text-surface-700',
-        'hover:bg-surface-200',
-        'focus-visible:ring-surface-500/20',
-        'dark:bg-surface-800 dark:text-surface-200 dark:hover:bg-surface-700'
+        'bg-gray-100 text-gray-700',
+        'hover:bg-gray-200',
+        'focus-visible:ring-gray-500/20',
+        'dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600'
       ),
       ghost: clsx(
-        'bg-transparent text-surface-600',
-        'hover:bg-surface-100',
-        'focus-visible:ring-surface-500/20',
-        'dark:text-surface-300 dark:hover:bg-surface-800'
+        'bg-transparent text-gray-600',
+        'hover:bg-gray-100',
+        'focus-visible:ring-gray-500/20',
+        'dark:text-slate-300 dark:hover:bg-slate-800'
       ),
       danger: clsx(
-        'bg-danger-500 text-white',
-        'hover:bg-danger-600',
-        'focus-visible:ring-danger-500/30',
-        'dark:bg-danger-400 dark:hover:bg-danger-500'
+        'bg-red-500 text-white',
+        'hover:bg-red-600',
+        'focus-visible:ring-red-500/30',
+        'dark:bg-red-500 dark:hover:bg-red-400'
       ),
       outline: clsx(
-        'border-2 border-surface-200 bg-transparent text-surface-700',
-        'hover:bg-surface-50 hover:border-surface-300',
-        'focus-visible:ring-surface-500/20',
-        'dark:border-surface-700 dark:text-surface-300 dark:hover:bg-surface-800 dark:hover:border-surface-600'
+        'border-2 border-gray-200 bg-transparent text-gray-700',
+        'hover:bg-gray-50 hover:border-gray-300',
+        'focus-visible:ring-gray-500/20',
+        'dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:border-slate-500'
       ),
       premium: clsx(
-        'bg-premium-500 text-surface-900',
-        'hover:bg-premium-400',
-        'focus-visible:ring-premium-500/30',
-        'dark:bg-premium-400 dark:hover:bg-premium-300'
+        'bg-amber-500 text-gray-900',
+        'hover:bg-amber-400',
+        'focus-visible:ring-amber-500/30',
+        'dark:bg-amber-400 dark:hover:bg-amber-300'
       ),
     };
 

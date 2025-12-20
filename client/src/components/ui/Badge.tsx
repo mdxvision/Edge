@@ -11,32 +11,32 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
   ({ className, variant = 'neutral', size = 'md', children, ...props }, ref) => {
     const variants = {
       primary: clsx(
-        'bg-primary-100 text-primary-700',
-        'dark:bg-primary-500/15 dark:text-primary-400'
+        'bg-emerald-100 text-emerald-700',
+        'dark:bg-emerald-500/15 dark:text-emerald-400'
       ),
       success: clsx(
-        'bg-success-50 text-success-600',
-        'dark:bg-success-500/15 dark:text-success-400'
+        'bg-emerald-50 text-emerald-600',
+        'dark:bg-emerald-500/15 dark:text-emerald-400'
       ),
       warning: clsx(
-        'bg-warning-50 text-warning-700',
-        'dark:bg-warning-500/15 dark:text-warning-400'
+        'bg-amber-50 text-amber-700',
+        'dark:bg-amber-500/15 dark:text-amber-400'
       ),
       danger: clsx(
-        'bg-danger-50 text-danger-600',
-        'dark:bg-danger-500/15 dark:text-danger-400'
+        'bg-red-50 text-red-600',
+        'dark:bg-red-500/15 dark:text-red-400'
       ),
       premium: clsx(
-        'bg-premium-500/10 text-premium-600',
-        'dark:bg-premium-500/15 dark:text-premium-400'
+        'bg-amber-500/10 text-amber-600',
+        'dark:bg-amber-500/15 dark:text-amber-400'
       ),
       neutral: clsx(
-        'bg-surface-100 text-surface-600',
-        'dark:bg-surface-800 dark:text-surface-300'
+        'bg-gray-100 text-gray-600',
+        'dark:bg-slate-700 dark:text-slate-300'
       ),
       outline: clsx(
-        'bg-transparent border border-surface-300 text-surface-600',
-        'dark:border-surface-600 dark:text-surface-400'
+        'bg-transparent border border-gray-300 text-gray-600',
+        'dark:border-slate-600 dark:text-slate-400'
       ),
     };
 

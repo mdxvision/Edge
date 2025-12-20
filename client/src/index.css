@@ -1,108 +1,67 @@
 @import "tailwindcss";
 
-/* EdgeBet Twist - Apple-inspired Design System */
+/* Enable class-based dark mode for Tailwind CSS 4 */
+@variant dark (&:where(.dark, .dark *));
+
+/* EdgeBet - Clean, Professional Design System */
 
 @theme {
   /* ========================================
-     LIGHT MODE COLORS
+     CORE COLORS
      ======================================== */
-  --color-bg: #FAFAFA;
-  --color-surface: #FFFFFF;
-  --color-surface-hover: #F5F5F7;
-  --color-primary: #2563EB;
-  --color-primary-hover: #1D4ED8;
-  --color-success: #10B981;
-  --color-success-light: #D1FAE5;
-  --color-danger: #F43F5E;
-  --color-danger-light: #FFE4E6;
-  --color-warning: #F59E0B;
-  --color-warning-light: #FEF3C7;
-  --color-premium: #EAB308;
-  --color-premium-light: #FEF9C3;
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #64748B;
-  --color-text-muted: #94A3B8;
-  --color-border: #E2E8F0;
-  --color-border-light: #F1F5F9;
+  --color-primary-50: #ecfdf5;
+  --color-primary-100: #d1fae5;
+  --color-primary-200: #a7f3d0;
+  --color-primary-300: #6ee7b7;
+  --color-primary-400: #34d399;
+  --color-primary-500: #10b981;
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+  --color-primary-950: #022c22;
 
-  /* ========================================
-     DARK MODE COLORS
-     ======================================== */
-  --color-dark-bg: #0A1628;
-  --color-dark-surface: #152238;
-  --color-dark-surface-hover: #1E3A5F;
-  --color-dark-primary: #3B82F6;
-  --color-dark-primary-hover: #60A5FA;
-  --color-dark-success: #34D399;
-  --color-dark-success-light: rgba(52, 211, 153, 0.15);
-  --color-dark-danger: #FB7185;
-  --color-dark-danger-light: rgba(251, 113, 133, 0.15);
-  --color-dark-warning: #FBBF24;
-  --color-dark-warning-light: rgba(251, 191, 36, 0.15);
-  --color-dark-premium: #FACC15;
-  --color-dark-premium-light: rgba(250, 204, 21, 0.15);
-  --color-dark-text-primary: #F8FAFC;
-  --color-dark-text-secondary: #94A3B8;
-  --color-dark-text-muted: #64748B;
-  --color-dark-border: #1E3A5F;
-  --color-dark-border-light: #152238;
-
-  /* ========================================
-     LEGACY COLOR MAPPINGS (for existing components)
-     ======================================== */
-  --color-primary-50: #EFF6FF;
-  --color-primary-100: #DBEAFE;
-  --color-primary-200: #BFDBFE;
-  --color-primary-300: #93C5FD;
-  --color-primary-400: #60A5FA;
-  --color-primary-500: #3B82F6;
-  --color-primary-600: #2563EB;
-  --color-primary-700: #1D4ED8;
-  --color-primary-800: #1E40AF;
-  --color-primary-900: #1E3A8A;
-  --color-primary-950: #172554;
-
-  --color-surface-50: #FAFAFA;
-  --color-surface-100: #F5F5F7;
-  --color-surface-200: #E2E8F0;
-  --color-surface-300: #CBD5E1;
-  --color-surface-400: #94A3B8;
-  --color-surface-500: #64748B;
+  --color-surface-50: #f8fafc;
+  --color-surface-100: #f1f5f9;
+  --color-surface-200: #e2e8f0;
+  --color-surface-300: #cbd5e1;
+  --color-surface-400: #94a3b8;
+  --color-surface-500: #64748b;
   --color-surface-600: #475569;
   --color-surface-700: #334155;
-  --color-surface-800: #1E293B;
-  --color-surface-900: #0F172A;
-  --color-surface-950: #0A1628;
+  --color-surface-800: #1e293b;
+  --color-surface-900: #0f172a;
+  --color-surface-950: #020617;
 
-  --color-success-50: #D1FAE5;
-  --color-success-100: #A7F3D0;
-  --color-success-400: #34D399;
-  --color-success-500: #10B981;
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-400: #34d399;
+  --color-success-500: #10b981;
   --color-success-600: #059669;
 
-  --color-warning-50: #FEF3C7;
-  --color-warning-100: #FDE68A;
-  --color-warning-400: #FBBF24;
-  --color-warning-500: #F59E0B;
-  --color-warning-600: #D97706;
-  --color-warning-700: #B45309;
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
 
-  --color-danger-50: #FFE4E6;
-  --color-danger-100: #FECDD3;
-  --color-danger-300: #FDA4AF;
-  --color-danger-400: #FB7185;
-  --color-danger-500: #F43F5E;
-  --color-danger-600: #E11D48;
+  --color-danger-50: #fef2f2;
+  --color-danger-100: #fee2e2;
+  --color-danger-300: #fca5a5;
+  --color-danger-400: #f87171;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
 
-  --color-premium-400: #FACC15;
-  --color-premium-500: #EAB308;
-  --color-premium-600: #CA8A04;
+  --color-premium-400: #facc15;
+  --color-premium-500: #eab308;
+  --color-premium-600: #ca8a04;
 
   /* ========================================
      TYPOGRAPHY
      ======================================== */
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
-  --font-mono: "SF Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  --font-mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 /* ========================================
@@ -118,65 +77,67 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Light mode (default) */
 body {
   margin: 0;
-  background-color: #FAFAFA;
-  color: #0F172A;
-  line-height: 1.5;
+  background-color: #f9fafb; /* gray-50 */
+  color: #111827; /* gray-900 */
+  line-height: 1.6;
   letter-spacing: -0.011em;
 }
 
-/* Dark mode body */
+/* Dark mode */
 .dark body {
-  background-color: #0A1628;
-  color: #F8FAFC;
+  background-color: #0f172a; /* slate-900 */
+  color: #f1f5f9; /* slate-100 */
 }
 
 /* Selection colors */
 ::selection {
-  background-color: var(--color-primary);
+  background-color: #10b981;
   color: white;
 }
 
 .dark ::selection {
-  background-color: var(--color-dark-primary);
-  color: white;
+  background-color: #34d399;
+  color: #0f172a;
 }
 
-/* Focus visible ring - Apple style */
+/* Focus visible ring */
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4);
   border-radius: 8px;
 }
 
 .dark :focus-visible {
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.4);
 }
 
 /* ========================================
-   CARD STYLES
+   CARD STYLES - Definitive styling
    ======================================== */
 .card {
-  background-color: #FFFFFF;
-  border-radius: 16px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .card:hover {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 .dark .card {
-  background-color: #152238;
-  border-color: #1E3A5F;
-  box-shadow: none;
+  background-color: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .dark .card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-color: #475569;
 }
 
 /* ========================================
@@ -185,45 +146,45 @@ body {
 .input {
   width: 100%;
   padding: 12px 16px;
-  font-size: 16px;
-  background-color: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
+  font-size: 15px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   outline: none;
   transition: all 0.2s ease;
-  color: #0F172A;
+  color: #0f172a;
 }
 
 .input::placeholder {
-  color: #94A3B8;
+  color: #94a3b8;
 }
 
 .input:hover {
-  border-color: #CBD5E1;
+  border-color: #cbd5e1;
 }
 
 .input:focus {
-  border-color: #2563EB;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 .dark .input {
-  background-color: #152238;
-  border-color: #1E3A5F;
-  color: #F8FAFC;
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
 }
 
 .dark .input::placeholder {
-  color: #64748B;
+  color: #64748b;
 }
 
 .dark .input:hover {
-  border-color: #1E3A5F;
+  border-color: #475569;
 }
 
 .dark .input:focus {
-  border-color: #3B82F6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  border-color: #34d399;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.2);
 }
 
 /* ========================================
@@ -232,14 +193,14 @@ body {
 .label {
   display: block;
   font-size: 14px;
-  font-weight: 500;
-  color: #64748B;
-  margin-bottom: 8px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
   letter-spacing: -0.006em;
 }
 
 .dark .label {
-  color: #94A3B8;
+  color: #e2e8f0;
 }
 
 /* ========================================
@@ -248,14 +209,19 @@ body {
 .text-display {
   font-size: 32px;
   font-weight: 700;
-  letter-spacing: -0.022em;
+  letter-spacing: -0.025em;
   line-height: 1.2;
+  color: #0f172a;
+}
+
+.dark .text-display {
+  color: #f8fafc;
 }
 
 .text-h1 {
   font-size: 24px;
   font-weight: 600;
-  letter-spacing: -0.019em;
+  letter-spacing: -0.02em;
   line-height: 1.3;
 }
 
@@ -267,10 +233,10 @@ body {
 }
 
 .text-body {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 400;
   letter-spacing: -0.011em;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .text-small {
@@ -282,8 +248,8 @@ body {
 
 .text-caption {
   font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-weight: 600;
+  letter-spacing: 0.025em;
   text-transform: uppercase;
   line-height: 1.5;
 }
@@ -300,66 +266,81 @@ body {
   display: none;
 }
 
-/* Smooth transitions for interactive elements */
-.transition-apple {
-  transition: all 0.2s ease;
+/* Stat value animation */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Subtle glow effect for premium items */
+.animate-stat {
+  animation: countUp 0.3s ease-out forwards;
+}
+
+/* Toast slide up animation */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.25s ease-out forwards;
+}
+
+/* Profit/Loss colors */
+.profit {
+  color: #10b981;
+}
+
+.loss {
+  color: #ef4444;
+}
+
+.dark .profit {
+  color: #34d399;
+}
+
+.dark .loss {
+  color: #f87171;
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .glass {
+  background: rgba(30, 41, 59, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Glow effect for premium */
 .glow-premium {
-  box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.25);
 }
 
 .dark .glow-premium {
   box-shadow: 0 0 20px rgba(250, 204, 21, 0.2);
 }
 
-/* Glass effect for overlays */
-.glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+/* Edge highlight - positive */
+.edge-positive {
+  color: #059669;
+  font-weight: 700;
 }
 
-.dark .glass {
-  background: rgba(21, 34, 56, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+.dark .edge-positive {
+  color: #34d399;
 }
 
-/* Stat value animation */
-@keyframes countUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Edge highlight - negative */
+.edge-negative {
+  color: #dc2626;
+  font-weight: 700;
 }
 
-.animate-stat {
-  animation: countUp 0.4s ease-out forwards;
-}
-
-/* Toast slide up animation */
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-slide-up {
-  animation: slideUp 0.3s ease-out forwards;
-}
-
-/* Profit/Loss color utilities */
-.profit {
-  color: var(--color-success);
-}
-
-.loss {
-  color: var(--color-danger);
-}
-
-.dark .profit {
-  color: var(--color-dark-success);
-}
-
-.dark .loss {
-  color: var(--color-dark-danger);
+.dark .edge-negative {
+  color: #f87171;
 }

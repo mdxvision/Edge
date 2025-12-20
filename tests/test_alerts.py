@@ -21,13 +21,13 @@ class TestCreateAlert:
     """Tests for creating alerts."""
 
     def test_create_edge_alert(self, client: TestClient, auth_headers):
-        """Test creating an edge threshold alert."""
+        """Test creating a high edge alert."""
         response = client.post(
-            "/alerts/",
+            "/alerts",
             headers=auth_headers,
             json={
                 "name": "High Edge Alert",
-                "alert_type": "edge_threshold",
+                "alert_type": "high_edge",
                 "sport": "NFL",
                 "min_edge": 0.05,
                 "notify_push": True
@@ -36,17 +36,17 @@ class TestCreateAlert:
         assert response.status_code == 200
         data = response.json()
         assert data["name"] == "High Edge Alert"
-        assert data["alert_type"] == "edge_threshold"
+        assert data["alert_type"] == "high_edge"
         assert data["is_active"] is True
 
-    def test_create_odds_alert(self, client: TestClient, auth_headers):
-        """Test creating an odds movement alert."""
+    def test_create_line_movement_alert(self, client: TestClient, auth_headers):
+        """Test creating a line movement alert."""
         response = client.post(
-            "/alerts/",
+            "/alerts",
             headers=auth_headers,
             json={
-                "name": "Odds Movement Alert",
-                "alert_type": "odds_movement",
+                "name": "Line Movement Alert",
+                "alert_type": "line_movement",
                 "sport": "NBA",
                 "min_odds": -200,
                 "max_odds": 200,
@@ -55,13 +55,13 @@ class TestCreateAlert:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["name"] == "Odds Movement Alert"
+        assert data["name"] == "Line Movement Alert"
 
     def test_create_alert_no_auth(self, client: TestClient):
         """Test creating alert without authentication."""
-        response = client.post("/alerts/", json={
+        response = client.post("/alerts", json={
             "name": "Test Alert",
-            "alert_type": "edge_threshold"
+            "alert_type": "high_edge"
         })
         assert response.status_code == 401
 
@@ -73,15 +73,15 @@ class TestGetAlerts:
         """Test listing user alerts."""
         # Create an alert first
         client.post(
-            "/alerts/",
+            "/alerts",
             headers=auth_headers,
             json={
                 "name": "Test Alert",
-                "alert_type": "edge_threshold"
+                "alert_type": "high_edge"
             }
         )
 
-        response = client.get("/alerts/", headers=auth_headers)
+        response = client.get("/alerts", headers=auth_headers)
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
@@ -91,11 +91,11 @@ class TestGetAlerts:
         """Test getting a single alert."""
         # Create an alert first
         create_response = client.post(
-            "/alerts/",
+            "/alerts",
             headers=auth_headers,
             json={
                 "name": "Single Alert",
-                "alert_type": "edge_threshold"
+                "alert_type": "high_edge"
             }
         )
         alert_id = create_response.json()["id"]
@@ -113,11 +113,11 @@ class TestUpdateAlert:
         """Test updating an alert."""
         # Create an alert first
         create_response = client.post(
-            "/alerts/",
+            "/alerts",
             headers=auth_headers,
             json={
                 "name": "Original Name",
-                "alert_type": "edge_threshold"
+                "alert_type": "high_edge"
             }
         )
         alert_id = create_response.json()["id"]
@@ -136,11 +136,11 @@ class TestUpdateAlert:
         """Test toggling alert active status."""
         # Create an alert first
         create_response = client.post(
-            "/alerts/",
+            "/alerts",
             headers=auth_headers,
             json={
                 "name": "Toggle Alert",
-                "alert_type": "edge_threshold"
+                "alert_type": "high_edge"
             }
         )
         alert_id = create_response.json()["id"]
@@ -162,11 +162,11 @@ class TestDeleteAlert:
         """Test deleting an alert."""
         # Create an alert first
         create_response = client.post(
-            "/alerts/",
+            "/alerts",
             headers=auth_headers,
             json={
                 "name": "Delete Me",
-                "alert_type": "edge_threshold"
+                "alert_type": "high_edge"
             }
         )
         alert_id = create_response.json()["id"]
