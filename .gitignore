@@ -73,3 +73,6 @@ dmypy.json
 .pyre/
 .pytype/
 cython_debug/
+
+# QA System results
+.qa-results/
