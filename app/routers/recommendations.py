@@ -343,15 +343,22 @@ def run_recommendations(
     if client is None:
         raise HTTPException(status_code=404, detail="Client not found")
 
-    # Filter to only active sports (NFL and NBA)
+    # Validate sports against supported sports list
     sports = request.sports
     if sports:
+        invalid_sports = [s for s in sports if s not in SUPPORTED_SPORTS]
+        if invalid_sports:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid sports: {', '.join(invalid_sports)}. Supported: {', '.join(SUPPORTED_SPORTS)}"
+            )
+        # Filter to only active sports (NFL and NBA) for actual generation
         sports = [s for s in sports if s in ACTIVE_SPORTS]
     else:
         sports = ACTIVE_SPORTS
 
     if not sports:
-        # No valid sports requested
+        # No active sports requested (valid sports but not currently active)
         return RecommendationResponse(
             client_id=client_id,
             client_name=client.name,
