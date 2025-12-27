@@ -4,7 +4,7 @@ async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = localStorage.getItem('accessToken');
+  const token = localStorage.getItem('session_token');
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -19,7 +19,15 @@ async function request<T>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Request failed' }));
-    throw new Error(error.detail || `HTTP error ${response.status}`);
+    let message = `HTTP error ${response.status}`;
+    if (error.detail) {
+      if (typeof error.detail === 'string') {
+        message = error.detail;
+      } else if (Array.isArray(error.detail)) {
+        message = error.detail.map((e: any) => e.msg || e.message || JSON.stringify(e)).join(', ');
+      }
+    }
+    throw new Error(message);
   }
 
   if (response.status === 204) {
@@ -32,10 +40,14 @@ async function request<T>(
 export const api = {
   // Auth
   auth: {
-    login: (data: { identifier: string; password: string }) =>
-      request<{ access_token: string; refresh_token: string; user: any }>('/auth/login', {
+    login: (data: { email?: string; identifier?: string; password: string; totp_code?: string }) =>
+      request<{ access_token: string; refresh_token: string; user: any; requires_2fa?: boolean }>('/auth/login', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          email_or_username: data.email || data.identifier,
+          password: data.password,
+          ...(data.totp_code && { totp_code: data.totp_code })
+        }),
       }),
     register: (data: { email: string; username: string; password: string }) =>
       request<{ access_token: string; refresh_token: string; user: any }>('/auth/register', {
