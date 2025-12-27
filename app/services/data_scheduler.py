@@ -247,7 +247,7 @@ async def snapshot_lines_task():
     Tracks line movement for steam move and RLM detection.
     """
     from app.db import SessionLocal, Game
-    from app.services.odds_scheduler import fetch_and_store_odds
+    from app.services.odds_api import fetch_and_store_odds
     from datetime import datetime, timedelta
 
     db = SessionLocal()

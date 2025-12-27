@@ -6,6 +6,7 @@ import ErrorMessage from '@/components/ui/ErrorMessage';
 import WeatherImpact from '@/components/WeatherImpact';
 import H2HBadge from '@/components/H2HBadge';
 import PickLoggerModal from '@/components/PickLoggerModal';
+import GameAnalysisModal from '@/components/GameAnalysisModal';
 import api from '@/lib/api';
 import {
   Trophy,
@@ -18,7 +19,8 @@ import {
   ArrowLeftRight,
   Moon,
   Plane,
-  Check
+  Check,
+  Search
 } from 'lucide-react';
 
 // Sport tab types
@@ -173,6 +175,7 @@ export default function Games() {
 
   // Pick logger modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
   const [selectedPick, setSelectedPick] = useState<{
     sport: string;
     home_team: string;
@@ -214,7 +217,12 @@ export default function Games() {
     const pickKey = `${pickData.game_id}_${pickData.pick_type}_${pickData.pick}`;
     if (loggedPicks.has(pickKey)) return; // Already logged
     setSelectedPick(pickData);
-    setIsModalOpen(true);
+    setIsAnalysisModalOpen(true); // Open analysis modal first
+  };
+
+  const handleProceedToLog = () => {
+    setIsAnalysisModalOpen(false);
+    setIsModalOpen(true); // Open pick logger modal
   };
 
   const handlePickLogged = (pickKey: string) => {
@@ -229,6 +237,28 @@ export default function Games() {
   const formatOdds = (odds: number | null | undefined) => {
     if (odds === null || odds === undefined) return '-110';
     return odds > 0 ? `+${odds}` : odds.toString();
+  };
+
+  // Convert game_date + game_status to proper datetime string for API
+  const formatGameDateTime = (gameDate: string, gameStatus?: string) => {
+    // If gameDate already has time component, return as-is
+    if (gameDate.includes('T') || gameDate.includes(' ')) {
+      return gameDate;
+    }
+    // Try to extract time from gameStatus (e.g., "7:00 pm ET")
+    if (gameStatus) {
+      const timeMatch = gameStatus.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i);
+      if (timeMatch) {
+        let hours = parseInt(timeMatch[1]);
+        const minutes = timeMatch[2];
+        const period = timeMatch[3].toLowerCase();
+        if (period === 'pm' && hours !== 12) hours += 12;
+        if (period === 'am' && hours === 12) hours = 0;
+        return `${gameDate}T${hours.toString().padStart(2, '0')}:${minutes}:00`;
+      }
+    }
+    // Default to noon if no time found
+    return `${gameDate}T12:00:00`;
   };
 
   const getTeamAbbreviation = (teamName: string) => {
@@ -595,7 +625,7 @@ export default function Games() {
                           pick_type: 'spread',
                           line_value: awaySpread,
                           odds: game.odds?.spread_odds || -110,
-                          game_time: game.game_date,
+                          game_time: formatGameDateTime(game.game_date, game.game_status),
                           game_id: game.game_id,
                         })}
                         disabled={logged}
@@ -605,7 +635,7 @@ export default function Games() {
                             : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
-                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.spread_odds)})`}
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.spread_odds)})</>}
                       </button>
                     );
                   })()}
@@ -625,7 +655,7 @@ export default function Games() {
                           pick_type: 'spread',
                           line_value: homeSpread,
                           odds: game.odds?.spread_odds || -110,
-                          game_time: game.game_date,
+                          game_time: formatGameDateTime(game.game_date, game.game_status),
                           game_id: game.game_id,
                         })}
                         disabled={logged}
@@ -635,7 +665,7 @@ export default function Games() {
                             : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
-                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.spread_odds)})`}
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.spread_odds)})</>}
                       </button>
                     );
                   })()}
@@ -654,7 +684,7 @@ export default function Games() {
                           pick_type: 'total',
                           line_value: game.odds?.total || undefined,
                           odds: game.odds?.over_odds || -110,
-                          game_time: game.game_date,
+                          game_time: formatGameDateTime(game.game_date, game.game_status),
                           game_id: game.game_id,
                         })}
                         disabled={logged}
@@ -664,7 +694,7 @@ export default function Games() {
                             : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
-                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.over_odds)})`}
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.over_odds)})</>}
                       </button>
                     );
                   })()}
@@ -683,7 +713,7 @@ export default function Games() {
                           pick_type: 'total',
                           line_value: game.odds?.total || undefined,
                           odds: game.odds?.under_odds || -110,
-                          game_time: game.game_date,
+                          game_time: formatGameDateTime(game.game_date, game.game_status),
                           game_id: game.game_id,
                         })}
                         disabled={logged}
@@ -693,7 +723,7 @@ export default function Games() {
                             : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
-                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.under_odds)})`}
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.under_odds)})</>}
                       </button>
                     );
                   })()}
@@ -711,7 +741,7 @@ export default function Games() {
                           pick: pickStr,
                           pick_type: 'moneyline',
                           odds: game.odds?.moneyline_away || -110,
-                          game_time: game.game_date,
+                          game_time: formatGameDateTime(game.game_date, game.game_status),
                           game_id: game.game_id,
                         })}
                         disabled={logged}
@@ -721,7 +751,7 @@ export default function Games() {
                             : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
-                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.moneyline_away)})`}
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.moneyline_away)})</>}
                       </button>
                     );
                   })()}
@@ -739,7 +769,7 @@ export default function Games() {
                           pick: pickStr,
                           pick_type: 'moneyline',
                           odds: game.odds?.moneyline_home || -110,
-                          game_time: game.game_date,
+                          game_time: formatGameDateTime(game.game_date, game.game_status),
                           game_id: game.game_id,
                         })}
                         disabled={logged}
@@ -749,7 +779,7 @@ export default function Games() {
                             : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
-                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (${formatOdds(game.odds?.moneyline_home)})`}
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.moneyline_home)})</>}
                       </button>
                     );
                   })()}
@@ -907,7 +937,7 @@ export default function Games() {
                           pick_type: 'spread',
                           line_value: awaySpread,
                           odds: -110,
-                          game_time: game.game_date,
+                          game_time: formatGameDateTime(game.game_date, game.game_time_display),
                           game_id: gameId,
                         })}
                         disabled={logged}
@@ -917,7 +947,7 @@ export default function Games() {
                             : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
-                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (-110)`}
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
                       </button>
                     );
                   })()}
@@ -938,7 +968,7 @@ export default function Games() {
                           pick_type: 'spread',
                           line_value: homeSpread,
                           odds: -110,
-                          game_time: game.game_date,
+                          game_time: formatGameDateTime(game.game_date, game.game_time_display),
                           game_id: gameId,
                         })}
                         disabled={logged}
@@ -948,7 +978,7 @@ export default function Games() {
                             : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
-                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (-110)`}
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
                       </button>
                     );
                   })()}
@@ -968,7 +998,7 @@ export default function Games() {
                           pick_type: 'total',
                           line_value: game.odds?.over_under || undefined,
                           odds: -110,
-                          game_time: game.game_date,
+                          game_time: formatGameDateTime(game.game_date, game.game_time_display),
                           game_id: gameId,
                         })}
                         disabled={logged}
@@ -978,7 +1008,7 @@ export default function Games() {
                             : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
-                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (-110)`}
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
                       </button>
                     );
                   })()}
@@ -998,7 +1028,7 @@ export default function Games() {
                           pick_type: 'total',
                           line_value: game.odds?.over_under || undefined,
                           odds: -110,
-                          game_time: game.game_date,
+                          game_time: formatGameDateTime(game.game_date, game.game_time_display),
                           game_id: gameId,
                         })}
                         disabled={logged}
@@ -1008,7 +1038,7 @@ export default function Games() {
                             : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
                         }`}
                       >
-                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : `${pickStr} (-110)`}
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
                       </button>
                     );
                   })()}
@@ -1298,6 +1328,19 @@ export default function Games() {
 
       {/* Games Content */}
       {renderContent()}
+
+      {/* Game Analysis Modal */}
+      {selectedPick && (
+        <GameAnalysisModal
+          isOpen={isAnalysisModalOpen}
+          onClose={() => {
+            setIsAnalysisModalOpen(false);
+            setSelectedPick(null);
+          }}
+          onProceedToLog={handleProceedToLog}
+          pickData={selectedPick}
+        />
+      )}
 
       {/* Pick Logger Modal */}
       {selectedPick && (

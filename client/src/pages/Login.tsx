@@ -38,12 +38,16 @@ export default function Login() {
     setError('');
     setIsLoading(true);
 
+    // Debug: Log what's being sent
+    console.log('Login attempt:', { email: loginData.email, passwordLength: loginData.password.length });
+
     try {
       const result = await api.auth.login({
         email: loginData.email,
         password: loginData.password,
         totp_code: loginData.totp_code || undefined,
       });
+      console.log('Login success:', result);
 
       if (result.requires_2fa) {
         setRequires2FA(true);
@@ -62,6 +66,7 @@ export default function Login() {
       await loginWithToken(result.access_token, result.refresh_token);
       navigate('/dashboard');
     } catch (err) {
+      console.error('Login error:', err);
       setError(err instanceof Error ? err.message : 'Something\'s not right. Try again.');
     } finally {
       setIsLoading(false);

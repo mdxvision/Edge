@@ -59,6 +59,17 @@ class ManualSettleRequest(BaseModel):
     total_result: Optional[float] = None
 
 
+class AnalyzeGameRequest(BaseModel):
+    game_id: str
+    sport: str
+    home_team: str
+    away_team: str
+    game_time: datetime
+    pick_type: str  # spread, moneyline, total
+    pick: str  # "Chiefs -3", "Over 45.5", "Lakers ML"
+    line_value: Optional[float] = None
+
+
 # Routes
 
 @router.post("/picks")
@@ -145,6 +156,113 @@ async def log_pick(
     )
 
     return result
+
+
+@router.post("/analyze")
+async def analyze_game(
+    request: AnalyzeGameRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Analyze a game and return 8-factor breakdown without logging a pick
+
+    Returns factor scores and data quality assessment.
+    Data quality is determined by how many factors have live data vs pending/estimated.
+    """
+    weather_service = get_weather_service()
+    factor_generator = get_factor_generator(weather_service)
+
+    # Auto-fetch weather if sport is outdoor
+    weather_data = None
+    if request.sport.upper() in ["NFL", "MLB", "NCAAF"]:
+        try:
+            venue = request.home_team
+            weather = await weather_service.get_game_weather(venue, request.game_time)
+            if weather and not weather.get("error"):
+                weather_data = weather
+        except Exception:
+            pass
+
+    # Determine pick_team from the pick string
+    pick_team = None
+    pick_str = request.pick.lower()
+    if request.home_team.lower() in pick_str or any(
+        word in pick_str for word in request.home_team.lower().split()
+    ):
+        pick_team = request.home_team
+    elif request.away_team.lower() in pick_str or any(
+        word in pick_str for word in request.away_team.lower().split()
+    ):
+        pick_team = request.away_team
+    else:
+        pick_team = request.home_team
+
+    # Generate factors
+    try:
+        factors = await factor_generator.generate_factors(
+            sport=request.sport,
+            home_team=request.home_team,
+            away_team=request.away_team,
+            pick_team=pick_team,
+            pick_type=request.pick_type,
+            line_value=request.line_value,
+            game_time=request.game_time,
+            weather_data=weather_data
+        )
+    except Exception as e:
+        import logging
+        logging.error(f"Factor generation failed: {e}")
+        factors = _create_default_factors(pick_team)
+
+    # Calculate data quality
+    # A factor is considered "live" if its detail doesn't contain pending/estimated/not yet
+    pending_keywords = ["pending", "estimated", "not yet", "unknown", "data unavailable"]
+    live_factors = 0
+
+    # Transform factors to include status
+    transformed_factors = {}
+    for factor_name, factor_data in factors.items():
+        detail = factor_data.get("detail", "")
+        is_live = not any(keyword in detail.lower() for keyword in pending_keywords)
+        if is_live:
+            live_factors += 1
+        transformed_factors[factor_name] = {
+            "score": factor_data.get("score", 50),
+            "status": "live" if is_live else "pending",
+            "details": detail
+        }
+
+    total_factors = len(factors)
+    data_quality_pct = (live_factors / total_factors) * 100 if total_factors > 0 else 0
+
+    # Calculate average score (overall edge)
+    avg_score = sum(f.get("score", 50) for f in factors.values()) / len(factors) if factors else 50
+
+    # Calculate confidence based on data quality and score spread
+    confidence = min(85, max(45, avg_score + (data_quality_pct - 50) * 0.2))
+
+    # Generate recommendation
+    if avg_score >= 60:
+        strength = "STRONG" if avg_score >= 70 else "LEAN"
+    else:
+        strength = "FADE" if avg_score < 45 else "NEUTRAL"
+    recommendation = f"{strength} {request.pick}"
+
+    return {
+        "game_id": request.game_id,
+        "sport": request.sport,
+        "home_team": request.home_team,
+        "away_team": request.away_team,
+        "pick": request.pick,
+        "pick_type": request.pick_type,
+        "factors": transformed_factors,
+        "data_quality": round(data_quality_pct, 1),
+        "overall_edge": round(avg_score, 1),
+        "confidence": round(confidence, 1),
+        "recommendation": recommendation,
+        "meets_threshold": data_quality_pct >= 60,
+        "weather_data": weather_data
+    }
 
 
 def _create_default_factors(pick_team: str) -> dict:
