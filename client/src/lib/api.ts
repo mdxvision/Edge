@@ -179,11 +179,17 @@ export const api = {
 
   // Sports APIs
   mlb: {
-    getTodaysGames: () => request<any>('/mlb/games/today'),
+    getTodaysGames: () => {
+      const today = new Date().toISOString().split('T')[0];
+      return request<any>(`/mlb/games?start_date=${today}`);
+    },
     refresh: () => request<any>('/mlb/refresh', { method: 'POST' }),
   },
   nba: {
-    getTodaysGames: () => request<any>('/nba/games/today'),
+    getTodaysGames: () => {
+      const today = new Date().toISOString().split('T')[0];
+      return request<any>(`/nba/games?start_date=${today}`);
+    },
     refresh: () => request<any>('/nba/refresh', { method: 'POST' }),
   },
   nfl: {
@@ -191,11 +197,17 @@ export const api = {
     refresh: () => request<any>('/nfl/refresh', { method: 'POST' }),
   },
   cbb: {
-    getTodaysGames: () => request<any>('/cbb/games/today'),
+    getTodaysGames: () => {
+      const today = new Date().toISOString().split('T')[0];
+      return request<any>(`/cbb/games?start_date=${today}`);
+    },
     refresh: () => request<any>('/cbb/refresh', { method: 'POST' }),
   },
   soccer: {
-    getTodaysMatches: () => request<any>('/soccer/matches/today'),
+    getTodaysMatches: () => {
+      const today = new Date().toISOString().split('T')[0];
+      return request<any>(`/soccer/matches?date=${today}`);
+    },
     refresh: () => request<any>('/soccer/refresh', { method: 'POST' }),
   },
 

@@ -403,11 +403,22 @@ export default function Games() {
 
   const getStatusBadge = (status: string) => {
     const lowerStatus = status.toLowerCase();
-    if (lowerStatus === 'live' || lowerStatus.includes('in_play') || lowerStatus.includes('in progress')) {
+
+    // Check for live game indicators (quarters, periods, halftime, overtime)
+    const isLive = lowerStatus === 'live' ||
+      lowerStatus.includes('in_play') ||
+      lowerStatus.includes('in progress') ||
+      /\d+(st|nd|rd|th)\s*(qtr|quarter|period)/i.test(status) ||
+      lowerStatus.includes('halftime') ||
+      lowerStatus.includes('half') ||
+      lowerStatus === 'ot' ||
+      lowerStatus.includes('overtime');
+
+    if (isLive) {
       return (
         <Badge variant="success" className="flex items-center gap-1">
           <Circle className="w-2 h-2 fill-current animate-pulse" />
-          Live
+          LIVE - {status}
         </Badge>
       );
     }
@@ -418,8 +429,8 @@ export default function Games() {
       return <Badge variant="outline">Scheduled</Badge>;
     }
     // Check if it looks like a time (e.g., "8:00 pm ET")
-    if (lowerStatus.includes('pm') || lowerStatus.includes('am') || lowerStatus.includes(':')) {
-      return <Badge variant="outline">Scheduled</Badge>;
+    if (lowerStatus.includes('pm') || lowerStatus.includes('am') || /^\d{1,2}:\d{2}/.test(status)) {
+      return <Badge variant="outline">{status}</Badge>;
     }
     return <Badge variant="outline">{status}</Badge>;
   };
