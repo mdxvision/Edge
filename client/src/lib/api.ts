@@ -180,14 +180,18 @@ export const api = {
   // Sports APIs
   mlb: {
     getTodaysGames: () => {
-      const today = new Date().toISOString().split('T')[0];
+      // Use local date, not UTC
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       return request<any>(`/mlb/games?start_date=${today}`);
     },
     refresh: () => request<any>('/mlb/refresh', { method: 'POST' }),
   },
   nba: {
     getTodaysGames: () => {
-      const today = new Date().toISOString().split('T')[0];
+      // Use local date, not UTC (toISOString returns UTC which can be next day after 7pm EST)
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       return request<any>(`/nba/games?start_date=${today}`);
     },
     refresh: () => request<any>('/nba/refresh', { method: 'POST' }),
@@ -198,14 +202,18 @@ export const api = {
   },
   cbb: {
     getTodaysGames: () => {
-      const today = new Date().toISOString().split('T')[0];
+      // Use local date, not UTC
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       return request<any>(`/cbb/games?start_date=${today}`);
     },
     refresh: () => request<any>('/cbb/refresh', { method: 'POST' }),
   },
   soccer: {
     getTodaysMatches: () => {
-      const today = new Date().toISOString().split('T')[0];
+      // Use local date, not UTC
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       return request<any>(`/soccer/matches?date=${today}`);
     },
     refresh: () => request<any>('/soccer/refresh', { method: 'POST' }),
@@ -288,15 +296,19 @@ export const api = {
   // H2H
   h2h: {
     getSummary: (sport: string, team1: string, team2: string) =>
-      request<any>(`/h2h/summary?sport=${sport}&team1=${team1}&team2=${team2}`),
+      request<any>(`/h2h/${sport}/${encodeURIComponent(team1)}/${encodeURIComponent(team2)}/summary`),
   },
 
   // Weather
   weather: {
-    getImpact: (sport: string, venue: string, date: string, hour: number) =>
-      request<any>(
-        `/weather/impact?sport=${sport}&venue=${encodeURIComponent(venue)}&date=${date}&hour=${hour}`
-      ),
+    getImpact: (sport: string, venue: string, date: string, hour: number) => {
+      // Map sport to correct endpoint
+      const sportLower = sport.toLowerCase();
+      const endpoint = sportLower === 'nba' ? 'mlb' : sportLower; // NBA uses indoor, fallback to mlb format
+      return request<any>(
+        `/weather/impact/${endpoint}?venue=${encodeURIComponent(venue)}&game_date=${date}&game_hour=${hour}`
+      );
+    },
   },
 };
 
