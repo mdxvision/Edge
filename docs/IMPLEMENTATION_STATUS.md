@@ -1,6 +1,6 @@
 # EdgeBet Implementation & Testing Status Tracker
 
-**Last Updated:** December 20, 2025
+**Last Updated:** December 31, 2025
 
 ---
 
@@ -14,6 +14,7 @@
 | Phase 4: Production Readiness | Complete | 100% |
 | Phase 5: Advanced Features | Complete | 100% |
 | Phase 6: Edge Tracker & Live Picks | Complete | 100% |
+| Phase 7: Real Data Integration | In Progress | 60% |
 
 ---
 
@@ -274,6 +275,103 @@
 
 ---
 
+## Phase 7: Real Data Integration (75% COMPLETE)
+
+### Goal
+Replace simulated/random data in factor generator with real API data sources.
+
+### Completed Tasks (Dec 31)
+
+| ID | Task | Status | Notes |
+|----|------|--------|-------|
+| 7.1 | Wire NBA rest days to factor generator | ✅ Done | Uses nba_api library |
+| 7.2 | Wire NFL rest days to factor generator | ✅ Done | Uses ESPN API |
+| 7.3 | Replace random line movement with neutral | ✅ Done | Awaiting Odds API data |
+| 7.4 | Replace random public betting | ✅ Done | Manual input from Action Network |
+| 7.5 | Configure The Odds API key | ✅ Done | Key in .env, resets Jan 1 |
+| 7.6 | Test factor generator with real data | ✅ Done | Hawks/Steelers tested |
+| 7.7 | Add NFL coach ATS data | ✅ Done | 32 coaches from Sharp Football Analysis |
+| 7.8 | Add NBA coach ATS data | ✅ Done | 30 teams from Covers.com |
+| 7.9 | Add NBA referee tendency data | ✅ Done | 10 refs from Covers.com |
+| 7.10 | Add public betting manual input | ✅ Done | Parameter added to generate_factors() |
+
+### Pending Tasks
+
+| ID | Task | Status | Blocker |
+|----|------|--------|---------|
+| 7.11 | Add MySportsFeeds injury endpoint | ⏸️ Blocked | Need $5 DETAILED bundle |
+| 7.12 | Wire Odds API line movement | 🔜 Jan 1 | API resets tomorrow |
+| 7.13 | Build situational database | 🔄 Ongoing | Need 50+ settled picks |
+| 7.14 | Implement CLV tracking | Pending | Requires line movement data |
+| 7.15 | Add NFL referee data | Pending | Need data source |
+
+### Factor Generator Status
+
+| Factor | Data Source | Status |
+|--------|-------------|--------|
+| REST | NBA API / ESPN | ✅ **REAL DATA** |
+| COACH_DNA | Sharp Football / Covers | ✅ **REAL DATA** |
+| REFEREE | Covers.com | ✅ **REAL DATA** |
+| WEATHER | Weather API | ✅ **REAL DATA** |
+| TRAVEL | Static distances | ✅ **REAL DATA** |
+| PUBLIC_BETTING | Action Network (manual) | ✅ **REAL DATA** |
+| LINE_MOVEMENT | The Odds API | ⏸️ Pending (Jan 1) |
+| SITUATIONAL | Own pick history | 🔄 Building |
+
+**6 of 8 factors using real data!**
+
+### API Status
+
+| API | Status | Data Available |
+|-----|--------|----------------|
+| The Odds API | ✅ Key configured | Resets Jan 1 (500 free requests) |
+| MySportsFeeds | ✅ NBA + NFL active | Injuries need $5 add-on |
+| NBA API (nba_api) | ✅ Working | Rest days, stats, rosters |
+| ESPN API | ✅ Working | NFL schedules, scores |
+| Weather API | ✅ Configured | Game-day weather |
+| Action Network | ❌ No API | Manual website lookup |
+
+### Data Sources Added
+
+**Coach ATS (62 coaches)**
+- NFL: Sharp Football Analysis - career records (e.g., "Mike Tomlin: 53.6% ATS (162-140-6)")
+- NBA: Covers.com - current season estimates
+
+**Referee Tendencies (10 refs)**
+- NBA: Covers.com - O/U %, home team ATS %
+- Example: "Phenizee Ransom: 72.7% OVER tendency"
+
+**Public Betting**
+- Manual input from actionnetwork.com/nba/public-betting
+- Pass `public_betting_pct` parameter to generate_factors()
+
+### Current Betting Record
+
+| Metric | Value |
+|--------|-------|
+| Overall Record | 17-27 (38.6%) |
+| Overall Units | -11.55u |
+| New Strategy (Dec 28+) | **3-2, +3.02u** |
+| Strategy | Underdog ML (+100 to +200) |
+
+### Settled Picks (New Strategy)
+
+| Date | Game | Pick | Odds | Result | Units |
+|------|------|------|------|--------|-------|
+| Dec 29 | Spurs @ Cavaliers | Cavaliers ML | +150 | ✅ WIN | +2.55u |
+| Dec 29 | Blazers @ Mavericks | Mavericks ML | +100 | ❌ LOSS | -1.6u |
+| Dec 30 | Pistons @ Lakers | Lakers ML | +113 | ❌ LOSS | -1.5u |
+| Dec 31 | Hawks vs Wolves | Hawks ML | +136 | ✅ WIN | +2.04u |
+| Dec 31 | Bulls @ Pelicans | Bulls ML | +102 | ✅ WIN | +1.53u |
+
+### Pending Picks
+
+| Date | Game | Pick | Odds | Units | Status |
+|------|------|------|------|-------|--------|
+| Jan 4 | Ravens @ Steelers | Steelers ML | +144 | 1.5u | Pending |
+
+---
+
 ## Notes
 
 - All backend tests passing (with DISABLE_RATE_LIMIT=true for tests)
@@ -288,3 +386,6 @@
 - Realistic edge bounds: 2-10% edge, 45-85% confidence
 - The Odds API integrated for NFL and NBA real-time odds
 - Picks sorted by game_time for chronological display
+- **Dec 31, 2025**: REST factor now uses real NBA API and ESPN data
+- **Dec 31, 2025**: Underdog betting strategy going strong (3-2, +3.02u)
+- **Dec 31, 2025**: 2 wins today (Hawks +136, Bulls +102) - closed year strong

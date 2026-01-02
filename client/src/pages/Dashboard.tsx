@@ -40,12 +40,72 @@ export default function Dashboard() {
     setIsLoading(true);
     setError(null);
     try {
-      const [recs, gamesData] = await Promise.all([
-        api.recommendations.latest(client.id, 5),
-        api.games.list(),
-      ]);
+      // Fetch recommendations
+      const recs = await api.recommendations.latest(client.id, 5);
       setRecommendations(recs);
-      setGames(gamesData.slice(0, 5));
+
+      // Fetch live games from multiple sport APIs
+      const allGames: Game[] = [];
+
+      try {
+        const nflData = await api.nfl.getGames();
+        if (nflData?.games) {
+          allGames.push(...nflData.games.slice(0, 3).map((g: any) => ({
+            id: g.id || g.game_id,
+            sport: 'NFL',
+            home_team_name: g.home_team?.name,
+            away_team_name: g.away_team?.name,
+            start_time: g.game_date || g.date,
+            league: 'NFL Week 18',
+          })));
+        }
+      } catch (e) { console.log('NFL fetch error:', e); }
+
+      try {
+        const nbaData = await api.nba.getTodaysGames();
+        if (nbaData?.games) {
+          allGames.push(...nbaData.games.slice(0, 3).map((g: any) => ({
+            id: g.game_id,
+            sport: 'NBA',
+            home_team_name: g.home_team?.name,
+            away_team_name: g.away_team?.name,
+            start_time: g.game_date || g.date,
+            league: 'NBA',
+          })));
+        }
+      } catch (e) { console.log('NBA fetch error:', e); }
+
+      try {
+        const cfbData = await api.cfb.getTodaysGames();
+        if (cfbData?.games) {
+          allGames.push(...cfbData.games.slice(0, 3).map((g: any) => ({
+            id: g.game_id,
+            sport: 'CFB',
+            home_team_name: g.home_team?.name,
+            away_team_name: g.away_team?.name,
+            start_time: g.date,
+            league: 'Bowl Games',
+          })));
+        }
+      } catch (e) { console.log('CFB fetch error:', e); }
+
+      try {
+        const nhlData = await api.nhl.getTodaysGames();
+        if (nhlData?.games) {
+          allGames.push(...nhlData.games.slice(0, 3).map((g: any) => ({
+            id: g.game_id,
+            sport: 'NHL',
+            home_team_name: g.home_team?.name,
+            away_team_name: g.away_team?.name,
+            start_time: g.date,
+            league: 'NHL',
+          })));
+        }
+      } catch (e) { console.log('NHL fetch error:', e); }
+
+      // Sort by start time and take first 5
+      allGames.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+      setGames(allGames.slice(0, 5));
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
       setError('Couldn\'t load this. Try again.');

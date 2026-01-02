@@ -270,6 +270,7 @@ async def get_matches(
         away_team = match.get("awayTeam", {})
         score = match.get("score", {})
 
+        full_time = score.get("fullTime", {})
         matches.append({
             "id": match.get("id"),
             "competition": competition_code,
@@ -283,18 +284,20 @@ async def get_matches(
                 "id": home_team.get("id"),
                 "name": home_team.get("name", ""),
                 "short_name": home_team.get("shortName", ""),
-                "crest": home_team.get("crest", "")
+                "crest": home_team.get("crest", ""),
+                "score": full_time.get("home")
             },
             "away_team": {
                 "id": away_team.get("id"),
                 "name": away_team.get("name", ""),
                 "short_name": away_team.get("shortName", ""),
-                "crest": away_team.get("crest", "")
+                "crest": away_team.get("crest", ""),
+                "score": full_time.get("away")
             },
             "score": {
                 "winner": score.get("winner"),
                 "duration": score.get("duration", "REGULAR"),
-                "full_time": score.get("fullTime", {}),
+                "full_time": full_time,
                 "half_time": score.get("halfTime", {})
             },
             "referees": [ref.get("name", "") for ref in match.get("referees", [])]

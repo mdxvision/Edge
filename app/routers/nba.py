@@ -152,8 +152,56 @@ def get_teams():
     return {"teams": teams, "count": len(teams)}
 
 
+async def fetch_espn_nba_games():
+    """Fetch NBA games from ESPN API."""
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard",
+                timeout=10
+            )
+            if response.status_code == 200:
+                data = response.json()
+                events = data.get("events", [])
+                games = []
+                for event in events:
+                    competitions = event.get("competitions", [{}])
+                    comp = competitions[0] if competitions else {}
+                    competitors = comp.get("competitors", [])
+
+                    home = next((c for c in competitors if c.get("homeAway") == "home"), {})
+                    away = next((c for c in competitors if c.get("homeAway") == "away"), {})
+
+                    status_obj = event.get("status", {})
+                    status_type = status_obj.get("type", {})
+
+                    games.append({
+                        "game_id": event.get("id"),
+                        "game_date": event.get("date", "")[:10],
+                        "game_status": status_type.get("shortDetail", status_obj.get("type", {}).get("description", "")),
+                        "game_time_display": event.get("date", ""),
+                        "home_team": {
+                            "id": int(home.get("team", {}).get("id", 0)),
+                            "name": home.get("team", {}).get("displayName", ""),
+                            "score": int(home.get("score", 0)) if home.get("score") else None
+                        },
+                        "away_team": {
+                            "id": int(away.get("team", {}).get("id", 0)),
+                            "name": away.get("team", {}).get("displayName", ""),
+                            "score": int(away.get("score", 0)) if away.get("score") else None
+                        },
+                        "arena": comp.get("venue", {}).get("fullName", ""),
+                        "national_tv": next((b.get("names", [""])[0] for b in comp.get("broadcasts", []) if b.get("names")), None)
+                    })
+                return games
+    except Exception as e:
+        print(f"ESPN NBA fetch error: {e}")
+    return []
+
+
 @router.get("/games")
-def get_games(
+async def get_games(
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     team_id: Optional[int] = Query(None, description="Filter by NBA team ID"),
@@ -163,27 +211,34 @@ def get_games(
     Get NBA game schedule with odds.
 
     Returns upcoming games with arena, TV information, and betting odds.
-    Includes yesterday's games by default to catch late-night live games.
+    Uses ESPN API for live data.
     """
-    start = None
-    end = None
+    # First try ESPN API for most up-to-date data
+    games = await fetch_espn_nba_games()
 
-    if start_date:
-        try:
-            start = datetime.strptime(start_date, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid start_date format. Use YYYY-MM-DD")
+    # If ESPN returns data, use it
+    if games:
+        pass  # We'll add odds below
     else:
-        # Default: include yesterday to catch late-night live games (timezone offset)
-        start = date.today() - timedelta(days=1)
+        # Fallback to nba_stats
+        start = None
+        end = None
 
-    if end_date:
-        try:
-            end = datetime.strptime(end_date, "%Y-%m-%d").date()
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid end_date format. Use YYYY-MM-DD")
+        if start_date:
+            try:
+                start = datetime.strptime(start_date, "%Y-%m-%d").date()
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid start_date format. Use YYYY-MM-DD")
+        else:
+            start = date.today() - timedelta(days=1)
 
-    games = nba_stats.get_schedule(team_id, start, end)
+        if end_date:
+            try:
+                end = datetime.strptime(end_date, "%Y-%m-%d").date()
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid end_date format. Use YYYY-MM-DD")
+
+        games = nba_stats.get_schedule(team_id, start, end)
 
     # Also check database for recent games that might be live (last 4 hours)
     # This catches games that the NBA Stats API might not return

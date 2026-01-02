@@ -170,6 +170,38 @@ def get_scheduler_status():
     return SchedulerStatusResponse(**status)
 
 
+@router.post("/scheduler/refresh-now")
+async def trigger_manual_refresh(db: Session = Depends(get_db)):
+    """
+    Manually trigger an immediate odds refresh for all sports.
+
+    Fetches latest odds from The Odds API and updates line movement data.
+    """
+    from app.services.odds_api import fetch_and_store_odds, is_odds_api_configured
+
+    if not is_odds_api_configured():
+        raise HTTPException(status_code=503, detail="Odds API not configured")
+
+    sports = ["NBA", "NFL", "NCAA_BASKETBALL", "NHL", "MLB", "SOCCER"]
+    results = {}
+    total = 0
+
+    for sport in sports:
+        try:
+            count = await fetch_and_store_odds(db, sport)
+            results[sport] = count
+            total += count
+        except Exception as e:
+            results[sport] = f"error: {str(e)}"
+
+    return {
+        "status": "completed",
+        "total_games_updated": total,
+        "by_sport": results,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
 # Bankroll History Endpoints
 
 class BankrollHistoryEntry(BaseModel):

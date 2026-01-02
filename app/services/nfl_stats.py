@@ -411,6 +411,19 @@ async def get_team_schedule(team_id: str) -> List[Dict[str, Any]]:
                 else:
                     away_team = team
 
+            # Safely parse scores (may be string, int, dict, or None)
+            def safe_score(team_data):
+                if not team_data:
+                    return None
+                score = team_data.get("score")
+                if score is None:
+                    return None
+                if isinstance(score, (int, float)):
+                    return int(score)
+                if isinstance(score, str) and score.isdigit():
+                    return int(score)
+                return None
+
             games.append({
                 "id": event.get("id"),
                 "name": event.get("name"),
@@ -419,11 +432,11 @@ async def get_team_schedule(team_id: str) -> List[Dict[str, Any]]:
                 "week": event.get("week", {}).get("number"),
                 "home_team": {
                     "name": home_team.get("team", {}).get("displayName", "") if home_team else "",
-                    "score": int(home_team.get("score", 0)) if home_team and home_team.get("score") else None,
+                    "score": safe_score(home_team),
                 },
                 "away_team": {
                     "name": away_team.get("team", {}).get("displayName", "") if away_team else "",
-                    "score": int(away_team.get("score", 0)) if away_team and away_team.get("score") else None,
+                    "score": safe_score(away_team),
                 },
             })
         except (KeyError, IndexError, TypeError) as e:
@@ -528,3 +541,117 @@ async def refresh_nfl_data(db) -> Dict[str, Any]:
     db.commit()
 
     return result
+
+
+# NFL Team ESPN IDs for rest day lookups
+NFL_TEAM_ESPN_IDS = {
+    "Arizona Cardinals": "22",
+    "Atlanta Falcons": "1",
+    "Baltimore Ravens": "33",
+    "Buffalo Bills": "2",
+    "Carolina Panthers": "29",
+    "Chicago Bears": "3",
+    "Cincinnati Bengals": "4",
+    "Cleveland Browns": "5",
+    "Dallas Cowboys": "6",
+    "Denver Broncos": "7",
+    "Detroit Lions": "8",
+    "Green Bay Packers": "9",
+    "Houston Texans": "34",
+    "Indianapolis Colts": "11",
+    "Jacksonville Jaguars": "30",
+    "Kansas City Chiefs": "12",
+    "Las Vegas Raiders": "13",
+    "Los Angeles Chargers": "24",
+    "Los Angeles Rams": "14",
+    "Miami Dolphins": "15",
+    "Minnesota Vikings": "16",
+    "New England Patriots": "17",
+    "New Orleans Saints": "18",
+    "New York Giants": "19",
+    "New York Jets": "20",
+    "Philadelphia Eagles": "21",
+    "Pittsburgh Steelers": "23",
+    "San Francisco 49ers": "25",
+    "Seattle Seahawks": "26",
+    "Tampa Bay Buccaneers": "27",
+    "Tennessee Titans": "10",
+    "Washington Commanders": "28",
+}
+
+
+async def calculate_rest_days(team_name: str, game_date: date) -> int:
+    """
+    Calculate days of rest for an NFL team before a game.
+
+    Args:
+        team_name: NFL team name (e.g., "Pittsburgh Steelers")
+        game_date: Date of the upcoming game
+
+    Returns:
+        Number of rest days (-1 if unable to calculate)
+
+    NFL Rest Day Guide:
+    - Normal week (Sunday to Sunday): 7 days
+    - Thursday Night Football after Sunday: 4 days
+    - Monday Night Football to Sunday: 6 days
+    - MNF to Thursday: 3 days (rare)
+    - Bye week: 13-14 days
+    """
+    # Find team ESPN ID
+    team_id = None
+    team_lower = team_name.lower()
+    for name, espn_id in NFL_TEAM_ESPN_IDS.items():
+        if team_lower in name.lower() or name.lower() in team_lower:
+            team_id = espn_id
+            break
+
+    if not team_id:
+        logger.warning(f"Could not find ESPN ID for NFL team: {team_name}")
+        return -1
+
+    try:
+        # Get team schedule
+        schedule = await get_team_schedule(team_id)
+
+        if not schedule:
+            logger.warning(f"No schedule found for {team_name}")
+            return -1
+
+        # Parse game dates and find last game before target date
+        game_dates = []
+        for game in schedule:
+            game_date_str = game.get("game_date")
+            # Accept any game with a valid date
+            if game_date_str:
+                try:
+                    parsed = datetime.fromisoformat(game_date_str.replace("Z", "+00:00"))
+                    game_dates.append(parsed.date())
+                except (ValueError, TypeError):
+                    continue
+
+        # Find most recent game before target date
+        previous_games = [d for d in game_dates if d < game_date]
+
+        if not previous_games:
+            return -1  # No previous games (might be week 1)
+
+        last_game_date = max(previous_games)
+        rest_days = (game_date - last_game_date).days - 1
+
+        logger.info(f"NFL rest days for {team_name}: {rest_days} (last game: {last_game_date})")
+
+        return max(rest_days, 0)
+
+    except Exception as e:
+        logger.error(f"Error calculating NFL rest days for {team_name}: {e}")
+        return -1
+
+
+def get_nfl_team_id(team_name: str) -> Optional[str]:
+    """Get ESPN team ID from team name."""
+    team_lower = team_name.lower()
+    for name, espn_id in NFL_TEAM_ESPN_IDS.items():
+        if team_lower in name.lower() or name.lower() in team_lower:
+            return espn_id
+    return None

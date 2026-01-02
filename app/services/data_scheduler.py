@@ -247,8 +247,12 @@ async def snapshot_lines_task():
     Tracks line movement for steam move and RLM detection.
     """
     from app.db import SessionLocal, Game
-    from app.services.odds_api import fetch_and_store_odds
+    from app.services.odds_api import fetch_and_store_odds, is_odds_api_configured
     from datetime import datetime, timedelta
+
+    if not is_odds_api_configured():
+        logger.warning("Odds API not configured, skipping line snapshot")
+        return {"error": "Odds API not configured"}
 
     db = SessionLocal()
     try:
@@ -261,13 +265,25 @@ async def snapshot_lines_task():
 
         logger.info(f"Snapshotting lines for {len(upcoming_games)} upcoming games")
 
-        # Fetch and store odds for each game
-        # This will trigger line movement tracking
-        result = await fetch_and_store_odds(db)
+        # Fetch and store odds for all major sports
+        sports_to_refresh = ["NBA", "NFL", "NCAA_BASKETBALL", "NHL", "MLB", "SOCCER"]
+        results = {}
+        total_updated = 0
+
+        for sport in sports_to_refresh:
+            try:
+                count = await fetch_and_store_odds(db, sport)
+                results[sport] = count
+                total_updated += count
+                logger.info(f"  {sport}: {count} games updated")
+            except Exception as e:
+                logger.error(f"  Error refreshing {sport}: {e}")
+                results[sport] = f"error: {str(e)}"
 
         return {
             "games_checked": len(upcoming_games),
-            "odds_result": result
+            "total_updated": total_updated,
+            "by_sport": results
         }
     except Exception as e:
         logger.error(f"Error snapshotting lines: {e}")

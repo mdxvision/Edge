@@ -343,7 +343,7 @@ async def get_scoreboard(game_date: date = None) -> List[Dict[str, Any]]:
         return cached
 
     url = f"{ESPN_CBB_BASE}/scoreboard"
-    params = {"dates": game_date.strftime("%Y%m%d")}
+    params = {"dates": game_date.strftime("%Y%m%d"), "limit": 100}
     data = await _make_request(url, params)
 
     if not data or "events" not in data:

@@ -123,7 +123,7 @@ async def get_games(db: Session = Depends(get_db)):
     nfl_games = db.query(Game).filter(
         Game.sport.in_(["NFL", "americanfootball_nfl"]),
         Game.start_time >= dt.utcnow() - timedelta(days=1)  # Include recent/upcoming
-    ).order_by(Game.start_time).all()
+    ).order_by(Game.start_time.asc()).all()
 
     if nfl_games:
         games_list = []
@@ -170,7 +170,7 @@ async def get_games(db: Session = Depends(get_db)):
 
     # Fallback: Try NFLGame table
     try:
-        db_games = db.query(NFLGame).order_by(NFLGame.game_date.desc()).limit(20).all()
+        db_games = db.query(NFLGame).order_by(NFLGame.game_date.asc()).limit(20).all()
 
         if db_games:
             games_list = []

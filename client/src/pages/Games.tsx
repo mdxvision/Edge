@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 // Sport tab types
-type SportTab = 'mlb' | 'nba' | 'nfl' | 'cbb' | 'soccer';
+type SportTab = 'mlb' | 'nba' | 'nfl' | 'cbb' | 'cfb' | 'nhl' | 'soccer';
 
 interface MLBGame {
   id: number;
@@ -141,7 +141,7 @@ interface SoccerMatch {
   competition: string;
   matchday: number;
   status: string;
-  match_date: string;
+  utc_date: string;
   game_time_display?: string;
   venue?: string;
   home_team: {
@@ -154,11 +154,67 @@ interface SoccerMatch {
   };
 }
 
+interface CFBGame {
+  game_id?: string;
+  date?: string;
+  game_time_display?: string;
+  name?: string;
+  short_name?: string;
+  status: string;
+  status_detail?: string;
+  venue?: string;
+  broadcast?: string;
+  home_team: {
+    id?: string;
+    name: string;
+    abbreviation?: string;
+    score?: number;
+    rank?: number;
+    record?: string;
+  };
+  away_team: {
+    id?: string;
+    name: string;
+    abbreviation?: string;
+    score?: number;
+    rank?: number;
+    record?: string;
+  };
+}
+
+interface NHLGame {
+  game_id?: string;
+  date?: string;
+  game_time_display?: string;
+  name?: string;
+  short_name?: string;
+  status: string;
+  status_detail?: string;
+  venue?: string;
+  broadcast?: string;
+  home_team: {
+    id?: string;
+    name: string;
+    abbreviation?: string;
+    score?: number;
+    record?: string;
+  };
+  away_team: {
+    id?: string;
+    name: string;
+    abbreviation?: string;
+    score?: number;
+    record?: string;
+  };
+}
+
 const SPORT_CONFIG = {
   mlb: { name: 'MLB', icon: '⚾', color: 'bg-red-500' },
   nba: { name: 'NBA', icon: '🏀', color: 'bg-orange-500' },
   nfl: { name: 'NFL', icon: '🏈', color: 'bg-green-600' },
-  cbb: { name: 'College Basketball', icon: '🏀', color: 'bg-blue-500' },
+  cbb: { name: 'CBB', icon: '🏀', color: 'bg-blue-500' },
+  cfb: { name: 'CFB', icon: '🏈', color: 'bg-purple-500' },
+  nhl: { name: 'NHL', icon: '🏒', color: 'bg-cyan-500' },
   soccer: { name: 'Soccer', icon: '⚽', color: 'bg-emerald-500' },
 };
 
@@ -168,6 +224,8 @@ export default function Games() {
   const [nbaGames, setNbaGames] = useState<NBAGame[]>([]);
   const [nflGames, setNflGames] = useState<NFLGame[]>([]);
   const [cbbGames, setCbbGames] = useState<CBBGame[]>([]);
+  const [cfbGames, setCfbGames] = useState<CFBGame[]>([]);
+  const [nhlGames, setNhlGames] = useState<NHLGame[]>([]);
   const [soccerMatches, setSoccerMatches] = useState<SoccerMatch[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -330,6 +388,26 @@ export default function Games() {
     }
   }, []);
 
+  const fetchCFBGames = useCallback(async () => {
+    try {
+      const response = await api.cfb.getTodaysGames();
+      setCfbGames((response.games || []) as CFBGame[]);
+    } catch (err) {
+      console.error('Failed to fetch CFB games:', err);
+      throw err;
+    }
+  }, []);
+
+  const fetchNHLGames = useCallback(async () => {
+    try {
+      const response = await api.nhl.getTodaysGames();
+      setNhlGames((response.games || []) as NHLGame[]);
+    } catch (err) {
+      console.error('Failed to fetch NHL games:', err);
+      throw err;
+    }
+  }, []);
+
   const fetchSoccerMatches = useCallback(async () => {
     try {
       const response = await api.soccer.getTodaysMatches();
@@ -357,6 +435,12 @@ export default function Games() {
         case 'cbb':
           await fetchCBBGames();
           break;
+        case 'cfb':
+          await fetchCFBGames();
+          break;
+        case 'nhl':
+          await fetchNHLGames();
+          break;
         case 'soccer':
           await fetchSoccerMatches();
           break;
@@ -366,7 +450,7 @@ export default function Games() {
     } finally {
       setIsLoading(false);
     }
-  }, [activeTab, fetchMLBGames, fetchNBAGames, fetchNFLGames, fetchCBBGames, fetchSoccerMatches]);
+  }, [activeTab, fetchMLBGames, fetchNBAGames, fetchNFLGames, fetchCBBGames, fetchCFBGames, fetchNHLGames, fetchSoccerMatches]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -384,6 +468,12 @@ export default function Games() {
           break;
         case 'cbb':
           await api.cbb.refresh();
+          break;
+        case 'cfb':
+          await api.cfb.refresh();
+          break;
+        case 'nhl':
+          await api.nhl.refresh();
           break;
         case 'soccer':
           await api.soccer.refresh();
@@ -407,7 +497,9 @@ export default function Games() {
     // Check for live game indicators (quarters, periods, halftime, overtime)
     const isLive = lowerStatus === 'live' ||
       lowerStatus.includes('in_play') ||
+      lowerStatus.includes('in_progress') ||
       lowerStatus.includes('in progress') ||
+      lowerStatus.includes('in_time') ||
       /\d+(st|nd|rd|th)\s*(qtr|quarter|period)/i.test(status) ||
       lowerStatus.includes('halftime') ||
       lowerStatus.includes('half') ||
@@ -418,7 +510,7 @@ export default function Games() {
       return (
         <Badge variant="success" className="flex items-center gap-1">
           <Circle className="w-2 h-2 fill-current animate-pulse" />
-          LIVE - {status}
+          LIVE
         </Badge>
       );
     }
@@ -1150,6 +1242,164 @@ export default function Games() {
     </div>
   );
 
+  const renderCFBGames = () => (
+    <div className="grid gap-4">
+      {cfbGames.length === 0 ? (
+        <Card padding="lg" className="bg-white dark:bg-slate-800">
+          <EmptyState
+            icon={Trophy}
+            title="No college football games today"
+            description="Check back later for upcoming bowl games."
+          />
+        </Card>
+      ) : (
+        cfbGames.map((game, idx) => (
+          <Card key={game.game_id || idx} padding="md" hover className="bg-white dark:bg-slate-800">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  {getStatusBadge(game.status)}
+                  {game.broadcast && (
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Tv className="w-3 h-3" />
+                      {game.broadcast}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {game.away_team.rank && game.away_team.rank <= 25 && (
+                        <span className="text-emerald-500 font-semibold">#{game.away_team.rank}</span>
+                      )}
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {game.away_team.name}
+                      </span>
+                      {game.away_team.record && (
+                        <span className="text-xs text-gray-500">({game.away_team.record})</span>
+                      )}
+                    </div>
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
+                      {game.status?.toLowerCase().includes('progress') || game.status?.toLowerCase().includes('final')
+                        ? (game.away_team.score ?? '-')
+                        : '-'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {game.home_team.rank && game.home_team.rank <= 25 && (
+                        <span className="text-emerald-500 font-semibold">#{game.home_team.rank}</span>
+                      )}
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {game.home_team.name}
+                      </span>
+                      {game.home_team.record && (
+                        <span className="text-xs text-gray-500">({game.home_team.record})</span>
+                      )}
+                    </div>
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
+                      {game.status?.toLowerCase().includes('progress') || game.status?.toLowerCase().includes('final')
+                        ? (game.home_team.score ?? '-')
+                        : '-'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-slate-400">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>{game.game_time_display || game.status_detail || 'TBD'}</span>
+                </div>
+                {game.venue && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>{game.venue}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        ))
+      )}
+    </div>
+  );
+
+  const renderNHLGames = () => (
+    <div className="grid gap-4">
+      {nhlGames.length === 0 ? (
+        <Card padding="lg" className="bg-white dark:bg-slate-800">
+          <EmptyState
+            icon={Trophy}
+            title="No NHL games today"
+            description="Check back later for upcoming matchups."
+          />
+        </Card>
+      ) : (
+        nhlGames.map((game, idx) => (
+          <Card key={game.game_id || idx} padding="md" hover className="bg-white dark:bg-slate-800">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  {getStatusBadge(game.status)}
+                  {game.broadcast && (
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Tv className="w-3 h-3" />
+                      {game.broadcast}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {game.away_team.name}
+                      </span>
+                      {game.away_team.record && (
+                        <span className="text-xs text-gray-500">({game.away_team.record})</span>
+                      )}
+                    </div>
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
+                      {game.status?.toLowerCase().includes('progress') || game.status?.toLowerCase().includes('final')
+                        ? (game.away_team.score ?? '-')
+                        : '-'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {game.home_team.name}
+                      </span>
+                      {game.home_team.record && (
+                        <span className="text-xs text-gray-500">({game.home_team.record})</span>
+                      )}
+                    </div>
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
+                      {game.status?.toLowerCase().includes('progress') || game.status?.toLowerCase().includes('final')
+                        ? (game.home_team.score ?? '-')
+                        : '-'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-slate-400">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>{game.game_time_display || game.status_detail || 'TBD'}</span>
+                </div>
+                {game.venue && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>{game.venue}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        ))
+      )}
+    </div>
+  );
+
   const renderSoccerMatches = () => (
     <div className="grid gap-4">
       {soccerMatches.length === 0 ? (
@@ -1196,7 +1446,7 @@ export default function Games() {
               <div className="flex flex-col gap-2 text-sm text-gray-600 dark:text-slate-400">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>{match.game_time_display || new Date(match.match_date).toLocaleDateString('en-US', {
+                  <span>{match.game_time_display || new Date(match.utc_date).toLocaleDateString('en-US', {
                     weekday: 'short',
                     month: 'short',
                     day: 'numeric',
@@ -1216,7 +1466,7 @@ export default function Games() {
                     <WeatherImpact
                       sport="soccer"
                       venue={match.venue}
-                      gameDate={match.match_date?.split('T')[0]}
+                      gameDate={match.utc_date?.split('T')[0]}
                       compact
                     />
                   </div>
@@ -1259,6 +1509,10 @@ export default function Games() {
         return renderNFLGames();
       case 'cbb':
         return renderCBBGames();
+      case 'cfb':
+        return renderCFBGames();
+      case 'nhl':
+        return renderNHLGames();
       case 'soccer':
         return renderSoccerMatches();
       default:
@@ -1276,6 +1530,10 @@ export default function Games() {
         return nflGames.length;
       case 'cbb':
         return cbbGames.length;
+      case 'cfb':
+        return cfbGames.length;
+      case 'nhl':
+        return nhlGames.length;
       case 'soccer':
         return soccerMatches.length;
       default:

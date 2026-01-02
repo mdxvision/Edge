@@ -210,13 +210,16 @@ export const api = {
     refresh: () => request<any>('/cbb/refresh', { method: 'POST' }),
   },
   soccer: {
-    getTodaysMatches: () => {
-      // Use local date, not UTC
-      const now = new Date();
-      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-      return request<any>(`/soccer/matches?date=${today}`);
-    },
+    getTodaysMatches: () => request<any>('/soccer/matches/today'),
     refresh: () => request<any>('/soccer/refresh', { method: 'POST' }),
+  },
+  cfb: {
+    getTodaysGames: () => request<any>('/cfb/games'),
+    refresh: () => request<any>('/cfb/refresh', { method: 'POST' }),
+  },
+  nhl: {
+    getTodaysGames: () => request<any>('/nhl/games'),
+    refresh: () => request<any>('/nhl/refresh', { method: 'POST' }),
   },
 
   // Parlays

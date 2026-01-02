@@ -86,63 +86,7 @@ async def get_todays_games(db: Session = Depends(get_db)):
     """
     today = date.today()
 
-    # Try database first
-    try:
-        db_games = db.query(CBBGame).filter(
-            CBBGame.game_date >= datetime.combine(today, datetime.min.time()),
-            CBBGame.game_date <= datetime.combine(today, datetime.max.time())
-        ).all()
-
-        if db_games:
-            games_list = []
-            for game in db_games:
-                game_date_iso = game.game_date.isoformat()
-                est_dt = game.game_date - timedelta(hours=5)
-                games_list.append({
-                    "id": game.id,
-                    "game_id": game.espn_id,
-                    "espn_id": game.espn_id,
-                    "status": game.status,
-                    "date": game_date_iso,
-                    "game_date": game_date_iso,
-                    "game_time_display": est_dt.strftime("%a, %b %d at %I:%M %p") + " EST",
-                    "name": f"{game.away_team_name} at {game.home_team_name}",
-                    "short_name": f"{game.away_team_name} @ {game.home_team_name}",
-                    "status_detail": game.status,
-                    "venue": game.venue,
-                    "home_team": {
-                        "id": str(game.home_team_id) if game.home_team_id else None,
-                        "name": game.home_team_name,
-                        "abbreviation": game.home_team_name[:3].upper() if game.home_team_name else "",
-                        "score": game.home_score or 0,
-                        "rank": game.home_team_rank,
-                        "record": None
-                    },
-                    "away_team": {
-                        "id": str(game.away_team_id) if game.away_team_id else None,
-                        "name": game.away_team_name,
-                        "abbreviation": game.away_team_name[:3].upper() if game.away_team_name else "",
-                        "score": game.away_score or 0,
-                        "rank": game.away_team_rank,
-                        "record": None
-                    },
-                    "odds": {
-                        "spread": game.spread,
-                        "over_under": game.over_under
-                    } if game.spread or game.over_under else None,
-                    "is_conference_game": game.is_conference_game,
-                    "broadcast": game.broadcast
-                })
-            return {
-                "date": today.isoformat(),
-                "count": len(games_list),
-                "games": games_list
-            }
-    except Exception:
-        # Database table may not exist, fall through to API
-        pass
-
-    # Fetch from ESPN API
+    # Always fetch from ESPN API for fresh live data
     games = await cbb_stats.get_scoreboard(today)
 
     # Add game_time_display to each game

@@ -4,6 +4,12 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import time
 import os
+from pathlib import Path
+
+# Load environment variables from .env file
+from dotenv import load_dotenv
+env_path = Path(__file__).parent.parent / '.env'
+load_dotenv(env_path)
 
 # Set timezone to EST
 os.environ['TZ'] = 'America/New_York'
@@ -33,6 +39,8 @@ from app.routers.mlb import router as mlb_router
 from app.routers.nba import router as nba_router
 from app.routers.nfl import router as nfl_router
 from app.routers.cbb import router as cbb_router
+from app.routers.cfb import router as cfb_router
+from app.routers.nhl import router as nhl_router
 from app.routers.soccer import router as soccer_router
 from app.routers.weather import router as weather_router
 from app.routers.coaches import router as coaches_router
@@ -55,6 +63,8 @@ from app.middleware.security import SecurityHeadersMiddleware
 from app.utils.logging import setup_logging, request_logger
 from app.services.currency import seed_default_rates
 from app.services.data_scheduler import start_schedulers, stop_schedulers
+from app.services.background_jobs import alert_scheduler
+from app.services.odds_scheduler import odds_scheduler
 
 logger = setup_logging(level=os.environ.get("LOG_LEVEL", "INFO"))
 
@@ -74,11 +84,18 @@ async def lifespan(app: FastAPI):
     start_schedulers()
     logger.info("MLB, NBA, CBB, and Soccer data schedulers started")
 
+    # Start alert and odds refresh schedulers
+    await alert_scheduler.start()
+    await odds_scheduler.start()
+    logger.info("Alert and odds refresh schedulers started")
+
     yield
 
     # Cleanup on shutdown
     stop_schedulers()
-    logger.info("Data schedulers stopped")
+    await alert_scheduler.stop()
+    await odds_scheduler.stop()
+    logger.info("All schedulers stopped")
 
 
 app = FastAPI(
@@ -207,6 +224,8 @@ app.include_router(mlb_router)
 app.include_router(nba_router)
 app.include_router(nfl_router)
 app.include_router(cbb_router)
+app.include_router(cfb_router)
+app.include_router(nhl_router)
 app.include_router(soccer_router)
 app.include_router(weather_router)
 app.include_router(coaches_router)
