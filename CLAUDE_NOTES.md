@@ -1,11 +1,12 @@
 # Claude Notes - Edge Betting Platform
 
-## Last Updated: December 29, 2025
+## Last Updated: January 3, 2026
 
 ---
 
 ## Project Overview
 Multi-sport betting recommendation engine with FastAPI backend and React frontend.
+Now with **live RLM (Reverse Line Movement) detection** and real-time odds from The Odds API.
 
 **Running Services:**
 - Backend API: `http://localhost:8080`
@@ -14,65 +15,75 @@ Multi-sport betting recommendation engine with FastAPI backend and React fronten
 
 ---
 
-## Current Record
+## Current Status
 
-```
-Overall:  14-25-0 (35.9%)  -16.07u
-NBA:      6-15 (29%)       -10.62u  ← Problem area
-NFL:      5-10 (33%)       -5.45u
-Soccer:   3-0 (100%)       +0.00u
-```
+### Odds API
+- **Plan:** Starter ($20/mo) - 20,000 requests/month
+- **Key:** `b7dda300f2b103e4153b50793de01144`
+- **Refresh:** Every 30 minutes (saves API quota)
 
----
-
-## Strategy Change (Dec 28, 2025)
-
-### Problem Identified
-- Heavy favorites kept losing outright (Celtics -250, Grizzlies -200)
-- Large spreads never covered (0-3 on spreads > 7)
-- Favorites: 5-14 (26%) → -10.62u
-
-### New Strategy Rules (`/app/betting_strategy.py`)
-
-| Rule | Old | New |
-|------|-----|-----|
-| Max Spread | No limit | 6 points |
-| ML Favorites | Any odds | -150 max |
-| Underdog Range | Rarely bet | +100 to +200 |
-| Favorite Units | 1.5-1.7u | 0.75u max |
-| Underdog Units | 1.0u | 1.5u |
-| Min Edge (Favorites) | 3% | 6% |
-
-### Key Principles
-1. NO spreads larger than 6 points
-2. NO heavy chalk (juicier than -150)
-3. PREFER plus-money underdogs
-4. Higher edge requirement for favorites (6% vs 3%)
-5. More units on dogs, fewer on favorites
+### Line Movement Analysis
+- RLM detection working
+- Steam move detection working
+- 24 signals detected on Jan 3, 2026
 
 ---
 
-## Pending Picks (Dec 29, 2025)
+## Today's Bets (January 3, 2026)
 
-```
-Cleveland Cavaliers ML @ +150 (1.7u) - 8:00 PM ET
-Dallas Mavericks ML @ +100 (1.6u) - 10:30 PM ET
+### 10 STRONG BETS (RLM + Steam Confirmed)
 
-Total exposure: 3.3u
-Both UNDERDOGS (new strategy)
-```
+| Sport | Game | Pick | Spread |
+|-------|------|------|--------|
+| NFL | Saints @ Falcons | Saints | +3.5 |
+| NFL | Browns @ Bengals | Browns | +7.5 |
+| NFL | Packers @ Vikings | Vikings | -10.0 |
+| NFL | Cowboys @ Giants | Cowboys | +3.5 |
+| NFL | Titans @ Jaguars | Titans | +13.5 |
+| CBB | GA Southern @ Coastal Carolina | Coastal Carolina | +2.5 |
+| CBB | Green Bay @ Fort Wayne | Green Bay | -9.0 |
+| CBB | Jacksonville @ Lipscomb | Lipscomb | +10.5 |
+| Soccer | Leeds @ Liverpool | Leeds | +0.2 |
+| Soccer | Man City @ Sunderland | Man City | -0.8 |
+
+**Total:** 10 bets @ 2 units = 20 units risked
 
 ---
 
-## Important Files
+## Recent Fixes (Jan 3, 2026)
+
+1. **Edge Dilution Fix** - Weight normalization so RLM signals produce real edges
+2. **Market Type Fix** - Changed 'spread' to 'spreads' to match Odds API format
+3. **API Optimization** - 30-min refresh to fit within Starter plan quota
+4. **Game Sync** - Syncs real games from ESPN APIs
+5. **Odds Fetch** - Pulls live odds from The Odds API
+
+---
+
+## Key Files
 
 | File | Purpose |
 |------|---------|
-| `/app/betting_strategy.py` | New strategy filters and rules |
-| `/app/services/edge_engine.py` | Value bet detection |
-| `/app/services/auto_settler.py` | Auto-settlement service |
-| `/scripts/settle_dec29.py` | Settlement script for Dec 29 picks |
-| `/scripts/seed_test_user.py` | Create test user |
+| `/app/services/edge_aggregator.py` | Weight normalization fix for edge calculation |
+| `/app/services/line_movement_analyzer.py` | RLM and steam move detection |
+| `/app/services/odds_scheduler.py` | Auto-refresh odds every 30 min |
+| `/app/routers/analytics.py` | Analytics endpoints |
+| `/.env` | API keys (Odds API, Telegram, etc.) |
+
+---
+
+## 8-Factor Edge System
+
+| Factor | Weight | Description |
+|--------|--------|-------------|
+| Line Movement | 20% | RLM, steam moves, sharp action |
+| Coach DNA | 18% | Situational coaching records |
+| Situational | 17% | Rest, travel, motivation |
+| Weather | 12% | Wind, temp, precipitation |
+| Officials | 10% | Referee tendencies |
+| Public Fade | 10% | Contrarian signals |
+| ELO | 8% | Power ratings |
+| Social | 5% | Sentiment analysis |
 
 ---
 
@@ -81,7 +92,6 @@ Both UNDERDOGS (new strategy)
 **Start Backend:**
 ```bash
 cd /Users/rafaelrodriguez/GitHub/Edge
-source venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 ```
 
@@ -91,31 +101,40 @@ cd /Users/rafaelrodriguez/GitHub/Edge/client
 npm run dev
 ```
 
-**Show Record:**
-```python
-# Query tracked_picks table for status in ('won', 'lost', 'push')
+**Manual Odds Refresh:**
+```bash
+curl -X POST http://localhost:8080/analytics/scheduler/refresh-now
 ```
 
-**Settle Picks:**
-```bash
-python scripts/settle_dec29.py
+**Check Predictions:**
+```python
+from app.services.edge_aggregator import get_ranked_picks
+picks = await get_ranked_picks(db, limit=20)
 ```
+
+---
+
+## Telegram Alerts
+- Bot: @EdgeBetalertsbot
+- Token in .env: `TELEGRAM_BOT_TOKEN`
+- User chat ID: `769278691`
+- Alerts trigger when edges exceed thresholds
 
 ---
 
 ## Session Context
 
-- User is tracking betting performance
-- Recently analyzed losses and adjusted strategy
-- Cancelled 3 bad pending picks that violated new rules
-- Generated 2 new underdog picks using new strategy
-- Waiting for Dec 29 games to settle
+- Live odds now flowing from The Odds API
+- RLM detection working with real data
+- 10 strong bets placed for Jan 3, 2026
+- System auto-refreshes every 30 minutes
+- Telegram alerts configured
 
 ---
 
 ## Next Steps
 
-1. Monitor Dec 29 games (Cavs @ Spurs, Mavs @ Blazers)
-2. Settle picks when games finish
-3. Continue applying new strategy filters
-4. Track performance of new underdog-focused approach
+1. Monitor Jan 3 bets for results
+2. Track RLM prediction accuracy
+3. Fine-tune edge weights based on performance
+4. Add more sports data sources
