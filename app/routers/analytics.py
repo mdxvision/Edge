@@ -194,10 +194,18 @@ async def trigger_manual_refresh(db: Session = Depends(get_db)):
         except Exception as e:
             results[sport] = f"error: {str(e)}"
 
+    # Run line movement analysis
+    from app.services.line_movement_analyzer import run_analysis
+    try:
+        analysis_stats = run_analysis(db)
+    except Exception as e:
+        analysis_stats = {"error": str(e)}
+
     return {
         "status": "completed",
         "total_games_updated": total,
         "by_sport": results,
+        "line_movement_analysis": analysis_stats,
         "timestamp": datetime.utcnow().isoformat()
     }
 

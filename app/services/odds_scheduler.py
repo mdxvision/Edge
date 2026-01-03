@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.db import SessionLocal, Game, Market, Line, OddsSnapshot, LineMovement
 from app.services.odds_api import fetch_odds, SPORT_MAPPING
+from app.services.line_movement_analyzer import run_analysis
 
 
 logger = logging.getLogger(__name__)
@@ -76,6 +77,13 @@ class OddsScheduler:
                     await self._refresh_sport_odds(db, sport_key)
                 except Exception as e:
                     logger.error(f"Error refreshing odds for {sport_key}: {e}")
+
+            # Run line movement analysis after odds refresh
+            try:
+                analysis_stats = run_analysis(db)
+                logger.info(f"Line movement analysis: {analysis_stats}")
+            except Exception as e:
+                logger.error(f"Error in line movement analysis: {e}")
 
         finally:
             db.close()

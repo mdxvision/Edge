@@ -525,7 +525,19 @@ def _generate_prediction(
     market_type: str
 ) -> Dict[str, Any]:
     """Generate final prediction based on weighted factors."""
-    # Sum weighted edges by direction
+    # Calculate total weight of factors that have actual data (edge > 0)
+    # This normalizes weights when not all factors have data
+    active_weight_total = 0.0
+    for key, factor in factors.items():
+        edge = factor.get("edge", 0)
+        if edge > 0:
+            active_weight_total += factor.get("weight", 0)
+
+    # If no factors have data, use 1.0 to avoid division by zero
+    if active_weight_total == 0:
+        active_weight_total = 1.0
+
+    # Sum weighted edges by direction, normalizing weights
     home_edge = 0.0
     away_edge = 0.0
 
@@ -534,7 +546,14 @@ def _generate_prediction(
         weight = factor.get("weight", 0)
         direction = factor.get("direction", "neutral")
 
-        weighted = edge * weight
+        # Normalize weight: if only some factors have data, scale up their weights
+        # This prevents dilution when data is sparse
+        if edge > 0 and active_weight_total > 0:
+            normalized_weight = weight / active_weight_total
+        else:
+            normalized_weight = 0
+
+        weighted = edge * normalized_weight
 
         if direction == "home":
             home_edge += weighted
