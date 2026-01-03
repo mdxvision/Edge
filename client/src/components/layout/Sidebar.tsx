@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Trophy,
@@ -20,36 +20,100 @@ import {
   Target,
   Wallet,
   CreditCard,
-  Activity
+  Activity,
+  ChevronDown,
+  Crosshair,
+  LineChart,
+  Settings
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 
-const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Today' },
-  { to: '/games', icon: Trophy, label: 'Matchups' },
-  { to: '/recommendations', icon: TrendingUp, label: 'Picks' },
-  { to: '/power-ratings', icon: Target, label: 'Power Ratings' },
-  { to: '/paper-trading', icon: Wallet, label: 'Paper Trading' },
-  { to: '/edge-tracker', icon: Activity, label: 'Edge Tracker' },
-  { to: '/tracking', icon: BarChart3, label: 'Bets' },
-  { to: '/parlays', icon: Layers, label: 'Parlays' },
-  { to: '/leaderboard', icon: Award, label: 'Leaderboard' },
-  { to: '/dfs', icon: Zap, label: 'Lineups' },
-  { to: '/models', icon: Brain, label: 'Intelligence' },
-  { to: '/alerts', icon: Bell, label: 'Notifications' },
-  { to: '/security', icon: Shield, label: 'Security' },
-  { to: '/pricing', icon: CreditCard, label: 'Pricing' },
-  { to: '/profile', icon: User, label: 'Profile' },
-  { to: '/terms', icon: FileText, label: 'Terms' },
+interface NavItem {
+  to: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}
+
+interface NavCategory {
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: NavItem[];
+}
+
+const navCategories: NavCategory[] = [
+  {
+    name: 'Betting',
+    icon: Crosshair,
+    items: [
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Today' },
+      { to: '/games', icon: Trophy, label: 'Matchups' },
+      { to: '/recommendations', icon: TrendingUp, label: 'Picks' },
+      { to: '/tracking', icon: BarChart3, label: 'My Bets' },
+      { to: '/parlays', icon: Layers, label: 'Parlays' },
+      { to: '/edge-tracker', icon: Activity, label: 'Edge Tracker' },
+    ]
+  },
+  {
+    name: 'Analysis',
+    icon: LineChart,
+    items: [
+      { to: '/power-ratings', icon: Target, label: 'Power Ratings' },
+      { to: '/models', icon: Brain, label: 'Intelligence' },
+      { to: '/dfs', icon: Zap, label: 'DFS Lineups' },
+    ]
+  },
+  {
+    name: 'Practice',
+    icon: Wallet,
+    items: [
+      { to: '/paper-trading', icon: Wallet, label: 'Paper Trading' },
+      { to: '/leaderboard', icon: Award, label: 'Leaderboard' },
+    ]
+  },
+  {
+    name: 'Account',
+    icon: Settings,
+    items: [
+      { to: '/alerts', icon: Bell, label: 'Notifications' },
+      { to: '/security', icon: Shield, label: 'Security' },
+      { to: '/pricing', icon: CreditCard, label: 'Pricing' },
+      { to: '/profile', icon: User, label: 'Profile' },
+      { to: '/terms', icon: FileText, label: 'Terms' },
+    ]
+  }
 ];
 
 export default function Sidebar() {
   const { theme, toggleTheme } = useTheme();
   const { logout, client } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['Betting']);
+  const location = useLocation();
+
+  // Auto-expand category containing current route
+  useEffect(() => {
+    const currentCategory = navCategories.find(cat =>
+      cat.items.some(item => location.pathname === item.to)
+    );
+    if (currentCategory && !expandedCategories.includes(currentCategory.name)) {
+      setExpandedCategories(prev => [...prev, currentCategory.name]);
+    }
+  }, [location.pathname]);
+
+  const toggleCategory = (categoryName: string) => {
+    setExpandedCategories(prev =>
+      prev.includes(categoryName)
+        ? prev.filter(name => name !== categoryName)
+        : [...prev, categoryName]
+    );
+  };
+
+  const isCategoryActive = (category: NavCategory) => {
+    return category.items.some(item => location.pathname === item.to);
+  };
 
   return (
     <>
@@ -119,26 +183,68 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              onClick={() => setIsOpen(false)}
-              className={({ isActive }) =>
-                clsx(
-                  'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium',
-                  'transition-all duration-200 ease-out',
-                  isActive
-                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'
-                    : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800'
-                )
-              }
-            >
-              <item.icon className="w-5 h-5" />
-              {item.label}
-            </NavLink>
-          ))}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {navCategories.map((category) => {
+            const isExpanded = expandedCategories.includes(category.name);
+            const isActive = isCategoryActive(category);
+
+            return (
+              <div key={category.name} className="space-y-1">
+                {/* Category Header */}
+                <button
+                  onClick={() => toggleCategory(category.name)}
+                  className={clsx(
+                    'flex items-center justify-between w-full px-4 py-3 rounded-lg text-sm font-semibold',
+                    'transition-all duration-200 ease-out',
+                    isActive
+                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
+                      : 'text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                  )}
+                >
+                  <span className="flex items-center gap-3">
+                    <category.icon className="w-5 h-5" />
+                    {category.name}
+                  </span>
+                  <ChevronDown
+                    className={clsx(
+                      'w-4 h-4 transition-transform duration-200',
+                      isExpanded ? 'rotate-180' : ''
+                    )}
+                  />
+                </button>
+
+                {/* Category Items */}
+                <div
+                  className={clsx(
+                    'overflow-hidden transition-all duration-200 ease-out',
+                    isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  )}
+                >
+                  <div className="pl-4 space-y-1 pt-1">
+                    {category.items.map((item) => (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => setIsOpen(false)}
+                        className={({ isActive }) =>
+                          clsx(
+                            'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium',
+                            'transition-all duration-200 ease-out',
+                            isActive
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                              : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800/50'
+                          )
+                        }
+                      >
+                        <item.icon className="w-4 h-4" />
+                        {item.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </nav>
 
         {/* Footer */}
