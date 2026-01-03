@@ -60,22 +60,32 @@ async def get_todays_games(db: Session = Depends(get_db)):
     Get today's college football games.
 
     Returns scoreboard with live scores and odds.
+    Note: CFB season typically runs Aug-Jan. Returns empty if off-season.
     """
     today = date.today()
     games = await cfb_stats.get_scoreboard(today)
 
-    # Add game_time_display to each game
+    # Filter out past games (ESPN sometimes returns old bowl games)
+    current_games = []
     for game in games:
         game_date = game.get("date")
         if game_date:
-            time_display = add_time_display(game_date)
-            if time_display:
-                game["game_time_display"] = time_display
+            try:
+                game_dt = datetime.fromisoformat(game_date.replace("Z", "+00:00"))
+                # Only include games from today or future
+                if game_dt.date() >= today:
+                    time_display = add_time_display(game_date)
+                    if time_display:
+                        game["game_time_display"] = time_display
+                    current_games.append(game)
+            except:
+                pass
 
     return {
         "date": today.isoformat(),
-        "count": len(games),
-        "games": games
+        "count": len(current_games),
+        "games": current_games,
+        "note": "CFB season typically runs August-January" if len(current_games) == 0 else None
     }
 
 
