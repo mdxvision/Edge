@@ -9,67 +9,40 @@ from sqlalchemy.orm import Session
 from datetime import date, datetime, timedelta
 from typing import Optional
 
-from app.db import get_db, NFLTeam, NFLGame, Game, Team, Market, Line
+from app.db import get_db, NFLTeam, NFLGame, Game, Team, Market, Line, OddsSnapshot
 from app.services import nfl_stats
+from sqlalchemy import desc
 
 router = APIRouter(prefix="/nfl", tags=["NFL"])
 
 
-def get_odds_from_odds_api(db: Session, home_team_name: str, away_team_name: str, game_date: date):
+def get_odds_for_game(db: Session, game_id: int):
     """
-    Look up odds from the Game/Market/Line tables (from The Odds API).
+    Look up odds from the OddsSnapshot table for a specific game.
+    Returns the latest spread and over/under.
     """
-    # Try to find the teams in the generic Team table (try both sport values)
-    home_team = db.query(Team).filter(
-        Team.sport.in_(["NFL", "americanfootball_nfl"]),
-        Team.name.ilike(f"%{home_team_name.split()[-1]}%")
-    ).first()
-
-    away_team = db.query(Team).filter(
-        Team.sport.in_(["NFL", "americanfootball_nfl"]),
-        Team.name.ilike(f"%{away_team_name.split()[-1]}%")
-    ).first()
-
-    if not home_team or not away_team:
-        return None
-
-    # Find game in database (within 2 day range due to timezone differences)
-    start_of_day = datetime.combine(game_date, datetime.min.time())
-    end_of_range = start_of_day + timedelta(days=2)
-
-    game = db.query(Game).filter(
-        Game.sport.in_(["NFL", "americanfootball_nfl"]),
-        Game.home_team_id == home_team.id,
-        Game.away_team_id == away_team.id,
-        Game.start_time >= start_of_day,
-        Game.start_time < end_of_range
-    ).first()
-
-    if not game:
-        return None
-
-    # Get markets and lines for this game
     odds = {
         "spread": None,
         "over_under": None
     }
 
-    for market in game.markets:
-        line = db.query(Line).filter(Line.market_id == market.id).first()
-        if not line:
-            continue
+    # Get latest spread snapshot for this game
+    spread_snapshot = db.query(OddsSnapshot).filter(
+        OddsSnapshot.game_id == game_id,
+        OddsSnapshot.market_type == 'spreads'
+    ).order_by(desc(OddsSnapshot.captured_at)).first()
 
-        market_type_lower = market.market_type.lower()
-        selection_lower = market.selection.lower()
+    if spread_snapshot and spread_snapshot.line_value is not None:
+        odds["spread"] = spread_snapshot.line_value
 
-        # Handle spread markets (could be "spread" or "spreads")
-        if "spread" in market_type_lower:
-            if "home" in selection_lower:
-                odds["spread"] = line.line_value
-        # Handle totals markets (could be "total" or "totals")
-        elif "total" in market_type_lower:
-            if "over" in selection_lower:
-                odds["over_under"] = line.line_value
+    # Get latest totals snapshot for this game
+    totals_snapshot = db.query(OddsSnapshot).filter(
+        OddsSnapshot.game_id == game_id,
+        OddsSnapshot.market_type == 'totals'
+    ).order_by(desc(OddsSnapshot.captured_at)).first()
+
+    if totals_snapshot and totals_snapshot.line_value is not None:
+        odds["over_under"] = totals_snapshot.line_value
 
     return odds if (odds["spread"] is not None or odds["over_under"] is not None) else None
 
@@ -131,13 +104,8 @@ async def get_games(db: Session = Depends(get_db)):
             home_team = db.query(Team).filter(Team.id == game.home_team_id).first()
             away_team = db.query(Team).filter(Team.id == game.away_team_id).first()
 
-            # Get odds
-            odds = get_odds_from_odds_api(
-                db,
-                home_team.name if home_team else "",
-                away_team.name if away_team else "",
-                game.start_time.date()
-            )
+            # Get odds from OddsSnapshot table
+            odds = get_odds_for_game(db, game.id)
 
             # Convert UTC to EST for display
             est_time = game.start_time - timedelta(hours=5)

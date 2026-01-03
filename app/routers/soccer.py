@@ -261,6 +261,21 @@ async def get_todays_matches(db: Session = Depends(get_db)):
     }
 
 
+@router.get("/games")
+async def get_games(db: Session = Depends(get_db)):
+    """
+    Alias for /matches/today - Get today's soccer games.
+    Returns games in same format as other sports endpoints.
+    """
+    result = await get_todays_matches(db)
+    # Return with 'games' key for consistency with other sports
+    return {
+        "date": result.get("date"),
+        "count": result.get("count"),
+        "games": result.get("matches", [])
+    }
+
+
 @router.get("/match/{match_id}")
 async def get_match_details(match_id: int):
     """
