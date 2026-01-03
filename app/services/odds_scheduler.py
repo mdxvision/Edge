@@ -16,7 +16,9 @@ from app.services.line_movement_analyzer import run_analysis
 logger = logging.getLogger(__name__)
 
 # Configuration
-REFRESH_INTERVAL_MINUTES = 15
+# 30-min refresh saves API calls: 6 sports × 2/hr × 24hr × 30days = 8,640/month
+# Fits within Starter plan (10,000/month) with headroom
+REFRESH_INTERVAL_MINUTES = 30
 SNAPSHOT_INTERVAL_MINUTES = 30
 LINE_MOVEMENT_THRESHOLD_PERCENT = 2.0  # Minimum change to record as movement
 

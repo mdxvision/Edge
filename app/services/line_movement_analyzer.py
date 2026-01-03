@@ -37,9 +37,10 @@ def analyze_game_movement(db: Session, game: Game) -> Optional[LineMovementSumma
         return None
 
     # Get all snapshots for this game, ordered by time
+    # Note: The Odds API uses 'spreads' (plural), also check 'spread' for compatibility
     snapshots = db.query(OddsSnapshot).filter(
         OddsSnapshot.game_id == game.id,
-        OddsSnapshot.market_type == 'spread'
+        OddsSnapshot.market_type.in_(['spread', 'spreads'])
     ).order_by(OddsSnapshot.captured_at.asc()).all()
 
     if len(snapshots) < 2:
@@ -85,7 +86,7 @@ def analyze_game_movement(db: Session, game: Game) -> Optional[LineMovementSumma
     # Create or update LineMovementSummary
     existing = db.query(LineMovementSummary).filter(
         LineMovementSummary.game_id == game.id,
-        LineMovementSummary.market_type == 'spread'
+        LineMovementSummary.market_type.in_(['spread', 'spreads'])
     ).first()
 
     if existing:
