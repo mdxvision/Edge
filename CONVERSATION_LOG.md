@@ -4,7 +4,42 @@ This file tracks key decisions, fixes, and progress from Claude Code sessions.
 
 ---
 
-## Session: January 3, 2026
+## Session: January 3, 2026 (Evening)
+
+### Summary
+Fixed backend issues, verified 8-factor tracker works for all sports, added accordion sidebar.
+
+### Key Accomplishments
+
+1. **Fixed Backend**
+   - Backend wasn't responding to API requests
+   - Restarted on port 8080, now working correctly
+
+2. **Verified 8-Factor Tracker**
+   - Confirmed data exists for all sports (NBA, NFL, SOCCER)
+   - 47 tracked picks: 17W-27L
+   - Picks with factors: NBA (20), NFL (15), SOCCER (3)
+
+3. **Accordion Sidebar**
+   - 4 categories: Betting, Analysis, Practice, Account
+   - Auto-expands category containing current route
+   - Dark mode toggle preserved
+
+4. **Test Credentials File**
+   - Created `TEST_CREDENTIALS.md`
+   - Login: `test@edgebet.com` / `TestPass123!`
+
+5. **Bet Status Check**
+   - All 10 bets still PENDING
+   - CBB/Soccer games: Jan 4
+   - NFL games: Jan 5
+
+### Commits
+- `2b77b50` - Add test credentials documentation
+
+---
+
+## Session: January 3, 2026 (Morning)
 
 ### Summary
 Major breakthrough - got RLM detection working with real odds data.

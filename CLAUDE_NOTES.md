@@ -1,6 +1,6 @@
 # Claude Notes - Edge Betting Platform
 
-## Last Updated: January 3, 2026
+## Last Updated: January 3, 2026 (Evening)
 
 ---
 
@@ -11,7 +11,12 @@ Now with **live RLM (Reverse Line Movement) detection** and real-time odds from 
 **Running Services:**
 - Backend API: `http://localhost:8080`
 - Frontend: `http://localhost:5001`
-- Login: `test@edgebet.com` / `TestPass123!`
+- Login: See `TEST_CREDENTIALS.md` for credentials
+
+**UI Features:**
+- Accordion sidebar with 4 categories (Betting, Analysis, Practice, Account)
+- Dark mode toggle (sun/moon icon)
+- 8-Factor Edge Tracker with expandable pick details
 
 ---
 
@@ -29,24 +34,31 @@ Now with **live RLM (Reverse Line Movement) detection** and real-time odds from 
 
 ---
 
-## Today's Bets (January 3, 2026)
+## Active Bets (Jan 4-5, 2026)
 
 ### 10 STRONG BETS (RLM + Steam Confirmed)
 
-| Sport | Game | Pick | Spread |
-|-------|------|------|--------|
-| NFL | Saints @ Falcons | Saints | +3.5 |
-| NFL | Browns @ Bengals | Browns | +7.5 |
-| NFL | Packers @ Vikings | Vikings | -10.0 |
-| NFL | Cowboys @ Giants | Cowboys | +3.5 |
-| NFL | Titans @ Jaguars | Titans | +13.5 |
-| CBB | GA Southern @ Coastal Carolina | Coastal Carolina | +2.5 |
-| CBB | Green Bay @ Fort Wayne | Green Bay | -9.0 |
-| CBB | Jacksonville @ Lipscomb | Lipscomb | +10.5 |
-| Soccer | Leeds @ Liverpool | Leeds | +0.2 |
-| Soccer | Man City @ Sunderland | Man City | -0.8 |
+| Sport | Game | Pick | Spread | Date |
+|-------|------|------|--------|------|
+| NFL | Saints @ Falcons | Saints | +3.5 | Jan 5 |
+| NFL | Browns @ Bengals | Browns | +7.5 | Jan 5 |
+| NFL | Packers @ Vikings | Vikings | -10.0 | Jan 5 |
+| NFL | Cowboys @ Giants | Cowboys | +3.5 | Jan 5 |
+| NFL | Titans @ Jaguars | Titans | +13.5 | Jan 5 |
+| CBB | GA Southern @ Coastal Carolina | Coastal Carolina | +2.5 | Jan 4 |
+| CBB | Green Bay @ Fort Wayne | Green Bay | -9.0 | Jan 4 |
+| CBB | Jacksonville @ Lipscomb | Lipscomb | +10.5 | Jan 4 |
+| Soccer | Leeds @ Liverpool | Leeds | +0.2 | Jan 4 |
+| Soccer | Man City @ Sunderland | Man City | -0.8 | Jan 4 |
 
 **Total:** 10 bets @ 2 units = 20 units risked
+**Status:** All PENDING
+
+### Automated Results Checker
+Script: `scripts/check_bet_results.py`
+- Checks NFL/CBB scores from ESPN
+- Sends results via Telegram when games complete
+- Run manually: `./venv/bin/python scripts/check_bet_results.py`
 
 ---
 
@@ -67,7 +79,11 @@ Now with **live RLM (Reverse Line Movement) detection** and real-time odds from 
 | `/app/services/edge_aggregator.py` | Weight normalization fix for edge calculation |
 | `/app/services/line_movement_analyzer.py` | RLM and steam move detection |
 | `/app/services/odds_scheduler.py` | Auto-refresh odds every 30 min |
-| `/app/routers/analytics.py` | Analytics endpoints |
+| `/app/routers/tracker.py` | Edge Tracker endpoints (8-factor) |
+| `/client/src/components/layout/Sidebar.tsx` | Accordion navigation sidebar |
+| `/client/src/pages/EdgeTracker.tsx` | 8-Factor edge validation page |
+| `/scripts/check_bet_results.py` | Automated bet results checker |
+| `/TEST_CREDENTIALS.md` | Login credentials for app |
 | `/.env` | API keys (Odds API, Telegram, etc.) |
 
 ---
@@ -124,17 +140,30 @@ picks = await get_ranked_picks(db, limit=20)
 
 ## Session Context
 
-- Live odds now flowing from The Odds API
+- Live odds flowing from The Odds API (Starter plan)
 - RLM detection working with real data
-- 10 strong bets placed for Jan 3, 2026
+- 10 strong bets placed for Jan 4-5, 2026 (all pending)
 - System auto-refreshes every 30 minutes
 - Telegram alerts configured
+- Accordion sidebar with 4 categories
+- 8-Factor Edge Tracker showing data for NBA, NFL, SOCCER
+- 47 tracked picks in database (17W-27L)
+
+---
+
+## Edge Tracker Stats
+
+| Sport | Picks | With Factors |
+|-------|-------|--------------|
+| NBA | 29 | 20 |
+| NFL | 16 | 15 |
+| SOCCER | 3 | 3 |
 
 ---
 
 ## Next Steps
 
-1. Monitor Jan 3 bets for results
+1. Monitor Jan 4-5 bets for results (CBB/Soccer Sat, NFL Sun)
 2. Track RLM prediction accuracy
 3. Fine-tune edge weights based on performance
-4. Add more sports data sources
+4. Improve factor generation for new picks
