@@ -222,6 +222,39 @@ export default function Login() {
             >
               Forgot password?
             </button>
+
+            {/* Dev Login Bypass */}
+            <div className="pt-4 border-t border-surface-200 dark:border-surface-700">
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={async () => {
+                  setIsLoading(true);
+                  setError('');
+                  try {
+                    const result = await api.auth.login({
+                      email: 'test@edgebet.com',
+                      password: 'TestPass123!',
+                    });
+                    localStorage.setItem('session_token', result.access_token);
+                    localStorage.setItem('refresh_token', result.refresh_token);
+                    if (result.user?.client_id) {
+                      localStorage.setItem('clientId', result.user.client_id.toString());
+                    }
+                    await loginWithToken(result.access_token, result.refresh_token);
+                    navigate('/dashboard');
+                  } catch (err) {
+                    setError('Dev login failed. Make sure backend is running.');
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                isLoading={isLoading}
+              >
+                Dev Login (test@edgebet.com)
+              </Button>
+            </div>
           </form>
         ) : (
           <form onSubmit={handleRegister} className="space-y-5">
