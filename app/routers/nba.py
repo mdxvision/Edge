@@ -240,49 +240,8 @@ async def get_games(
 
         games = nba_stats.get_schedule(team_id, start, end)
 
-    # Also check database for recent games that might be live (last 4 hours)
-    # This catches games that the NBA Stats API might not return
-    recent_cutoff = datetime.utcnow() - timedelta(hours=4)
-    live_window_end = datetime.utcnow() + timedelta(hours=1)
-
-    db_games = db.query(Game).filter(
-        Game.sport.in_(["NBA", "basketball_nba"]),
-        Game.start_time >= recent_cutoff,
-        Game.start_time <= live_window_end
-    ).all()
-
-    # Add database games that aren't already in the NBA Stats API response
-    existing_matchups = set()
-    for g in games:
-        home_name = g.get("home_team", {}).get("name", "")
-        away_name = g.get("away_team", {}).get("name", "")
-        existing_matchups.add((home_name, away_name))
-
-    for db_game in db_games:
-        home_team = db.query(Team).filter(Team.id == db_game.home_team_id).first()
-        away_team = db.query(Team).filter(Team.id == db_game.away_team_id).first()
-        if home_team and away_team:
-            matchup = (home_team.name, away_team.name)
-            if matchup not in existing_matchups:
-                # Convert UTC to EST for display
-                est_time = db_game.start_time - timedelta(hours=5)
-
-                # Determine status
-                now = datetime.utcnow()
-                if db_game.start_time <= now:
-                    status = "LIVE" if now < db_game.start_time + timedelta(hours=3) else "Final"
-                else:
-                    status = est_time.strftime("%-I:%M %p ET")
-
-                games.insert(0, {
-                    "game_id": f"db_{db_game.id}",
-                    "game_date": est_time.strftime("%Y-%m-%d"),
-                    "game_status": status,
-                    "home_team": {"id": home_team.id, "name": home_team.name},
-                    "away_team": {"id": away_team.id, "name": away_team.name},
-                    "arena": db_game.venue or "",
-                    "national_tv": None
-                })
+    # Note: We only use ESPN data for games - database times are unreliable
+    # ESPN provides the most accurate live scores and game status
 
     # Fetch live scores from The Odds API
     live_scores = get_live_scores()
