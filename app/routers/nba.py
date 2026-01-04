@@ -205,6 +205,7 @@ async def get_games(
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     team_id: Optional[int] = Query(None, description="Filter by NBA team ID"),
+    include_finished: bool = Query(False, description="Include finished games"),
     db: Session = Depends(get_db)
 ):
     """
@@ -214,10 +215,18 @@ async def get_games(
     Uses ESPN API for live data.
     """
     # First try ESPN API for most up-to-date data
-    games = await fetch_espn_nba_games()
+    all_games = await fetch_espn_nba_games()
+
+    # Filter out old finished games unless explicitly requested
+    games = []
+    for g in all_games:
+        status = g.get("game_status", "").lower()
+        if "final" in status and not include_finished:
+            continue  # Skip finished games by default
+        games.append(g)
 
     # If ESPN returns data, use it
-    if games:
+    if games or all_games:
         pass  # We'll add odds below
     else:
         # Fallback to nba_stats
