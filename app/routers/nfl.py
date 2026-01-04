@@ -11,6 +11,7 @@ from typing import Optional
 
 from app.db import get_db, NFLTeam, NFLGame, Game, Team, Market, Line, OddsSnapshot
 from app.services import nfl_stats
+from app.utils.status import normalize_status, add_time_display
 from sqlalchemy import desc
 
 router = APIRouter(prefix="/nfl", tags=["NFL"])
@@ -164,7 +165,7 @@ async def get_games(db: Session = Depends(get_db)):
                 games_list.append({
                     "id": game.id,
                     "espn_id": game.espn_id,
-                    "status": game.status,
+                    "status": normalize_status(game.status),
                     "game_date": game.game_date.isoformat() if game.game_date else None,
                     "venue": game.venue,
                     "week": game.week,
@@ -194,8 +195,9 @@ async def get_games(db: Session = Depends(get_db)):
     # Fetch from ESPN API
     games = await nfl_stats.get_current_week_games()
 
-    # Enrich ESPN API results with odds from The Odds API data
+    # Normalize status and enrich ESPN API results with odds
     for game in games:
+        game["status"] = normalize_status(game.get("status", ""))
         if not game.get("odds"):
             home_name = game.get("home_team", {}).get("name", "")
             away_name = game.get("away_team", {}).get("name", "")

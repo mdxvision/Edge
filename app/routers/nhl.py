@@ -23,6 +23,36 @@ def add_time_display(game_date_str: str) -> str:
         return None
 
 
+def normalize_status(status: str) -> str:
+    """Convert ESPN status codes to user-friendly labels."""
+    if not status:
+        return "Scheduled"
+
+    status_lower = status.lower()
+
+    # Live game indicators
+    if any(x in status_lower for x in ['in_progress', 'in progress', 'status_in_progress']):
+        return "LIVE"
+    if 'end_period' in status_lower or 'halftime' in status_lower or 'intermission' in status_lower:
+        return "LIVE"  # Between periods/halves is still live
+    if any(x in status_lower for x in ['1st', '2nd', '3rd', 'ot', 'overtime']):
+        return "LIVE"
+
+    # Final game indicators
+    if any(x in status_lower for x in ['final', 'finished', 'status_final', 'complete']):
+        return "Final"
+
+    # Scheduled
+    if any(x in status_lower for x in ['scheduled', 'pre', 'status_scheduled']):
+        return "Scheduled"
+
+    # If contains time, it's scheduled
+    if 'pm' in status_lower or 'am' in status_lower:
+        return status  # Keep the time display
+
+    return status
+
+
 router = APIRouter(prefix="/nhl", tags=["NHL"])
 
 
@@ -50,13 +80,16 @@ async def get_todays_games(db: Session = Depends(get_db)):
     today = date.today()
     games = await nhl_stats.get_scoreboard(today)
 
-    # Add game_time_display to each game
+    # Add game_time_display and normalize status
     for game in games:
         game_date = game.get("date")
         if game_date:
             time_display = add_time_display(game_date)
             if time_display:
                 game["game_time_display"] = time_display
+
+        # Normalize status
+        game["status"] = normalize_status(game.get("status", ""))
 
     return {
         "date": today.isoformat(),

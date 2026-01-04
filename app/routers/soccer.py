@@ -12,6 +12,7 @@ from typing import Optional, List
 
 from app.db import get_db, SoccerCompetition, SoccerTeam, SoccerMatch
 from app.services import soccer_stats
+from app.utils.status import normalize_status
 
 router = APIRouter(prefix="/soccer", tags=["Soccer"])
 
@@ -221,7 +222,7 @@ async def get_todays_matches(db: Session = Depends(get_db)):
                     "id": match.id,
                     "competition": match.competition_code,
                     "matchday": match.matchday,
-                    "status": match.status,
+                    "status": normalize_status(match.status),
                     "match_date": match_date_iso,
                     "game_time_display": est_dt.strftime("%a, %b %d at %I:%M %p") + " EST",
                     "venue": match.venue,
@@ -246,13 +247,16 @@ async def get_todays_matches(db: Session = Depends(get_db)):
     # Fetch from API
     matches = await soccer_stats.get_todays_matches()
 
-    # Add game_time_display to each match
+    # Add game_time_display and normalize status for each match
     for match in matches:
         match_date = match.get("match_date") or match.get("utcDate")
         if match_date:
             time_display = add_time_display(match_date)
             if time_display:
                 match["game_time_display"] = time_display
+
+        # Normalize status
+        match["status"] = normalize_status(match.get("status", ""))
 
     return {
         "date": today.isoformat(),

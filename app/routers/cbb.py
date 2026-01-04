@@ -11,6 +11,7 @@ from typing import Optional, List
 
 from app.db import get_db, CBBTeam, CBBGame, CBBRanking
 from app.services import cbb_stats
+from app.utils.status import normalize_status, add_time_display as util_add_time_display
 
 
 def add_time_display(game_date_str: str) -> str:
@@ -89,13 +90,16 @@ async def get_todays_games(db: Session = Depends(get_db)):
     # Always fetch from ESPN API for fresh live data
     games = await cbb_stats.get_scoreboard(today)
 
-    # Add game_time_display to each game
+    # Add game_time_display and normalize status
     for game in games:
         game_date = game.get("game_date") or game.get("date")
         if game_date:
             time_display = add_time_display(game_date)
             if time_display:
                 game["game_time_display"] = time_display
+
+        # Normalize status
+        game["status"] = normalize_status(game.get("status", ""))
 
     return {
         "date": today.isoformat(),
