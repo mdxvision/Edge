@@ -1,97 +1,90 @@
 describe('Bet Tracking', () => {
   beforeEach(() => {
-    cy.clearLocalStorage()
-    cy.visit('/')
-    const testName = `Test User ${Date.now()}`
-    cy.get('input[name="name"]').type(testName)
-    cy.get('input[name="bankroll"]').clear().type('10000')
-    cy.get('button[type="submit"]').click()
-    cy.url().should('include', '/dashboard')
-    cy.contains('Tracking').click()
-    cy.url().should('include', '/tracking')
+    cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
+    cy.visit('/tracking')
+    // Wait for page to load
+    cy.contains('testuser', { timeout: 15000 }).should('be.visible')
   })
 
   describe('Page Layout', () => {
     it('displays tracking page heading', () => {
-      cy.contains(/Tracking|Bet Tracker|My Bets/i).should('be.visible')
+      cy.contains('Your Bets', { timeout: 15000 }).should('be.visible')
     })
 
-    it('shows add bet button', () => {
-      cy.contains(/Add|New|Track|Log/i).should('be.visible')
+    it('shows track a bet button', () => {
+      cy.contains('Track a Bet', { timeout: 15000 }).should('be.visible')
     })
 
-    it('displays stats or summary section', () => {
-      cy.get('body').then(($body) => {
-        const hasStats = $body.text().match(/ROI|Win Rate|Profit|Total Bets/i)
-        expect(hasStats).to.not.be.null
-      })
+    it('displays stats section', () => {
+      cy.contains('Performance', { timeout: 15000 }).should('be.visible')
+    })
+  })
+
+  describe('Stats Cards', () => {
+    it('shows Performance stat', () => {
+      cy.contains('Performance', { timeout: 15000 }).should('be.visible')
+    })
+
+    it('shows Precision Rate stat', () => {
+      cy.contains('Precision Rate', { timeout: 15000 }).should('be.visible')
+    })
+
+    it('shows ROI stat', () => {
+      cy.contains('ROI', { timeout: 15000 }).should('be.visible')
+    })
+
+    it('shows Current Streak stat', () => {
+      cy.contains('Current Streak', { timeout: 15000 }).should('be.visible')
     })
   })
 
   describe('Add New Bet', () => {
     it('opens add bet form', () => {
-      cy.contains(/Add|New|Track|Log/i).first().click()
-      cy.get('form, [role="dialog"], .modal').should('be.visible')
+      cy.contains('Track a Bet').click()
+      cy.get('select[name="sport"]', { timeout: 5000 }).should('be.visible')
     })
 
-    it('has required bet fields', () => {
-      cy.contains(/Add|New|Track|Log/i).first().click()
-      cy.get('body').then(($body) => {
-        // Check for common bet tracking fields
-        const hasOddsField = $body.find('input[name*="odds"], input[placeholder*="odds"]').length > 0
-        const hasStakeField = $body.find('input[name*="stake"], input[name*="amount"], input[placeholder*="stake"]').length > 0
-        expect(hasOddsField || hasStakeField).to.be.true
-      })
+    it('has sport selection', () => {
+      cy.contains('Track a Bet').click()
+      cy.get('select[name="sport"]').should('exist')
     })
 
-    it('can submit a new bet', () => {
-      cy.contains(/Add|New|Track|Log/i).first().click()
-      cy.wait(500)
+    it('has bet type selection', () => {
+      cy.contains('Track a Bet').click()
+      cy.get('select[name="bet_type"]').should('exist')
+    })
 
-      // Fill out bet form - adjust selectors based on actual form structure
-      cy.get('input').first().type('Test Bet')
-      cy.get('input[type="number"]').first().clear().type('-110')
-      cy.get('input[type="number"]').eq(1).clear().type('100')
+    it('has required inputs', () => {
+      cy.contains('Track a Bet').click()
+      cy.get('input[name="selection"]').should('exist')
+      cy.get('input[name="odds"]').should('exist')
+      cy.get('input[name="stake"]').should('exist')
+    })
 
-      cy.get('button[type="submit"], button:contains("Save"), button:contains("Add")').click()
-      cy.wait(500)
+    it('form has Track This button', () => {
+      cy.contains('Track a Bet').click()
+      cy.contains('button', 'Track This').should('exist')
     })
   })
 
   describe('Bet List', () => {
-    it('displays bets or empty state', () => {
-      cy.get('body').then(($body) => {
-        const hasBets = $body.find('[data-testid="bet-item"], .bet-row, table tbody tr, .bet-card').length > 0
-        const hasEmptyState = $body.text().match(/No bets|No tracked bets|Start tracking|Empty/i)
-        expect(hasBets || hasEmptyState).to.be.truthy
-      })
+    it('shows All Bets section', () => {
+      cy.contains('All Bets', { timeout: 15000 }).should('be.visible')
+    })
+
+    it('has status filter', () => {
+      cy.get('select').should('have.length.at.least', 1)
+    })
+
+    it('has sport filter', () => {
+      cy.get('select').should('have.length.at.least', 2)
     })
   })
 
-  describe('Bet Filtering', () => {
-    it('has filter options', () => {
-      cy.get('select, [data-testid="filter"], button:contains("Filter")').should('exist')
-    })
-
-    it('can filter by status', () => {
-      cy.get('body').then(($body) => {
-        if ($body.find('select').length > 0) {
-          cy.get('select').first().click()
-        }
-      })
-    })
-  })
-
-  describe('Performance Stats', () => {
-    it('shows ROI calculation', () => {
-      cy.contains(/ROI|Return/i).should('be.visible')
-    })
-
-    it('shows win rate', () => {
-      cy.get('body').then(($body) => {
-        const hasWinRate = $body.text().match(/Win Rate|Win %|Record/i)
-        expect(hasWinRate).to.not.be.null
-      })
+  describe('Navigation', () => {
+    it('can navigate back to dashboard', () => {
+      cy.contains('Today').click()
+      cy.url().should('include', '/dashboard')
     })
   })
 })

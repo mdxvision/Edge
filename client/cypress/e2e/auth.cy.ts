@@ -1,72 +1,181 @@
 describe('Authentication Flow', () => {
   beforeEach(() => {
     cy.clearLocalStorage()
-    cy.visit('/')
   })
 
   describe('Login Page', () => {
-    it('displays login form when not authenticated', () => {
-      cy.get('input[name="name"]').should('be.visible')
-      cy.get('input[name="bankroll"]').should('be.visible')
-      cy.get('button[type="submit"]').should('be.visible')
+    beforeEach(() => {
+      cy.visit('/login')
     })
 
-    it('shows the EdgeBet branding', () => {
-      cy.contains('EdgeBet').should('be.visible')
+    it('displays the EdgeBet branding', () => {
+      cy.contains('Welcome to EdgeBet').should('be.visible')
+      cy.contains('Intelligent edge detection').should('be.visible')
     })
 
-    it('requires name field to be filled', () => {
-      cy.get('input[name="bankroll"]').type('10000')
-      cy.get('button[type="submit"]').click()
-      cy.get('input[name="name"]:invalid').should('exist')
+    it('shows simulation warning banner', () => {
+      cy.contains('Simulation only').should('be.visible')
     })
 
-    it('requires bankroll field to be filled', () => {
-      cy.get('input[name="name"]').type('Test User')
-      cy.get('input[name="bankroll"]').clear()
-      cy.get('button[type="submit"]').click()
-      cy.get('input[name="bankroll"]:invalid').should('exist')
+    it('has Get Started and Sign In tabs', () => {
+      cy.contains('button', 'Get Started').should('be.visible')
+      cy.contains('button', 'Sign In').should('be.visible')
     })
 
-    it('successfully creates account and redirects to dashboard', () => {
-      const testName = `Test User ${Date.now()}`
-      cy.get('input[name="name"]').type(testName)
-      cy.get('input[name="bankroll"]').clear().type('10000')
-      cy.get('button[type="submit"]').click()
-      
-      cy.url().should('include', '/dashboard')
-      cy.contains('Dashboard').should('be.visible')
+    it('defaults to registration form', () => {
+      cy.get('input[type="email"]').should('be.visible')
+      cy.get('input[placeholder="Choose a username"]').should('be.visible')
+      cy.get('input[placeholder="At least 8 characters"]').should('be.visible')
+      cy.get('input[placeholder="Confirm your password"]').should('be.visible')
+    })
+
+    it('switches to login form when Sign In is clicked', () => {
+      cy.contains('button', 'Sign In').click()
+      cy.get('input[placeholder="you@example.com"]').should('be.visible')
+      cy.get('input[placeholder="Your password"]').should('be.visible')
+      cy.contains('button', 'Forgot password?').should('be.visible')
+    })
+
+    it('shows Dev Login button on login form', () => {
+      cy.contains('button', 'Sign In').click()
+      cy.contains('button', 'Dev Login').should('be.visible')
+    })
+
+    it('requires email on login form', () => {
+      cy.contains('button', 'Sign In').click()
+      cy.get('input[placeholder="Your password"]').type('password123')
+      cy.contains('button', 'Continue').click()
+      cy.url().should('include', '/login')
+    })
+
+    it('requires password on login form', () => {
+      cy.contains('button', 'Sign In').click()
+      cy.get('input[placeholder="you@example.com"]').type('test@example.com')
+      cy.contains('button', 'Continue').click()
+      cy.url().should('include', '/login')
+    })
+
+    it('shows error on invalid credentials', () => {
+      cy.contains('button', 'Sign In').click()
+      cy.get('input[placeholder="you@example.com"]').type('invalid@email.com')
+      cy.get('input[placeholder="Your password"]').type('wrongpassword')
+      cy.contains('button', 'Continue').click()
+      cy.contains(/not right|invalid|error|failed/i, { timeout: 10000 }).should('be.visible')
+    })
+
+    it('successfully logs in with Dev Login button', () => {
+      cy.contains('button', 'Sign In').click()
+      cy.contains('button', 'Dev Login').click()
+      cy.url({ timeout: 15000 }).should('include', '/dashboard')
+    })
+
+    it('successfully logs in with test credentials', () => {
+      cy.contains('button', 'Sign In').click()
+      cy.get('input[placeholder="you@example.com"]').type('test@edgebet.com')
+      cy.get('input[placeholder="Your password"]').type('TestPass123!')
+      cy.contains('button', 'Continue').click()
+      cy.url({ timeout: 15000 }).should('include', '/dashboard')
+    })
+  })
+
+  describe('Registration Form', () => {
+    beforeEach(() => {
+      cy.visit('/login')
+    })
+
+    it('requires age confirmation checkbox', () => {
+      const uniqueEmail = `test${Date.now()}@example.com`
+      cy.get('input[type="email"]').type(uniqueEmail)
+      cy.get('input[placeholder="Choose a username"]').type(`user${Date.now()}`)
+      cy.get('input[placeholder="At least 8 characters"]').type('TestPass123!')
+      cy.get('input[placeholder="Confirm your password"]').type('TestPass123!')
+      cy.get('input[placeholder="10000"]').clear().type('5000')
+      // Don't check age confirmation - click submit button (last "Get Started" button)
+      cy.contains('button', 'Get Started').last().click()
+      // Exact message from Login.tsx line 81
+      cy.contains('Age verification required', { timeout: 10000 }).should('be.visible')
+    })
+
+    it('validates password match', () => {
+      const uniqueEmail = `test${Date.now()}@example.com`
+      cy.get('input[type="email"]').type(uniqueEmail)
+      cy.get('input[placeholder="Choose a username"]').type(`user${Date.now()}`)
+      cy.get('input[placeholder="At least 8 characters"]').type('TestPass123!')
+      cy.get('input[placeholder="Confirm your password"]').type('DifferentPass!')
+      cy.get('input[type="checkbox"]').check()
+      // Click submit button (last "Get Started" button)
+      cy.contains('button', 'Get Started').last().click()
+      // Exact message from Login.tsx line 86
+      cy.contains("Passwords don't match", { timeout: 10000 }).should('be.visible')
+    })
+
+    it('validates minimum password length', () => {
+      const uniqueEmail = `test${Date.now()}@example.com`
+      cy.get('input[type="email"]').type(uniqueEmail)
+      cy.get('input[placeholder="Choose a username"]').type(`user${Date.now()}`)
+      cy.get('input[placeholder="At least 8 characters"]').type('short')
+      cy.get('input[placeholder="Confirm your password"]').type('short')
+      cy.get('input[type="checkbox"]').check()
+      // Click submit button (last "Get Started" button)
+      cy.contains('button', 'Get Started').last().click()
+      // Exact message from Login.tsx line 91
+      cy.contains('Password needs at least 8 characters', { timeout: 10000 }).should('be.visible')
+    })
+
+    it('has risk profile selector', () => {
+      cy.get('select').should('be.visible')
+      cy.get('select option').should('have.length.at.least', 3)
     })
   })
 
   describe('Logout', () => {
-    beforeEach(() => {
-      const testName = `Test User ${Date.now()}`
-      cy.get('input[name="name"]').type(testName)
-      cy.get('input[name="bankroll"]').clear().type('10000')
-      cy.get('button[type="submit"]').click()
-      cy.url().should('include', '/dashboard')
-    })
-
     it('logs out user and redirects to login', () => {
-      cy.contains('Logout').click()
-      cy.get('input[name="name"]').should('be.visible')
+      // Login via UI directly (not using session cache)
+      cy.visit('/login')
+      cy.contains('button', 'Sign In').click()
+      cy.contains('button', 'Dev Login').click()
+      cy.url({ timeout: 15000 }).should('include', '/dashboard')
+      cy.contains('testuser', { timeout: 10000 }).should('be.visible')
+
+      // Find and click Sign Out
+      cy.contains('Sign Out').click()
+      cy.url({ timeout: 10000 }).should('include', '/login')
     })
   })
 
   describe('Session Persistence', () => {
     it('maintains session after page reload', () => {
-      const testName = `Test User ${Date.now()}`
-      cy.get('input[name="name"]').type(testName)
-      cy.get('input[name="bankroll"]').clear().type('10000')
-      cy.get('button[type="submit"]').click()
-      
-      cy.url().should('include', '/dashboard')
-      
+      // Login via UI directly
+      cy.visit('/login')
+      cy.contains('button', 'Sign In').click()
+      cy.contains('button', 'Dev Login').click()
+      cy.url({ timeout: 15000 }).should('include', '/dashboard')
+      cy.contains('testuser', { timeout: 10000 }).should('be.visible')
+
+      // Reload and verify still logged in
       cy.reload()
-      
-      cy.url().should('include', '/dashboard')
-      cy.contains('Dashboard').should('be.visible')
+      cy.url({ timeout: 15000 }).should('include', '/dashboard')
+      cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+    })
+
+    it('redirects to login when not authenticated', () => {
+      cy.clearLocalStorage()
+      cy.visit('/dashboard')
+      cy.url({ timeout: 10000 }).should('include', '/login')
+    })
+  })
+
+  describe('Protected Routes', () => {
+    it('redirects unauthenticated users to login', () => {
+      cy.clearLocalStorage()
+      cy.visit('/games')
+      cy.url({ timeout: 10000 }).should('include', '/login')
+    })
+
+    it('allows authenticated users to access protected routes', () => {
+      cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
+      cy.visit('/games')
+      cy.url().should('include', '/games')
     })
   })
 })
