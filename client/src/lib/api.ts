@@ -152,28 +152,26 @@ export const api = {
 
   // Historical / Models
   historical: {
-    getModelStatus: () => request<any>('/historical/models/status'),
-    getBacktestResults: () => request<any[]>('/historical/backtests'),
-    getTeamRatings: (sport: string) => request<any[]>(`/historical/ratings/${sport}`),
+    getModelStatus: () => request<any>('/historical/model-status'),
+    getBacktestResults: () => request<any[]>('/historical/backtest/results'),
+    getTeamRatings: (sport: string) => request<any>(`/historical/ratings/${sport}`),
     seedData: (seasons: number) =>
-      request<any>('/historical/seed', {
+      request<any>(`/historical/seed?seasons=${seasons}`, {
         method: 'POST',
-        body: JSON.stringify({ seasons }),
       }),
-    trainModels: () => request<any>('/historical/train', { method: 'POST' }),
+    trainModels: () => request<any>('/historical/train-models', { method: 'POST' }),
     runBacktest: (sport: string, seasons: number, minEdge: number) =>
-      request<any>('/historical/backtest', {
+      request<any>(`/historical/backtest/${sport}?seasons=${seasons}&min_edge=${minEdge}`, {
         method: 'POST',
-        body: JSON.stringify({ sport, seasons, min_edge: minEdge }),
       }),
   },
 
   // Coaches
   coaches: {
-    getSituationsList: () => request<any[]>('/coaches/situations'),
-    getLeaderboard: (metric: string, situation: string, minGames: number) =>
-      request<any[]>(
-        `/coaches/leaderboard?metric=${metric}&situation=${situation}&min_games=${minGames}`
+    getSituationsList: () => request<any>('/coaches/situations'),
+    getLeaderboard: (situation: string, sport?: string, minGames: number = 10) =>
+      request<any>(
+        `/coaches/leaderboard/${situation}?${sport ? `sport=${sport}&` : ''}min_games=${minGames}`
       ),
   },
 
@@ -259,17 +257,17 @@ export const api = {
   // DFS
   dfs: {
     getProjections: (sport: string, platform: string, limit: number) =>
-      request<any[]>(`/dfs/projections?sport=${sport}&platform=${platform}&limit=${limit}`),
-    getStacks: (sport: string) => request<any[]>(`/dfs/stacks?sport=${sport}`),
+      request<any>(`/dfs/projections/${sport}?platform=${platform}&limit=${limit}`),
+    getStacks: (sport: string) => request<any>(`/dfs/stacks/${sport}`),
     getLineups: (clientId: number, sport: string) =>
-      request<any[]>(`/dfs/lineups?client_id=${clientId}&sport=${sport}`),
+      request<any>(`/dfs/lineups/${clientId}?sport=${sport}`),
     optimize: (clientId: number, params: any) =>
-      request<any>('/dfs/optimize', {
+      request<any>(`/dfs/optimize/${clientId}`, {
         method: 'POST',
-        body: JSON.stringify({ client_id: clientId, ...params }),
+        body: JSON.stringify(params),
       }),
     deleteLineup: (clientId: number, lineupId: number) =>
-      request<void>(`/dfs/lineups/${lineupId}?client_id=${clientId}`, { method: 'DELETE' }),
+      request<void>(`/dfs/lineups/${clientId}/${lineupId}`, { method: 'DELETE' }),
   },
 
   // Account
