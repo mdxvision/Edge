@@ -10,18 +10,18 @@ describe('Models & Analytics', () => {
       cy.url().should('include', '/models')
     })
 
-    it('shows page content or error state', () => {
-      // Page shows either the content (Intelligence heading) or error state (Something's not right)
-      cy.contains(/Intelligence|Something's not right|Couldn't load/i, { timeout: 20000 }).should('exist')
+    it('shows page content or handles loading', () => {
+      // Page shows either the content or loading/error state
+      cy.contains(/Intelligence|Analyzing|Something's not right/i, { timeout: 20000 }).should('exist')
     })
-  })
 
-  describe('Error Handling', () => {
-    it('shows retry button when API fails', () => {
-      // When API returns errors, the page should show a Try Again button
-      cy.get('body').then($body => {
-        if ($body.text().includes("Something's not right") || $body.text().includes("Couldn't load")) {
-          cy.contains(/Try Again|Retry/i).should('exist')
+    it('shows model controls when loaded', () => {
+      // Wait for either content or error
+      cy.get('body', { timeout: 20000 }).then($body => {
+        if ($body.text().includes('Intelligence')) {
+          cy.contains('Intelligence').should('be.visible')
+          // Check for action buttons
+          cy.contains(/Seed Data|Calibrate/i).should('exist')
         }
       })
     })

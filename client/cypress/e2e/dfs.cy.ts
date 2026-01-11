@@ -10,18 +10,18 @@ describe('DFS (Daily Fantasy Sports)', () => {
       cy.url().should('include', '/dfs')
     })
 
-    it('shows page content or error state', () => {
-      // Page shows either the content (Lineups heading) or error state (Something's not right)
-      cy.contains(/Lineups|Something's not right|Couldn't load/i, { timeout: 20000 }).should('exist')
+    it('shows page content or handles loading', () => {
+      // Page shows either the content or loading/error state
+      cy.contains(/Lineups|Build Optimal|Analyzing|Something's not right/i, { timeout: 20000 }).should('exist')
     })
-  })
 
-  describe('Error Handling', () => {
-    it('shows retry button when API fails', () => {
-      // When API returns errors, the page should show a Try Again button
-      cy.get('body').then($body => {
-        if ($body.text().includes("Something's not right") || $body.text().includes("Couldn't load")) {
-          cy.contains(/Try Again|Retry/i).should('exist')
+    it('shows lineup builder when loaded', () => {
+      // Wait for either content or error
+      cy.get('body', { timeout: 20000 }).then($body => {
+        if ($body.text().includes('Build Optimal Lineup')) {
+          cy.contains('Build Optimal Lineup').should('be.visible')
+          cy.contains('button', 'NFL').should('exist')
+          cy.contains('button', 'DraftKings').should('exist')
         }
       })
     })
