@@ -654,3 +654,49 @@ async def refresh_cbb_data(db):
         "games": games_stored,
         "rankings": len(rankings.get("ap_top_25", []))
     }
+
+
+async def calculate_rest_days(team_id: str, game_date: date) -> int:
+    """
+    Calculate days of rest for a CBB team before a game.
+    
+    Args:
+        team_id: ESPN Team ID
+        game_date: Date of the game to check
+        
+    Returns:
+        Number of rest days (-1 if unknown)
+    """
+    try:
+        schedule = await get_team_schedule(team_id)
+        if not schedule:
+            return -1
+            
+        # Filter for completed games before target date
+        previous_games = []
+        for game in schedule:
+            try:
+                # game['date'] is ISO string e.g. 2023-11-06T00:00Z
+                g_date_str = game["date"].split("T")[0]
+                g_date = datetime.strptime(g_date_str, "%Y-%m-%d").date()
+                
+                # Check status or score to confirm completion
+                is_complete = game.get("status", "").lower() == "final" or \
+                              (game.get("home_team") and game["home_team"].get("score"))
+                              
+                if g_date < game_date and is_complete:
+                    previous_games.append(g_date)
+            except (ValueError, KeyError):
+                continue
+                
+        if not previous_games:
+            return -1
+            
+        # Get Max date
+        last_game_date = max(previous_games)
+        rest_days = (game_date - last_game_date).days - 1
+        return max(rest_days, 0)
+        
+    except Exception as e:
+        logger.error(f"Error calculating CBB rest days: {e}")
+        return -1

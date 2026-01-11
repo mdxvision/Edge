@@ -64,8 +64,17 @@ async def get_unified_prediction(
     """
     # Get game info
     game = db.query(Game).filter(Game.id == game_id).first()
+    
+    # Try looking up by external_id if not found by primary key
+    if not game:
+        game = db.query(Game).filter(Game.external_id == str(game_id)).first()
+
     if not game:
         return {"error": "Game not found"}
+        
+    # CRITICAL FIX: Use the resolved internal ID for all downstream lookups
+    # The API might receive an external_id, but the DB relationships use internal id
+    game_id = game.id
 
     # Handle both relationship objects and string names
     # game.home_team could be a Team object (relationship) or None
@@ -262,6 +271,15 @@ async def _get_situational_edge(
     situation = db.query(GameSituation).filter(
         GameSituation.game_id == game_id
     ).first()
+
+    # Lazy load if missing
+    if not situation:
+        try:
+            from app.services.situations import analyze_game_situation
+            situation = await analyze_game_situation(db, game_id)
+        except Exception as e:
+            # logger.warning(f"Failed to lazy load situation for game {game_id}: {e}")
+            pass
 
     if situation:
         edge = situation.total_situation_edge or 0

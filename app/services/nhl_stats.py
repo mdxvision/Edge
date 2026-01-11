@@ -9,6 +9,8 @@ import httpx
 from datetime import datetime, date, timedelta
 from typing import Optional, List, Dict, Any
 import logging
+from app.db import Game, Team
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -272,7 +274,7 @@ async def get_team_schedule(team_id: str) -> List[Dict[str, Any]]:
     return schedule
 
 
-async def refresh_nhl_data(db) -> Dict[str, Any]:
+async def refresh_nhl_data(db: Session) -> Dict[str, Any]:
     """Refresh NHL data in database."""
     results = {
         "teams": 0,
@@ -281,10 +283,144 @@ async def refresh_nhl_data(db) -> Dict[str, Any]:
 
     # Refresh teams
     teams = await get_teams()
-    results["teams"] = len(teams)
+    for team_data in teams:
+        store_nhl_team(db, team_data)
+        results["teams"] += 1
 
     # Refresh today's games
     games = await get_scoreboard()
-    results["games"] = len(games)
+    for game_data in games:
+        store_nhl_game(db, game_data)
+        results["games"] += 1
 
+    db.commit()
     return results
+
+def store_nhl_team(db: Session, team_data: Dict[str, Any]):
+    """Store or update NHL team."""
+    team = db.query(Team).filter(
+        Team.sport == "NHL",
+        Team.name == team_data["name"]
+    ).first()
+
+    if not team:
+        team = Team(
+            sport="NHL",
+            name=team_data["name"],
+            short_name=team_data.get("short_name", "") or team_data["name"][:10],
+            logo_url=team_data.get("logo")
+        )
+        db.add(team)
+    else:
+        # Update existing fields if needed
+        if team_data.get("logo"):
+            team.logo_url = team_data.get("logo")
+    
+    db.flush()
+    return team
+
+def store_nhl_game(db: Session, game_data: Dict[str, Any]):
+    """Store or update NHL game."""
+    home_name = game_data["home_team"]["name"]
+    away_name = game_data["away_team"]["name"]
+    
+    home_team = db.query(Team).filter(Team.sport == "NHL", Team.name == home_name).first()
+    away_team = db.query(Team).filter(Team.sport == "NHL", Team.name == away_name).first()
+
+    if not home_team or not away_team:
+        logger.warning(f"Could not find teams for NHL game: {home_name} vs {away_name}")
+        return None
+
+    # Parse proper datetime
+    # game_data["date"] is likely ISO string, ensure format
+    try:
+        start_time = datetime.fromisoformat(game_data["date"].replace("Z", "+00:00"))
+    except:
+        start_time = datetime.now() # Fallback
+
+    external_id = str(game_data.get("game_id", ""))
+    
+    # Try to find existing game
+    game = db.query(Game).filter(
+        Game.sport == "NHL",
+        Game.home_team_id == home_team.id,
+        Game.away_team_id == away_team.id,
+        Game.start_time == start_time
+    ).first()
+    
+    # Also try external_id match if available
+    if not game and external_id:
+        game = db.query(Game).filter(
+            Game.sport == "NHL",
+            Game.external_id == external_id
+        ).first()
+
+    current_score = f"{game_data['home_team']['score']}-{game_data['away_team']['score']}"
+    status = game_data.get("status", "scheduled")
+    
+    # Remap status names to standardized ones if needed, or stick to raw
+    # raw: STATUS_SCHEDULED, STATUS_IN_PROGRESS, STATUS_FINAL
+
+    if not game:
+        game = Game(
+            sport="NHL",
+            home_team_id=home_team.id,
+            away_team_id=away_team.id,
+            start_time=start_time,
+            venue=game_data.get("venue", ""),
+            league="NHL",
+            external_id=external_id,
+            status=status,
+            current_score=current_score
+        )
+        db.add(game)
+    else:
+        game.status = status
+        game.current_score = current_score
+        if external_id and not game.external_id:
+            game.external_id = external_id
+    
+    db.flush()
+    return game
+
+
+async def calculate_rest_days(team_id: str, game_date: date) -> int:
+    """
+    Calculate days of rest for a team before a game.
+    
+    Args:
+        team_id: ESPN Team ID
+        game_date: Date of the game to check
+        
+    Returns:
+        Number of rest days (-1 if unknown)
+    """
+    try:
+        schedule = await get_team_schedule(team_id)
+        if not schedule:
+            return -1
+            
+        # Filter for completed games before target date
+        previous_games = []
+        for game in schedule:
+            # Parse game date (ISO string to date object)
+            try:
+                g_date_str = game["date"].split("T")[0]
+                g_date = datetime.strptime(g_date_str, "%Y-%m-%d").date()
+                
+                if g_date < game_date and game["result"]: # result=True means completed
+                    previous_games.append(g_date)
+            except (ValueError, KeyError):
+                continue
+                
+        if not previous_games:
+            return -1
+            
+        # Get Max date
+        last_game_date = max(previous_games)
+        rest_days = (game_date - last_game_date).days - 1
+        return max(rest_days, 0)
+        
+    except Exception as e:
+        logger.error(f"Error calculating NHL rest days: {e}")
+        return -1

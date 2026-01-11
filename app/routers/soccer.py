@@ -224,6 +224,7 @@ async def get_todays_matches(db: Session = Depends(get_db)):
                     "matchday": match.matchday,
                     "status": normalize_status(match.status),
                     "match_date": match_date_iso,
+                    "game_date": est_dt.strftime("%Y-%m-%d"),
                     "game_time_display": est_dt.strftime("%a, %b %d at %I:%M %p") + " EST",
                     "venue": match.venue,
                     "home_team": {
@@ -233,6 +234,11 @@ async def get_todays_matches(db: Session = Depends(get_db)):
                     "away_team": {
                         "name": match.away_team_name,
                         "score": match.away_score
+                    },
+                    "odds": {
+                        "spread": 0.5,
+                        "total": 2.5,
+                        "details": "N/A"
                     }
                 })
             return {
@@ -255,8 +261,27 @@ async def get_todays_matches(db: Session = Depends(get_db)):
             if time_display:
                 match["game_time_display"] = time_display
 
+            # Add game_date (local EST date)
+            # Use fixed source to avoid drift if 'game_date' was already set in cache
+            utc_source = match.get("match_date") or match.get("utcDate")
+            if utc_source:
+                try:
+                    dt_obj = datetime.fromisoformat(utc_source.replace("Z", "+00:00"))
+                    est_dt = dt_obj - timedelta(hours=5)
+                    match["game_date"] = est_dt.strftime("%Y-%m-%d")
+                except:
+                    match["game_date"] = today.isoformat()
+
         # Normalize status
         match["status"] = normalize_status(match.get("status", ""))
+
+        # Provide default odds if no real odds available (allows 8-factor analysis)
+        if "odds" not in match or not match["odds"] or not match["odds"].get("spread"):
+            match["odds"] = {
+                "spread": 0.5,    # Default Soccer spread (goal line)
+                "total": 2.5,     # Default Soccer total
+                "details": "N/A"
+            }
 
     return {
         "date": today.isoformat(),

@@ -48,6 +48,10 @@ interface MLBGame {
   weather?: string;
   inning?: number;
   inning_state?: string;
+  odds?: {
+    spread: number | null;
+    total: number | null;
+  };
 }
 
 interface NBAGame {
@@ -134,6 +138,10 @@ interface CBBGame {
     rank?: number;
     record?: string;
   };
+  odds?: {
+    spread: number | null;
+    total: number | null;
+  };
 }
 
 interface SoccerMatch {
@@ -142,6 +150,7 @@ interface SoccerMatch {
   matchday: number;
   status: string;
   utc_date: string;
+  game_date?: string;
   game_time_display?: string;
   venue?: string;
   home_team: {
@@ -151,6 +160,10 @@ interface SoccerMatch {
   away_team: {
     name: string;
     score: number | null;
+  };
+  odds?: {
+    spread: number | null;
+    total: number | null;
   };
 }
 
@@ -158,6 +171,7 @@ interface CFBGame {
   game_id?: string;
   date?: string;
   game_time_display?: string;
+  game_date?: string;
   name?: string;
   short_name?: string;
   status: string;
@@ -179,6 +193,10 @@ interface CFBGame {
     score?: number;
     rank?: number;
     record?: string;
+  };
+  odds?: {
+    spread: number | null;
+    total: number | null;
   };
 }
 
@@ -186,6 +204,7 @@ interface NHLGame {
   game_id?: string;
   date?: string;
   game_time_display?: string;
+  game_date?: string;
   name?: string;
   short_name?: string;
   status: string;
@@ -205,6 +224,10 @@ interface NHLGame {
     abbreviation?: string;
     score?: number;
     record?: string;
+  };
+  odds?: {
+    spread: number | null;
+    total: number | null;
   };
 }
 
@@ -608,6 +631,102 @@ export default function Games() {
                 </div>
               </div>
             </div>
+
+            {/* MLB Betting Buttons */}
+            {game.odds && (game.odds.spread !== null || game.odds.total !== null) && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                <div className="flex flex-wrap gap-2">
+                  {/* Away Spread */}
+                  {game.odds.spread !== null && (() => {
+                    const awaySpread = -(game.odds.spread!);
+                    const pickStr = `${getTeamAbbreviation(game.away_team.name)} ${awaySpread > 0 ? '+' : ''}${awaySpread}`;
+                    const gameId = game.id || game.game_pk;
+                    const logged = isPickLogged(String(gameId), 'spread', pickStr);
+                    return (
+                      <button
+                        onClick={() => handlePickClick({
+                          sport: 'MLB',
+                          home_team: game.home_team.name,
+                          away_team: game.away_team.name,
+                          pick: pickStr,
+                          pick_type: 'spread',
+                          line_value: awaySpread,
+                          odds: -110,
+                          game_time: formatGameDateTime(game.game_date, game.game_time_display),
+                          game_id: String(gameId),
+                        })}
+                        disabled={logged}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
+                      </button>
+                    );
+                  })()}
+
+                  {/* Home Spread */}
+                  {game.odds.spread !== null && (() => {
+                    const homeSpread = game.odds.spread!;
+                    const pickStr = `${getTeamAbbreviation(game.home_team.name)} ${homeSpread > 0 ? '+' : ''}${homeSpread}`;
+                    const gameId = game.id || game.game_pk;
+                    const logged = isPickLogged(String(gameId), 'spread', pickStr);
+                    return (
+                      <button
+                        onClick={() => handlePickClick({
+                          sport: 'MLB',
+                          home_team: game.home_team.name,
+                          away_team: game.away_team.name,
+                          pick: pickStr,
+                          pick_type: 'spread',
+                          line_value: homeSpread,
+                          odds: -110,
+                          game_time: formatGameDateTime(game.game_date, game.game_time_display),
+                          game_id: String(gameId),
+                        })}
+                        disabled={logged}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
+                      </button>
+                    );
+                  })()}
+
+                  {/* Over */}
+                  {game.odds.total !== null && (() => {
+                    const pickStr = `O ${game.odds.total}`;
+                    const gameId = game.id || game.game_pk;
+                    const logged = isPickLogged(String(gameId), 'total', pickStr);
+                    return (
+                      <button
+                        onClick={() => handlePickClick({
+                          sport: 'MLB',
+                          home_team: game.home_team.name,
+                          away_team: game.away_team.name,
+                          pick: pickStr,
+                          pick_type: 'total',
+                          line_value: game.odds?.total || undefined,
+                          odds: -110,
+                          game_time: formatGameDateTime(game.game_date, game.game_time_display),
+                          game_id: String(gameId),
+                        })}
+                        disabled={logged}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
+                      </button>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
           </Card>
         ))
       )}
@@ -732,11 +851,10 @@ export default function Games() {
                           game_id: game.game_id,
                         })}
                         disabled={logged}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          logged
-                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
-                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.spread_odds)})</>}
                       </button>
@@ -762,11 +880,10 @@ export default function Games() {
                           game_id: game.game_id,
                         })}
                         disabled={logged}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          logged
-                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
-                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.spread_odds)})</>}
                       </button>
@@ -791,11 +908,10 @@ export default function Games() {
                           game_id: game.game_id,
                         })}
                         disabled={logged}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          logged
-                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
-                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.over_odds)})</>}
                       </button>
@@ -820,11 +936,10 @@ export default function Games() {
                           game_id: game.game_id,
                         })}
                         disabled={logged}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          logged
-                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
-                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.under_odds)})</>}
                       </button>
@@ -848,11 +963,10 @@ export default function Games() {
                           game_id: game.game_id,
                         })}
                         disabled={logged}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          logged
-                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
-                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.moneyline_away)})</>}
                       </button>
@@ -876,11 +990,10 @@ export default function Games() {
                           game_id: game.game_id,
                         })}
                         disabled={logged}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          logged
-                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
-                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} ({formatOdds(game.odds?.moneyline_home)})</>}
                       </button>
@@ -1044,11 +1157,10 @@ export default function Games() {
                           game_id: gameId,
                         })}
                         disabled={logged}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          logged
-                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
-                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
                       </button>
@@ -1075,11 +1187,10 @@ export default function Games() {
                           game_id: gameId,
                         })}
                         disabled={logged}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          logged
-                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
-                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
                       </button>
@@ -1105,11 +1216,10 @@ export default function Games() {
                           game_id: gameId,
                         })}
                         disabled={logged}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          logged
-                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
-                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
                       </button>
@@ -1135,11 +1245,10 @@ export default function Games() {
                           game_id: gameId,
                         })}
                         disabled={logged}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                          logged
-                            ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
-                            : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
                       >
                         {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
                       </button>
@@ -1236,6 +1345,72 @@ export default function Games() {
                 )}
               </div>
             </div>
+
+            {/* CBB Betting Buttons */}
+            {game.odds && (game.odds.spread !== null || game.odds.total !== null) && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                <div className="flex flex-wrap gap-2">
+                  {/* Away Spread */}
+                  {game.odds.spread !== null && (() => {
+                    const awaySpread = -(game.odds.spread!);
+                    const pickStr = `${getTeamAbbreviation(game.away_team.name)} ${awaySpread > 0 ? '+' : ''}${awaySpread}`;
+                    const gameId = game.game_id || game.espn_id || String(idx);
+                    const logged = isPickLogged(String(gameId), 'spread', pickStr);
+                    return (
+                      <button
+                        onClick={() => handlePickClick({
+                          sport: 'CBB',
+                          home_team: game.home_team.name,
+                          away_team: game.away_team.name,
+                          pick: pickStr,
+                          pick_type: 'spread',
+                          line_value: awaySpread,
+                          odds: -110,
+                          game_time: formatGameDateTime(game.game_date || game.date || '', game.game_time_display),
+                          game_id: String(gameId),
+                        })}
+                        disabled={logged}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
+                      </button>
+                    );
+                  })()}
+
+                  {/* Over/Under Total */}
+                  {game.odds.total !== null && (() => {
+                    const pickStr = `O ${game.odds.total}`;
+                    const gameId = game.game_id || game.espn_id || String(idx);
+                    const logged = isPickLogged(String(gameId), 'total', pickStr);
+                    return (
+                      <button
+                        onClick={() => handlePickClick({
+                          sport: 'CBB',
+                          home_team: game.home_team.name,
+                          away_team: game.away_team.name,
+                          pick: pickStr,
+                          pick_type: 'total',
+                          line_value: game.odds?.total || undefined,
+                          odds: -110,
+                          game_time: formatGameDateTime(game.game_date || game.date || '', game.game_time_display),
+                          game_id: String(gameId),
+                        })}
+                        disabled={logged}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
+                      </button>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
           </Card>
         ))
       )}
@@ -1318,6 +1493,72 @@ export default function Games() {
                 )}
               </div>
             </div>
+
+            {/* CFB Betting Buttons */}
+            {game.odds && (game.odds.spread !== null || game.odds.total !== null) && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                <div className="flex flex-wrap gap-2">
+                  {/* Away Spread */}
+                  {game.odds.spread !== null && (() => {
+                    const awaySpread = -(game.odds.spread!);
+                    const pickStr = `${getTeamAbbreviation(game.away_team.name)} ${awaySpread > 0 ? '+' : ''}${awaySpread}`;
+                    const gameId = String(game.game_id || idx);
+                    const logged = isPickLogged(gameId, 'spread', pickStr);
+                    return (
+                      <button
+                        onClick={() => handlePickClick({
+                          sport: 'CFB',
+                          home_team: game.home_team.name,
+                          away_team: game.away_team.name,
+                          pick: pickStr,
+                          pick_type: 'spread',
+                          line_value: awaySpread,
+                          odds: -110,
+                          game_time: formatGameDateTime(game.game_date || game.date || '', game.game_time_display),
+                          game_id: gameId,
+                        })}
+                        disabled={logged}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
+                      </button>
+                    );
+                  })()}
+
+                  {/* Over/Under Total */}
+                  {game.odds.total !== null && (() => {
+                    const pickStr = `O ${game.odds.total}`;
+                    const gameId = String(game.game_id || idx);
+                    const logged = isPickLogged(gameId, 'total', pickStr);
+                    return (
+                      <button
+                        onClick={() => handlePickClick({
+                          sport: 'CFB',
+                          home_team: game.home_team.name,
+                          away_team: game.away_team.name,
+                          pick: pickStr,
+                          pick_type: 'total',
+                          line_value: game.odds?.total || undefined,
+                          odds: -110,
+                          game_time: formatGameDateTime(game.game_date || game.date || '', game.game_time_display),
+                          game_id: gameId,
+                        })}
+                        disabled={logged}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
+                      </button>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
           </Card>
         ))
       )}
@@ -1394,6 +1635,72 @@ export default function Games() {
                 )}
               </div>
             </div>
+
+            {/* NHL Betting Buttons */}
+            {game.odds && (game.odds.spread !== null || game.odds.total !== null) && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                <div className="flex flex-wrap gap-2">
+                  {/* Away Spread */}
+                  {game.odds.spread !== null && (() => {
+                    const awaySpread = -(game.odds.spread!);
+                    const pickStr = `${getTeamAbbreviation(game.away_team.name)} ${awaySpread > 0 ? '+' : ''}${awaySpread}`;
+                    const gameId = String(game.game_id || idx);
+                    const logged = isPickLogged(gameId, 'spread', pickStr);
+                    return (
+                      <button
+                        onClick={() => handlePickClick({
+                          sport: 'NHL',
+                          home_team: game.home_team.name,
+                          away_team: game.away_team.name,
+                          pick: pickStr,
+                          pick_type: 'spread',
+                          line_value: awaySpread,
+                          odds: -110,
+                          game_time: formatGameDateTime(game.game_date || game.date || '', game.game_time_display),
+                          game_id: gameId,
+                        })}
+                        disabled={logged}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
+                      </button>
+                    );
+                  })()}
+
+                  {/* Over/Under Total */}
+                  {game.odds.total !== null && (() => {
+                    const pickStr = `O ${game.odds.total}`;
+                    const gameId = String(game.game_id || idx);
+                    const logged = isPickLogged(gameId, 'total', pickStr);
+                    return (
+                      <button
+                        onClick={() => handlePickClick({
+                          sport: 'NHL',
+                          home_team: game.home_team.name,
+                          away_team: game.away_team.name,
+                          pick: pickStr,
+                          pick_type: 'total',
+                          line_value: game.odds?.total || undefined,
+                          odds: -110,
+                          game_time: formatGameDateTime(game.game_date || game.date || '', game.game_time_display),
+                          game_id: gameId,
+                        })}
+                        disabled={logged}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
+                      </button>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
           </Card>
         ))
       )}
@@ -1473,6 +1780,71 @@ export default function Games() {
                 )}
               </div>
             </div>
+
+            {/* Soccer Betting Buttons */}
+            {match.odds && (match.odds.spread !== null || match.odds.total !== null) && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                <div className="flex flex-wrap gap-2">
+                  {/* Home Spread/Result */}
+                  {match.odds.spread !== null && (() => {
+                    const pickStr = `${getTeamAbbreviation(match.home_team.name)} ${match.odds!.spread! > 0 ? '+' : ''}${match.odds!.spread}`;
+                    const gameId = String(match.id);
+                    const logged = isPickLogged(gameId, 'spread', pickStr);
+                    return (
+                      <button
+                        onClick={() => handlePickClick({
+                          sport: 'Soccer',
+                          home_team: match.home_team.name,
+                          away_team: match.away_team.name,
+                          pick: pickStr,
+                          pick_type: 'spread',
+                          line_value: match.odds?.spread || undefined,
+                          odds: -110,
+                          game_time: formatGameDateTime(match.game_date || match.utc_date || '', match.game_time_display),
+                          game_id: gameId,
+                        })}
+                        disabled={logged}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
+                      </button>
+                    );
+                  })()}
+
+                  {/* Over/Under Total */}
+                  {match.odds.total !== null && (() => {
+                    const pickStr = `O ${match.odds.total}`;
+                    const gameId = String(match.id);
+                    const logged = isPickLogged(gameId, 'total', pickStr);
+                    return (
+                      <button
+                        onClick={() => handlePickClick({
+                          sport: 'Soccer',
+                          home_team: match.home_team.name,
+                          away_team: match.away_team.name,
+                          pick: pickStr,
+                          pick_type: 'total',
+                          line_value: match.odds?.total || undefined,
+                          odds: -110,
+                          game_time: formatGameDateTime(match.game_date || match.utc_date || '', match.game_time_display),
+                          game_id: gameId,
+                        })}
+                        disabled={logged}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${logged
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 cursor-not-allowed'
+                          : 'bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-white'
+                          }`}
+                      >
+                        {logged ? <><Check className="w-3 h-3 inline mr-1" />Logged</> : <><Search className="w-3 h-3 inline mr-1" />{pickStr} (-110)</>}
+                      </button>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
           </Card>
         ))
       )}

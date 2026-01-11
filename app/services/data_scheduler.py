@@ -140,6 +140,19 @@ async def refresh_nfl_data_task():
         db.close()
 
 
+async def refresh_nhl_data_task():
+    """Task to refresh NHL data."""
+    from app.db import SessionLocal
+    from app.services.nhl_stats import refresh_nhl_data
+
+    db = SessionLocal()
+    try:
+        result = await refresh_nhl_data(db)
+        return result
+    finally:
+        db.close()
+
+
 def start_schedulers():
     """
     Start all data refresh schedulers.
@@ -187,6 +200,14 @@ def start_schedulers():
         run_daily_at(17, 0, refresh_nfl_data_task, "NFL Evening Refresh")
     )
 
+    # Schedule NHL data refresh at 11 AM and 6 PM daily
+    _scheduled_tasks["nhl_morning"] = asyncio.create_task(
+        run_daily_at(11, 0, refresh_nhl_data_task, "NHL Morning Refresh")
+    )
+    _scheduled_tasks["nhl_evening"] = asyncio.create_task(
+        run_daily_at(18, 0, refresh_nhl_data_task, "NHL Evening Refresh")
+    )
+
     # Schedule line movement snapshots every 15 minutes
     # This enables steam move and RLM detection
     _scheduled_tasks["line_snapshots"] = asyncio.create_task(
@@ -199,6 +220,185 @@ def start_schedulers():
     )
 
     logger.info("Data refresh schedulers started")
+
+    # NEW: High-frequency live score tracking
+    _scheduled_tasks["nba_live_tracker"] = asyncio.create_task(
+        run_every_minutes(1, refresh_nba_live_scores_task, "NBA Live Score Polling")
+    )
+    _scheduled_tasks["nhl_live_tracker"] = asyncio.create_task(
+        run_every_minutes(1, refresh_nhl_live_scores_task, "NHL Live Score Polling")
+    )
+    _scheduled_tasks["nfl_live_tracker"] = asyncio.create_task(
+        run_every_minutes(1, refresh_nfl_live_scores_task, "NFL Live Score Polling")
+    )
+    _scheduled_tasks["cbb_live_tracker"] = asyncio.create_task(
+        run_every_minutes(1, refresh_cbb_live_scores_task, "CBB Live Score Polling")
+    )
+
+
+async def refresh_nba_live_scores_task():
+    """Task to poll live NBA scores every minute."""
+    from app.db import SessionLocal, Game, Team
+    from app.services.nba_stats import get_live_nba_scores, get_teams
+    from datetime import datetime
+    
+    # This keeps 'Game' table updated with live scores
+    db = SessionLocal()
+    try:
+        live_data = get_live_nba_scores()
+        if not live_data:
+            return {"live_games_updated": 0}
+
+        # Build mapping of NBA ID to Team Name from static data
+        # This is needed because our DB doesn't store NBA ID
+        all_teams = get_teams()
+        nba_id_to_name = {t["nba_id"]: t["name"] for t in all_teams}
+        
+        updated_count = 0
+        
+        for data in live_data:
+            home_nba_id = data.get("home_team_id")
+            away_nba_id = data.get("away_team_id")
+            
+            home_name = nba_id_to_name.get(home_nba_id)
+            away_name = nba_id_to_name.get(away_nba_id)
+            
+            if not home_name or not away_name:
+                continue
+                
+            # Find teams in DB
+            home_team = db.query(Team).filter(Team.sport == "NBA", Team.name == home_name).first()
+            away_team = db.query(Team).filter(Team.sport == "NBA", Team.name == away_name).first()
+            
+            if not home_team or not away_team:
+                continue
+                
+            # Find the active game
+            # We look for games starting today (or essentially active now)
+            # Since live polling happens during the game, checking date similarity is usually enough
+            today_start = datetime.utcnow().date()
+            
+            game = db.query(Game).filter(
+                Game.sport == "NBA",
+                Game.home_team_id == home_team.id,
+                Game.away_team_id == away_team.id
+                # Removing strict date check to allow for late night games spilling over or timezone diffs
+                # ideally we check if start_time is within last 12 hours
+            ).order_by(Game.start_time.desc()).first()
+            
+            if game:
+                # Check if game is recent enough (within 24 hours) to be the live one
+                time_diff = datetime.utcnow() - game.start_time
+                if abs(time_diff.total_seconds()) < 86400: # 24 hours
+                    game.status = data['status']
+                    game.current_score = f"{data['home_score']}-{data['away_score']}"
+                    updated_count += 1
+
+        db.commit()
+        return {"live_games_updated": updated_count}
+
+    except Exception as e:
+        logger.error(f"Error in live score task: {e}")
+        return {"error": str(e)}
+    finally:
+        db.close()
+
+
+
+async def refresh_nhl_live_scores_task():
+    """Task to poll live NHL scores every minute."""
+    from app.db import SessionLocal
+    from app.services.nhl_stats import get_scoreboard, store_nhl_game
+    
+    db = SessionLocal()
+    try:
+        games = await get_scoreboard()
+        if not games:
+             return {"live_games_updated": 0}
+
+        updated_count = 0
+        for game_data in games:
+            # Only update active games or final games to capture score
+            # store_nhl_game handles logic
+            game = store_nhl_game(db, game_data)
+            if game:
+                updated_count += 1
+        
+        db.commit()
+        return {"live_games_updated": updated_count}
+    except Exception as e:
+        logger.error(f"Error in NHL live score task: {e}")
+        return {"error": str(e)}
+    finally:
+        db.close()
+
+
+async def refresh_nfl_live_scores_task():
+    """Task to poll live NFL scores every minute."""
+    from app.db import SessionLocal
+    # We can reuse get_scoreboard but need a store function or just direct update
+    # nfl_stats.refresh_nfl_data is daily. Let's look at get_scoreboard usage.
+    # nfl_stats.refresh_nfl_data calls get_current_week_games which calls get_scoreboard(None).
+    # We can just use refresh_nfl_data but it might be heavy (updates teams too).
+    # Better to just fetch scoreboard and update existing games.
+    from app.services.nfl_stats import get_scoreboard
+    from app.db import NFLGame
+    
+    db = SessionLocal()
+    try:
+        games = await get_scoreboard()
+        if not games:
+             return {"live_games_updated": 0}
+
+        updated_count = 0
+        for game_data in games:
+            espn_id = game_data.get("espn_id")
+            if not espn_id: continue
+            
+            existing = db.query(NFLGame).filter(NFLGame.espn_id == espn_id).first()
+            if existing:
+                # Update live fields
+                existing.status = game_data.get("status", existing.status)
+                existing.home_score = game_data.get("home_team", {}).get("score")
+                existing.away_score = game_data.get("away_team", {}).get("score")
+                existing.time_remaining = game_data.get("time_remaining")
+                existing.quarter = game_data.get("quarter")
+                updated_count += 1
+        
+        db.commit()
+        return {"live_games_updated": updated_count}
+    except Exception as e:
+        logger.error(f"Error in NFL live score task: {e}")
+        return {"error": str(e)}
+    finally:
+        db.close()
+
+
+async def refresh_cbb_live_scores_task():
+    """Task to poll live CBB scores every minute."""
+    from app.db import SessionLocal
+    from app.services.cbb_stats import get_scoreboard, store_cbb_game
+    
+    db = SessionLocal()
+    try:
+        games = await get_scoreboard()
+        if not games:
+             return {"live_games_updated": 0}
+
+        updated_count = 0
+        for game_data in games:
+            # store_cbb_game handles logic
+            game = store_cbb_game(db, game_data)
+            if game:
+                updated_count += 1
+        
+        db.commit()
+        return {"live_games_updated": updated_count}
+    except Exception as e:
+        logger.error(f"Error in CBB live score task: {e}")
+        return {"error": str(e)}
+    finally:
+        db.close()
 
 
 def stop_schedulers():
@@ -239,6 +439,11 @@ async def manual_refresh_soccer() -> Dict[str, Any]:
 async def manual_refresh_nfl() -> Dict[str, Any]:
     """Manually trigger NFL data refresh."""
     return await refresh_nfl_data_task()
+
+
+async def manual_refresh_nhl() -> Dict[str, Any]:
+    """Manually trigger NHL data refresh."""
+    return await refresh_nhl_data_task()
 
 
 async def snapshot_lines_task():

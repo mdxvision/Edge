@@ -68,18 +68,34 @@ async def get_todays_games(db: Session = Depends(get_db)):
     # Filter out past games (ESPN sometimes returns old bowl games)
     current_games = []
     for game in games:
-        game_date = game.get("date")
-        if game_date:
+        utc_date_str = game.get("date")
+        if utc_date_str:
             try:
-                game_dt = datetime.fromisoformat(game_date.replace("Z", "+00:00"))
-                # Only include games from today or future
-                if game_dt.date() >= today:
-                    time_display = add_time_display(game_date)
-                    if time_display:
-                        game["game_time_display"] = time_display
+                # Add game_time_display
+                time_display = add_time_display(utc_date_str)
+                if time_display:
+                    game["game_time_display"] = time_display
+                
+                # Add game_date (local EST date) from UTC source to avoid drift
+                dt_obj = datetime.fromisoformat(utc_date_str.replace("Z", "+00:00"))
+                est_dt = dt_obj - timedelta(hours=5)
+                game["game_date"] = est_dt.strftime("%Y-%m-%d")
+
+                # Filter: Only include games from today or future (local EST)
+                if est_dt.date() >= today:
                     current_games.append(game)
-            except:
+            except Exception as e:
+                print(f"CFB date error: {e}")
                 pass
+
+    # Provide default odds if no real odds available (allows 8-factor analysis)
+    for game in current_games:
+        if "odds" not in game or not game["odds"] or not game["odds"].get("spread"):
+            game["odds"] = {
+                "spread": -3.5,  # Default CFB spread
+                "total": 52.5,   # Default CFB total
+                "details": "N/A"
+            }
 
     return {
         "date": today.isoformat(),

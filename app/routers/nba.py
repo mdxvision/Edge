@@ -205,7 +205,7 @@ async def get_games(
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     team_id: Optional[int] = Query(None, description="Filter by NBA team ID"),
-    include_finished: bool = Query(False, description="Include finished games"),
+    include_finished: bool = Query(True, description="Include finished games"),
     db: Session = Depends(get_db)
 ):
     """

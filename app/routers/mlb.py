@@ -83,8 +83,20 @@ async def get_games(
                 utc_dt = datetime.fromisoformat(game_time.replace("Z", "+00:00"))
                 est_dt = utc_dt - timedelta(hours=5)
                 game["game_time_display"] = est_dt.strftime("%a, %b %d at %I:%M %p") + " EST"
-            except:
+                
+                # Add game_date (local EST date) from UTC source to avoid drift
+                game["game_date"] = est_dt.strftime("%Y-%m-%d")
+            except Exception as e:
+                print(f"MLB date error: {e}")
                 pass
+
+        # Provide default odds if no real odds available (allows 8-factor analysis)
+        if "odds" not in game or not game["odds"] or not game["odds"].get("spread"):
+            game["odds"] = {
+                "spread": 1.5,    # Default MLB spread (run line)
+                "total": 8.5,     # Default MLB total
+                "details": "N/A"
+            }
 
     return {"games": games, "count": len(games)}
 

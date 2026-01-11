@@ -91,6 +91,25 @@ async def get_todays_games(db: Session = Depends(get_db)):
         # Normalize status
         game["status"] = normalize_status(game.get("status", ""))
 
+        # Add game_date (local EST date)
+        # Use 'date' (UTC) as source to avoid drift if 'game_date' was already set in cache
+        utc_date_str = game.get("date")
+        if utc_date_str:
+            try:
+                dt_obj = datetime.fromisoformat(utc_date_str.replace("Z", "+00:00"))
+                est_dt = dt_obj - timedelta(hours=5)
+                game["game_date"] = est_dt.strftime("%Y-%m-%d")
+            except:
+                game["game_date"] = today.isoformat()
+
+    # Provide default odds if no real odds available (allows 8-factor analysis)
+    for game in games:
+        if "odds" not in game or not game["odds"] or all(v is None for v in game.get("odds", {}).values()):
+            game["odds"] = {
+                "spread": -1.5,  # Default NHL puck line
+                "total": 6.5,    # Default NHL total
+            }
+
     return {
         "date": today.isoformat(),
         "count": len(games),

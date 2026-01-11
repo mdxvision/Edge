@@ -23,9 +23,16 @@ def create_test_user():
         existing = result.fetchone()
 
         if existing:
-            print(f"Test user already exists (id={existing[0]}, email={existing[1]}, username={existing[2]})")
+            # Update password to ensure it matches
+            print(f"Test user exists (id={existing[0]}). Resetting password...")
+            new_hash = hash_password("TestPass123!")
+            conn.execute(text(
+                "UPDATE users SET password_hash = :hash WHERE id = :id"
+            ), {"hash": new_hash, "id": existing[0]})
+            conn.commit()
+            
             print("=" * 50)
-            print("Login credentials:")
+            print("Login credentials UPDATED:")
             print(f"  Email:    test@edgebet.com")
             print(f"  Username: testuser")
             print(f"  Password: TestPass123!")

@@ -130,11 +130,46 @@ class AutoSettler:
         # Try MySportsFeeds first (primary source)
         if self.mysportsfeeds.is_configured():
             try:
+                # Also check local DB for "Final" games that might be fresher than MSF
+                # This integration helps when using live data
+                from app.db import Game
+                
+                # Get games marked as Final in our DB which we updated via live feed
+                # This allows us to settle immediately when live feed flips to Final
+                final_games = self.db.query(Game).filter(
+                    Game.sport == sport,
+                    Game.status.ilike("%Final%")
+                ).all()
+                
+                db_completed = []
+                for g in final_games:
+                    if g.current_score and "-" in g.current_score:
+                        try:
+                            h_score, a_score = map(int, g.current_score.split("-"))
+                            db_completed.append({
+                                "id": g.id,
+                                "home_team": g.home_team.name,
+                                "away_team": g.away_team.name,
+                                "completed": True,
+                                "scores": [
+                                    {"name": g.home_team.name, "score": str(h_score)},
+                                    {"name": g.away_team.name, "score": str(a_score)}
+                                ]
+                            })
+                        except:
+                            continue
+
                 msf_games = await self.mysportsfeeds.get_completed_games(sport, days_back=3)
                 if msf_games:
                     logger.info(f"Got {len(msf_games)} completed {sport} games from MySportsFeeds")
                     # Convert to standard format expected by _find_game_result
-                    return [self._convert_msf_game(g) for g in msf_games]
+                    msf_converted = [self._convert_msf_game(g) for g in msf_games]
+                    
+                    # Merge lists, preferring MSF data if available (official source)
+                    # But if MSF doesn't have it yet, DB live feed works
+                    return msf_converted + db_completed
+                
+                return db_completed
             except Exception as e:
                 logger.error(f"MySportsFeeds error: {str(e)}")
 

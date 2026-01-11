@@ -18,10 +18,56 @@ from nba_api.stats.endpoints import (
     teamdashboardbygeneralsplits,
     playerdashboardbygeneralsplits,
     commonteamroster,
-    scoreboardv2,
     leaguedashteamstats,
-    leaguedashplayerstats
+    leaguedashplayerstats,
+    scoreboardv2
 )
+
+def get_live_nba_scores() -> List[Dict[str, Any]]:
+    """
+    Fetches active game data including current period and live scores.
+    """
+    try:
+        # ScoreboardV2 is better for high-level live status than static game logs
+        sb = scoreboardv2.ScoreboardV2(league_id="00")
+        line_score = sb.line_score.get_data_frame()
+        game_header = sb.game_header.get_data_frame()
+        
+        live_games = []
+        for _, game in game_header.iterrows():
+            status = game.get("GAME_STATUS_TEXT", "")
+            # Only process games that are actually live or just finished
+            # Qtr = Live, Half = Halftime, Final = Finished
+            if "Qtr" in status or "Half" in status or "Final" in status:
+                game_id = game.get("GAME_ID")
+                
+                # Filter line_score for this specific game
+                game_scores = line_score[line_score['GAME_ID'] == game_id]
+                
+                if not game_scores.empty:
+                    home_team_id = game.get("HOME_TEAM_ID")
+                    away_team_id = game.get("VISITOR_TEAM_ID")
+                    
+                    home_rows = game_scores[game_scores['TEAM_ID'] == home_team_id]
+                    away_rows = game_scores[game_scores['TEAM_ID'] == away_team_id]
+                    
+                    if not home_rows.empty and not away_rows.empty:
+                        home_score = int(home_rows['PTS'].values[0])
+                        away_score = int(away_rows['PTS'].values[0])
+                        
+                        live_games.append({
+                            "game_id": game_id,
+                            "status": status,
+                            "home_score": home_score,
+                            "away_score": away_score,
+                            "home_team_id": int(home_team_id),
+                            "away_team_id": int(away_team_id),
+                            "last_update": datetime.now().isoformat()
+                        })
+        return live_games
+    except Exception as e:
+        logger.error(f"Live NBA score fetch failed: {e}")
+        return []
 
 logger = logging.getLogger(__name__)
 
@@ -658,6 +704,9 @@ def store_nba_game(db, game_data: Dict[str, Any]):
     ).first()
 
     if existing:
+        if not existing.external_id and game_data.get("game_id"):
+            existing.external_id = str(game_data.get("game_id"))
+            db.commit()
         return existing
 
     game = Game(
@@ -666,7 +715,8 @@ def store_nba_game(db, game_data: Dict[str, Any]):
         away_team_id=away_team.id,
         start_time=game_date,
         venue=game_data.get("arena", ""),
-        league="NBA"
+        league="NBA",
+        external_id=str(game_data.get("game_id", ""))
     )
     db.add(game)
     db.commit()

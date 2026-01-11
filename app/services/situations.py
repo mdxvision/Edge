@@ -59,6 +59,21 @@ CITY_DATA = {
     "Los Angeles": {"lat": 34.05, "lon": -118.24, "tz": -8, "alt": 285},
     "LA Clippers": {"lat": 34.05, "lon": -118.24, "tz": -8, "alt": 285},
     "LA Lakers": {"lat": 34.05, "lon": -118.24, "tz": -8, "alt": 285},
+    
+    # NHL Cities (Additional)
+    "Ottawa": {"lat": 45.42, "lon": -75.69, "tz": -5, "alt": 70},
+    "Montreal": {"lat": 45.50, "lon": -73.56, "tz": -5, "alt": 233},
+    "Quebec": {"lat": 46.81, "lon": -71.20, "tz": -5, "alt": 98},
+    "Winnipeg": {"lat": 49.89, "lon": -97.13, "tz": -6, "alt": 238},
+    "Calgary": {"lat": 51.04, "lon": -114.07, "tz": -7, "alt": 1045},
+    "Edmonton": {"lat": 53.54, "lon": -113.49, "tz": -7, "alt": 645},
+    "Vancouver": {"lat": 49.28, "lon": -123.12, "tz": -8, "alt": 70},
+    "Columbus": {"lat": 39.96, "lon": -83.00, "tz": -5, "alt": 240},
+    "Raleigh": {"lat": 35.77, "lon": -78.63, "tz": -5, "alt": 96},
+    "Newark": {"lat": 40.73, "lon": -74.17, "tz": -5, "alt": 13},
+    "Elmont": {"lat": 40.70, "lon": -73.72, "tz": -5, "alt": 30},
+    "Sunrise": {"lat": 26.16, "lon": -80.25, "tz": -5, "alt": 3},
+    "St. Paul": {"lat": 44.95, "lon": -93.08, "tz": -6, "alt": 214},
 
     # NFL Cities
     "Baltimore": {"lat": 39.29, "lon": -76.61, "tz": -5, "alt": 33},
@@ -129,6 +144,19 @@ TEAM_CITIES = {
     "Reds": "Cincinnati", "Brewers": "Milwaukee", "Pirates": "Pittsburgh",
     "Cardinals": "St. Louis", "Diamondbacks": "Phoenix", "Rockies": "Denver",
     "Dodgers": "Los Angeles", "Padres": "San Diego", "Giants": "San Francisco",
+
+    # NHL
+    "Bruins": "Boston", "Sabres": "Buffalo", "Red Wings": "Detroit",
+    "Panthers": "Sunrise", "Canadiens": "Montreal", "Senators": "Ottawa",
+    "Lightning": "Tampa", "Maple Leafs": "Toronto", "Hurricanes": "Raleigh",
+    "Blue Jackets": "Columbus", "Devils": "Newark", "Islanders": "Elmont",
+    "Rangers": "New York", "Flyers": "Philadelphia", "Penguins": "Pittsburgh",
+    "Capitals": "Washington", "Coyotes": "Salt Lake City", "Blackhawks": "Chicago",
+    "Avalanche": "Denver", "Stars": "Dallas", "Wild": "St. Paul",
+    "Predators": "Nashville", "Blues": "St. Louis", "Jets": "Winnipeg",
+    "Ducks": "Anaheim", "Flames": "Calgary", "Oilers": "Edmonton",
+    "Kings": "Los Angeles", "Sharks": "San Jose", "Kraken": "Seattle",
+    "Canucks": "Vancouver", "Golden Knights": "Las Vegas",
 }
 
 
@@ -793,3 +821,95 @@ def get_all_historical_situations(
         }
         for s in situations
     ]
+
+
+async def analyze_game_situation(db: Session, game_id: int) -> Optional[GameSituation]:
+    """
+    Analyze and save situation for a specific game (Lazy Load).
+    
+    Orchestrates fetching rest days and travel info for any sport.
+    """
+    from app.db import Game, Team
+    from app.services import nba_stats, nfl_stats, nhl_stats
+    
+    game = db.query(Game).filter(Game.id == game_id).first()
+    if not game:
+        return None
+        
+    home_team = db.query(Team).filter(Team.id == game.home_team_id).first()
+    away_team = db.query(Team).filter(Team.id == game.away_team_id).first()
+    
+    if not home_team or not away_team:
+        return None
+        
+    sport = game.sport
+    game_date = game.start_time.date()
+    
+    # Calculate Rest Days
+    home_rest = 2 # Default
+    away_rest = 2
+    
+    try:
+        if sport == "NBA":
+            h_info = nba_stats.get_team_by_abbreviation(home_team.short_name)
+            a_info = nba_stats.get_team_by_abbreviation(away_team.short_name)
+            
+            if h_info:
+                home_rest = nba_stats.calculate_rest_days(h_info["nba_id"], game_date)
+            if a_info:
+                away_rest = nba_stats.calculate_rest_days(a_info["nba_id"], game_date)
+                
+        elif sport == "NFL":
+            home_rest = await nfl_stats.calculate_rest_days(home_team.name, game_date)
+            away_rest = await nfl_stats.calculate_rest_days(away_team.name, game_date)
+            
+            if home_rest == -1: home_rest = 6
+            if away_rest == -1: away_rest = 6
+            
+        elif sport == "NHL":
+            teams = await nhl_stats.get_teams()
+            h_id = next((t["espn_id"] for t in teams if t["name"] == home_team.name), None)
+            a_id = next((t["espn_id"] for t in teams if t["name"] == away_team.name), None)
+            
+            if h_id:
+                home_rest = await nhl_stats.calculate_rest_days(h_id, game_date)
+            if a_id:
+                away_rest = await nhl_stats.calculate_rest_days(a_id, game_date)
+                
+            if home_rest == -1: home_rest = 1
+            if away_rest == -1: away_rest = 1
+            
+        elif sport == "NCAA_BASKETBALL" or sport == "CBB":
+            from app.services import cbb_stats
+            # CBB uses ESPN ID in DB
+            h_id = home_team.espn_id
+            a_id = away_team.espn_id
+            
+            if h_id:
+                home_rest = await cbb_stats.calculate_rest_days(h_id, game_date)
+            if a_id:
+                away_rest = await cbb_stats.calculate_rest_days(a_id, game_date)
+                
+            if home_rest == -1: home_rest = 2 # Default 2-3 days for CBB
+            if away_rest == -1: away_rest = 2
+            
+    except Exception as e:
+        logger.error(f"Error calculating rest for game {game_id}: {e}")
+        
+    # Analyze
+    analysis = get_full_situation_analysis(
+        db=db,
+        game_id=game_id,
+        home_team=home_team.name,
+        away_team=away_team.name,
+        sport=sport,
+        game_date=game.start_time,
+        game_time=game.start_time.strftime("%H:%M") if game.start_time else None,
+        home_days_rest=home_rest,
+        away_days_rest=away_rest,
+        home_b2b=(home_rest == 0),
+        away_b2b=(away_rest == 0),
+        away_origin=away_team.name 
+    )
+    
+    return save_game_situation(db, analysis)

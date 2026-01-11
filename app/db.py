@@ -76,6 +76,9 @@ class Game(Base):
     start_time = Column(DateTime, nullable=False)
     venue = Column(String(200), nullable=True)
     league = Column(String(100), nullable=True)
+    status = Column(String(50), default="scheduled")  # scheduled, in_progress, final, etc.
+    current_score = Column(String(50), nullable=True)  # e.g. "105-98"
+    external_id = Column(String(100), nullable=True, index=True)  # ID from external API (ESPN/NBA/etc)
     
     home_team = relationship("Team", foreign_keys=[home_team_id], back_populates="home_games")
     away_team = relationship("Team", foreign_keys=[away_team_id], back_populates="away_games")
