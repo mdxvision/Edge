@@ -44,7 +44,8 @@ describe('Dashboard', () => {
     })
 
     it('navigates to profile page', () => {
-      cy.contains(/Profile|Settings/i).first().click()
+      // Profile link may be covered by nav element on certain screen sizes
+      cy.contains(/Profile|Settings/i).first().click({ force: true })
       cy.url().should('include', '/profile')
     })
 

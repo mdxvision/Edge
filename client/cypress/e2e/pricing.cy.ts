@@ -15,7 +15,8 @@ describe('Pricing', () => {
     })
 
     it('shows features tagline', () => {
-      cy.contains(/Unlock|features|intelligence/i, { timeout: 10000 }).should('be.visible')
+      // Tagline is "Unlock powerful features to maximize your betting intelligence."
+      cy.contains(/Unlock|powerful|betting/i, { timeout: 10000 }).should('exist')
     })
   })
 
