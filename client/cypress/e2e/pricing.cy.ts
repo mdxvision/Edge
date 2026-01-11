@@ -11,41 +11,27 @@ describe('Pricing', () => {
     })
 
     it('shows pricing heading', () => {
-      cy.contains(/Pricing|Plans|Subscription/i, { timeout: 10000 }).should('be.visible')
+      cy.contains(/Choose Your Edge|Pricing|Plans/i, { timeout: 10000 }).should('be.visible')
+    })
+
+    it('shows features tagline', () => {
+      cy.contains(/Unlock|features|intelligence/i, { timeout: 10000 }).should('be.visible')
     })
   })
 
-  describe('Pricing Plans', () => {
-    it('shows pricing tiers', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasTiers = $body.text().match(/Free|Pro|Premium|Basic|Plan/i)
-        expect(hasTiers).to.not.be.null
-      })
+  describe('Billing Toggle', () => {
+    it('shows billing period options', () => {
+      cy.contains(/Monthly|Yearly/i, { timeout: 10000 }).should('be.visible')
     })
 
-    it('shows pricing amounts', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasPricing = $body.text().match(/\$|Free|month|year/i)
-        expect(hasPricing).to.not.be.null
-      })
+    it('shows savings badge', () => {
+      cy.contains(/Save|%/i, { timeout: 10000 }).should('be.visible')
     })
   })
 
-  describe('Features List', () => {
-    it('shows features or benefits', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasFeatures = $body.text().match(/Feature|Include|Access|Unlimited/i)
-        expect(hasFeatures).to.not.be.null
-      })
-    })
-  })
-
-  describe('Call to Action', () => {
-    it('has subscription or upgrade buttons', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasCTA = $body.text().match(/Subscribe|Upgrade|Get Started|Select|Choose/i)
-        expect(hasCTA).to.not.be.null
-      })
+  describe('Pricing Tiers', () => {
+    it('shows tier options', () => {
+      cy.contains(/Free|Premium|Pro/i, { timeout: 10000 }).should('be.visible')
     })
   })
 

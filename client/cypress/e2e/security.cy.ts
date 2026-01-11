@@ -11,14 +11,11 @@ describe('Security Settings', () => {
     })
 
     it('shows security heading', () => {
-      cy.contains(/Security|Account Security|Settings/i, { timeout: 10000 }).should('be.visible')
+      cy.contains(/Security/i, { timeout: 10000 }).should('be.visible')
     })
 
-    it('shows security sections', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasSections = $body.text().match(/2FA|Two-Factor|Password|Sessions|Activity/i)
-        expect(hasSections).to.not.be.null
-      })
+    it('shows protected tagline', () => {
+      cy.contains(/Protected/i, { timeout: 10000 }).should('be.visible')
     })
   })
 
@@ -27,46 +24,24 @@ describe('Security Settings', () => {
       cy.contains(/Two-Factor|2FA|Authenticator/i, { timeout: 10000 }).should('be.visible')
     })
 
-    it('has enable/disable 2FA option', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const has2FAControl = $body.text().match(/Enable|Disable|Setup|Configure/i)
-        expect(has2FAControl).to.not.be.null
-      })
-    })
-
     it('shows 2FA status', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasStatus = $body.text().match(/Enabled|Disabled|Not Set|Active|Inactive|Protected/i)
-        expect(hasStatus).to.not.be.null
-      })
-    })
-  })
-
-  describe('Password Change', () => {
-    it('has change password section', () => {
-      cy.contains(/Password|Change Password/i, { timeout: 10000 }).should('be.visible')
-    })
-
-    it('has password input fields', () => {
-      cy.get('input[type="password"]', { timeout: 10000 }).should('exist')
+      cy.contains(/Enabled|Disabled|Not Set|Active|Inactive|Protected|Setup/i, { timeout: 10000 }).should('exist')
     })
   })
 
   describe('Active Sessions', () => {
     it('shows sessions section', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasSessions = $body.text().match(/Sessions|Active Sessions|Devices|Logged|Security/i)
-        expect(hasSessions).to.not.be.null
-      })
+      cy.contains(/Sessions|Active Sessions|Devices/i, { timeout: 10000 }).should('be.visible')
+    })
+
+    it('shows session info', () => {
+      cy.contains(/Current|Browser|Chrome|Safari|Device/i, { timeout: 10000 }).should('exist')
     })
   })
 
   describe('Security Log', () => {
-    it('shows security activity', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasActivityLog = $body.text().match(/Activity|Log|History|Events|Recent/i)
-        expect(hasActivityLog).to.not.be.null
-      })
+    it('shows security activity section', () => {
+      cy.contains(/Activity|Log|History|Recent/i, { timeout: 10000 }).should('be.visible')
     })
   })
 

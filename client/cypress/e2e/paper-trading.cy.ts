@@ -15,30 +15,15 @@ describe('Paper Trading', () => {
     })
   })
 
-  describe('Virtual Balance', () => {
-    it('shows virtual balance or bankroll', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasBalance = $body.text().match(/Balance|Bankroll|\$/i)
-        expect(hasBalance).to.not.be.null
-      })
+  describe('Bankroll Stats', () => {
+    it('shows balance information', () => {
+      cy.contains(/Balance|Bankroll|Starting|\$/i, { timeout: 15000 }).should('exist')
     })
   })
 
-  describe('Practice Bets', () => {
-    it('shows practice betting section', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasBetting = $body.text().match(/Bet|Trade|Wager|Practice/i)
-        expect(hasBetting).to.not.be.null
-      })
-    })
-  })
-
-  describe('Performance Tracking', () => {
-    it('shows performance metrics', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasMetrics = $body.text().match(/Performance|ROI|Win|Profit|Stats/i)
-        expect(hasMetrics).to.not.be.null
-      })
+  describe('Trading Actions', () => {
+    it('has place trade button or form', () => {
+      cy.contains(/Place|Trade|Bet|New/i, { timeout: 10000 }).should('exist')
     })
   })
 

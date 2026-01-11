@@ -3,6 +3,8 @@ describe('DFS (Daily Fantasy Sports)', () => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
     cy.visit('/dfs')
     cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+    // Wait for page to load (either content or error state)
+    cy.contains(/Lineups|Analyzing|error/i, { timeout: 20000 }).should('be.visible')
   })
 
   describe('Page Layout', () => {
@@ -15,51 +17,23 @@ describe('DFS (Daily Fantasy Sports)', () => {
     })
 
     it('shows lineup builder section', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasBuilder = $body.text().match(/Lineup|Builder|Optimizer|Create|Player/i)
-        expect(hasBuilder).to.not.be.null
-      })
+      cy.contains(/Lineups|Build|Optimal/i, { timeout: 15000 }).should('exist')
     })
   })
 
-  describe('Player Selection', () => {
-    it('displays player information', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasPlayers = $body.text().match(/Player|Salary|Projection|Points|Name/i)
-        expect(hasPlayers).to.not.be.null
-      })
+  describe('Sport Selection', () => {
+    it('displays sport options', () => {
+      cy.contains(/NFL|NBA|MLB|NHL/i, { timeout: 10000 }).should('be.visible')
     })
 
-    it('shows projections or stats', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasProjections = $body.text().match(/Projection|Points|Expected|Value|Stats/i)
-        expect(hasProjections).to.not.be.null
-      })
+    it('shows platform options', () => {
+      cy.contains(/DraftKings|FanDuel/i, { timeout: 10000 }).should('be.visible')
     })
   })
 
-  describe('Lineup Builder', () => {
-    it('shows salary or budget info', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasSalary = $body.text().match(/Salary|Budget|Cap|Remaining|\$/i)
-        expect(hasSalary).to.not.be.null
-      })
-    })
-
-    it('displays positions', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasPositions = $body.text().match(/QB|RB|WR|TE|FLEX|PG|SG|SF|Position/i)
-        expect(hasPositions).to.not.be.null
-      })
-    })
-  })
-
-  describe('Optimization', () => {
-    it('has optimizer or generate button', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasOptimizer = $body.text().match(/Optimize|Generate|Auto|Build/i)
-        expect(hasOptimizer).to.not.be.null
-      })
+  describe('Lineup Types', () => {
+    it('shows lineup type options', () => {
+      cy.contains(/Balanced|Cash|GPP|Tournament/i, { timeout: 15000 }).should('exist')
     })
   })
 

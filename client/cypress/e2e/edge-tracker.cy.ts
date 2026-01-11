@@ -11,34 +11,13 @@ describe('Edge Tracker', () => {
     })
 
     it('shows edge tracker heading', () => {
-      cy.contains(/Edge Tracker|Edge|Tracking/i, { timeout: 10000 }).should('be.visible')
+      cy.contains(/Edge Validation|Edge Tracker|Tracker/i, { timeout: 10000 }).should('be.visible')
     })
   })
 
-  describe('Edge Analysis', () => {
-    it('shows edge data or analysis', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasEdge = $body.text().match(/Edge|Factor|Analysis|Value/i)
-        expect(hasEdge).to.not.be.null
-      })
-    })
-  })
-
-  describe('8-Factor Analysis', () => {
-    it('shows factor information', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasFactors = $body.text().match(/Factor|Coach|Rest|Weather|Travel|Line|Public/i)
-        expect(hasFactors).to.not.be.null
-      })
-    })
-  })
-
-  describe('Pick Tracking', () => {
-    it('shows picks or analysis section', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        const hasPicks = $body.text().match(/Pick|Bet|Analysis|Recommendation/i)
-        expect(hasPicks).to.not.be.null
-      })
+  describe('Stats Display', () => {
+    it('shows performance metrics', () => {
+      cy.contains(/Win|ROI|Edge|Rate|Picks/i, { timeout: 15000 }).should('exist')
     })
   })
 

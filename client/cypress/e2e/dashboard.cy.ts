@@ -44,7 +44,7 @@ describe('Dashboard', () => {
     })
 
     it('navigates to profile page', () => {
-      cy.contains('Profile').click()
+      cy.contains(/Profile|Settings/i).first().click()
       cy.url().should('include', '/profile')
     })
 

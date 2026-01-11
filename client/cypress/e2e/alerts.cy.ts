@@ -15,13 +15,13 @@ describe('Alerts Management', () => {
     })
 
     it('shows create alert button', () => {
-      cy.contains(/Create|Add|New/i, { timeout: 10000 }).should('be.visible')
+      cy.contains(/Set Alert|Create|Add|New/i, { timeout: 10000 }).should('be.visible')
     })
   })
 
   describe('Create Alert', () => {
     it('opens create alert form when clicking create', () => {
-      cy.contains(/Create|Add|New/i).first().click()
+      cy.contains(/Set Alert|Create|Add|New/i).first().click()
       cy.get('input, select', { timeout: 5000 }).should('exist')
     })
 
