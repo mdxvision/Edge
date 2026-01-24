@@ -47,6 +47,7 @@ Edge/
 | `push_notifications.py` | Firebase push notifications |
 | `edge_alerts.py` | Alert trigger system |
 | `clv_tracker.py` | CLV capture & calibration |
+| `player_props.py` | Player prop predictions |
 
 ## 8-Factor Edge System
 
@@ -72,6 +73,8 @@ GET  /tracker/picks              # Get tracked picks
 GET  /analytics/edge-tracker     # 8-factor analysis
 GET  /analytics/arbitrage        # Find arb opportunities
 POST /analytics/arbitrage/calculate  # Stake calculator
+POST /player-props/predict       # Get prop prediction
+GET  /player-props/value         # Find value props
 ```
 
 ## Database

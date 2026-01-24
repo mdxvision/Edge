@@ -59,6 +59,7 @@ from app.routers.api_keys import router as api_keys_router
 from app.routers.devices import router as devices_router
 from app.routers.tracker import router as tracker_router
 from app.routers.notifications import router as notifications_router
+from app.routers.player_props import router as player_props_router
 from app.middleware.rate_limit import RateLimitMiddleware, AuthRateLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.utils.logging import setup_logging, request_logger
@@ -185,7 +186,8 @@ Authorization: Bearer <session_token>
         {"name": "Prediction Accuracy", "description": "Track and analyze prediction accuracy and factor performance"},
         {"name": "billing", "description": "Subscription management and Stripe checkout"},
         {"name": "api-keys", "description": "API key management for programmatic access (Pro tier)"},
-        {"name": "devices", "description": "Device registration for push notifications"}
+        {"name": "devices", "description": "Device registration for push notifications"},
+        {"name": "player-props", "description": "Player prop predictions and value finding"}
     ]
 )
 
@@ -245,6 +247,7 @@ app.include_router(api_keys_router)
 app.include_router(devices_router)
 app.include_router(tracker_router)
 app.include_router(notifications_router)
+app.include_router(player_props_router)
 
 
 @app.middleware("http")
