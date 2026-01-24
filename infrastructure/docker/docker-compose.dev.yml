@@ -1,0 +1,48 @@
+version: '3.8'
+
+# Development override - simpler setup without secrets
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  redis:
+    ports:
+      - "6379:6379"
+    networks:
+      - edge-dev
+
+  postgres:
+    environment:
+      POSTGRES_USER: edge
+      POSTGRES_PASSWORD: edge_password
+      POSTGRES_DB: edge_db
+    secrets: []
+    ports:
+      - "5432:5432"
+    networks:
+      - edge-dev
+
+  backend:
+    build:
+      target: production
+    environment:
+      - DATABASE_URL=postgresql://edge:edge_password@postgres:5432/edge_db
+      - REDIS_URL=redis://redis:6379/0
+      - SESSION_SECRET=dev-secret-change-in-production
+      - LOG_LEVEL=DEBUG
+    secrets: []
+    ports:
+      - "8080:8080"
+    networks:
+      - edge-dev
+
+  frontend:
+    ports:
+      - "80:80"
+    networks:
+      - edge-dev
+
+secrets: {}
+
+networks:
+  edge-dev:
+    driver: bridge

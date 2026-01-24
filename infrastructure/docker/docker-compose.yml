@@ -4,52 +4,58 @@ services:
   redis:
     image: redis:7-alpine
     container_name: edge-redis
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - edge-internal
 
   postgres:
     image: postgres:16-alpine
     container_name: edge-postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-edge}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-edge_password}
+      POSTGRES_USER_FILE: /run/secrets/postgres_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
       POSTGRES_DB: ${POSTGRES_DB:-edge_db}
+    secrets:
+      - postgres_user
+      - postgres_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    ports:
-      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-edge} -d ${POSTGRES_DB:-edge_db}"]
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB:-edge_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - edge-internal
 
   backend:
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile.backend
+      target: production
     container_name: edge-backend
-    ports:
-      - "8080:8080"
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-edge}:${POSTGRES_PASSWORD:-edge_password}@postgres:5432/${POSTGRES_DB:-edge_db}
+      - DATABASE_URL=postgresql://edge:edge_password@postgres:5432/${POSTGRES_DB:-edge_db}
       - REDIS_URL=redis://redis:6379/0
-      - DB_POOL_SIZE=5
-      - DB_MAX_OVERFLOW=10
-      - LOG_LEVEL=INFO
+      - DB_POOL_SIZE=${DB_POOL_SIZE:-5}
+      - DB_MAX_OVERFLOW=${DB_MAX_OVERFLOW:-10}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
     env_file:
       - ../../.env
+    secrets:
+      - session_secret
+      - odds_api_key
+      - stripe_secret
     depends_on:
       postgres:
         condition: service_healthy
@@ -60,23 +66,51 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
     restart: unless-stopped
+    networks:
+      - edge-internal
 
   frontend:
     build:
       context: ../..
       dockerfile: infrastructure/docker/Dockerfile.frontend
+      target: production
     container_name: edge-frontend
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
+    networks:
+      - edge-internal
+      - edge-public
+
+secrets:
+  postgres_user:
+    file: ./secrets/postgres_user.txt
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  session_secret:
+    file: ./secrets/session_secret.txt
+  odds_api_key:
+    file: ./secrets/odds_api_key.txt
+  stripe_secret:
+    file: ./secrets/stripe_secret.txt
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  default:
-    name: edge-network
+  edge-internal:
+    driver: bridge
+    internal: true
+  edge-public:
+    driver: bridge

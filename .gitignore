@@ -97,3 +97,6 @@ server*.log
 # OS
 .DS_Store
 Thumbs.db
+
+# Docker secrets (never commit)
+infrastructure/docker/secrets/

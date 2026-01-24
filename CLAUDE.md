@@ -159,5 +159,15 @@ Track work via GitHub issues: https://github.com/MDx-Vision/Edge/issues
 
 ```bash
 cd infrastructure/docker
-docker-compose up --build
+
+# Development (no secrets needed)
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+# Production (requires secrets setup first)
+./setup-secrets.sh  # Run once, then edit secrets/*.txt
+docker-compose up --build -d
 ```
+
+**Services:** PostgreSQL, Redis, Backend (FastAPI), Frontend (nginx)
+
+**Secrets:** Stored in `infrastructure/docker/secrets/` (gitignored)
