@@ -66,7 +66,7 @@ from app.services.data_scheduler import start_schedulers, stop_schedulers
 from app.services.background_jobs import alert_scheduler
 from app.services.odds_scheduler import odds_scheduler
 
-logger = setup_logging(level=os.environ.get("LOG_LEVEL", "INFO"))
+logger = setup_logging(level=os.environ.get("LOG_LEVEL", "DEBUG"))
 
 
 @asynccontextmanager

@@ -52,7 +52,7 @@ def get_2fa_status(
     db: Session = Depends(get_db)
 ):
     return TwoFAStatusResponse(
-        enabled=user.totp_enabled,
+        enabled=user.totp_enabled or False,  # Handle None case
         verified_at=user.totp_verified_at,
         backup_codes_remaining=get_remaining_backup_codes(user)
     )
