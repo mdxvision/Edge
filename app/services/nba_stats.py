@@ -6,7 +6,6 @@ Uses the nba_api library to access NBA.com stats data.
 
 from datetime import datetime, date, timedelta
 from typing import Optional, List, Dict, Any
-import logging
 
 from nba_api.stats.static import teams as nba_teams_static
 from nba_api.stats.static import players as nba_players_static
@@ -23,10 +22,15 @@ from nba_api.stats.endpoints import (
     scoreboardv2
 )
 
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
 def get_live_nba_scores() -> List[Dict[str, Any]]:
     """
     Fetches active game data including current period and live scores.
     """
+    logger.debug("Fetching live NBA scores from NBA API")
     try:
         # ScoreboardV2 is better for high-level live status than static game logs
         sb = scoreboardv2.ScoreboardV2(league_id="00")
@@ -64,12 +68,11 @@ def get_live_nba_scores() -> List[Dict[str, Any]]:
                             "away_team_id": int(away_team_id),
                             "last_update": datetime.now().isoformat()
                         })
+        logger.info(f"Fetched {len(live_games)} live NBA games")
         return live_games
     except Exception as e:
-        logger.error(f"Live NBA score fetch failed: {e}")
+        logger.error(f"Live NBA score fetch failed: {e}", exc_info=True)
         return []
-
-logger = logging.getLogger(__name__)
 
 # NBA Team city coordinates for travel distance calculation
 NBA_TEAM_COORDS = {

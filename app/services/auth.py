@@ -8,6 +8,9 @@ import os
 
 from app.db import User, UserSession, Client
 from app.config import SESSION_SECRET, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def hash_password(password: str) -> str:
@@ -47,14 +50,18 @@ def create_user(
     initial_bankroll: float = 10000.0,
     risk_profile: str = "balanced"
 ) -> User:
+    logger.info(f"Creating new user: {username} ({email})")
+
     existing_email = db.query(User).filter(User.email == email).first()
     if existing_email:
+        logger.warning(f"Registration failed: email already exists - {email}")
         raise ValueError("Email already registered")
-    
+
     existing_username = db.query(User).filter(User.username == username).first()
     if existing_username:
+        logger.warning(f"Registration failed: username already taken - {username}")
         raise ValueError("Username already taken")
-    
+
     client = Client(
         name=username,
         bankroll=initial_bankroll,
@@ -62,7 +69,7 @@ def create_user(
     )
     db.add(client)
     db.flush()
-    
+
     user = User(
         email=email,
         username=username,
@@ -74,7 +81,8 @@ def create_user(
     db.add(user)
     db.commit()
     db.refresh(user)
-    
+
+    logger.info(f"User created successfully: {username} (id={user.id}, client_id={client.id})")
     return user
 
 
@@ -83,22 +91,28 @@ def authenticate_user(
     email_or_username: str,
     password: str
 ) -> Optional[User]:
+    logger.debug(f"Authentication attempt for: {email_or_username}")
+
     user = db.query(User).filter(
         (User.email == email_or_username) | (User.username == email_or_username)
     ).first()
-    
+
     if not user:
+        logger.warning(f"Auth failed: user not found - {email_or_username}")
         return None
-    
+
     if not user.is_active:
+        logger.warning(f"Auth failed: user inactive - {email_or_username} (id={user.id})")
         return None
-    
+
     if not verify_password(user.password_hash, password):
+        logger.warning(f"Auth failed: invalid password - {email_or_username} (id={user.id})")
         return None
-    
+
     user.last_login = datetime.utcnow()
     db.commit()
-    
+
+    logger.info(f"Auth successful: {user.username} (id={user.id})")
     return user
 
 
@@ -108,10 +122,12 @@ def create_session(
     ip_address: Optional[str] = None,
     user_agent: Optional[str] = None
 ) -> Tuple[str, str, datetime]:
+    logger.debug(f"Creating session for user {user.username} (id={user.id}) from {ip_address}")
+
     session_token = generate_token()
     refresh_token = generate_token()
     expires_at = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     session = UserSession(
         user_id=user.id,
         session_token=hash_token(session_token),
@@ -123,7 +139,8 @@ def create_session(
     )
     db.add(session)
     db.commit()
-    
+
+    logger.info(f"Session created for {user.username}, expires at {expires_at}")
     return session_token, refresh_token, expires_at
 
 
@@ -134,12 +151,18 @@ def validate_session(db: Session, session_token: str) -> Optional[User]:
         UserSession.is_valid == True,
         UserSession.expires_at > datetime.utcnow()
     ).first()
-    
+
     if not session:
+        logger.debug("Session validation failed: token not found or expired")
         return None
-    
+
     user = db.query(User).filter(User.id == session.user_id).first()
-    return user if user and user.is_active else None
+    if user and user.is_active:
+        logger.debug(f"Session valid for user {user.username} (id={user.id})")
+        return user
+
+    logger.warning(f"Session validation failed: user inactive or not found (user_id={session.user_id})")
+    return None
 
 
 def refresh_session(

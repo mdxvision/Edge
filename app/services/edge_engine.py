@@ -6,9 +6,9 @@ from app.models import SPORT_MODEL_REGISTRY
 from app.utils.odds import american_to_implied_probability, expected_value, edge as calc_edge
 from app.schemas.bets import BetCandidate
 from app.config import TEAM_SPORTS, INDIVIDUAL_SPORTS, SUPPORTED_SPORTS
-import logging
+from app.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Maximum realistic edge for sports betting (anything higher is likely a bug)
 MAX_REALISTIC_EDGE = 0.15  # 15% max edge
@@ -115,17 +115,22 @@ def find_value_bets_for_sport(
 
     try:
         if sport not in SPORT_MODEL_REGISTRY:
+            logger.warning(f"No model registered for sport: {sport}")
             return []
 
         model = SPORT_MODEL_REGISTRY[sport]
+        logger.debug(f"Finding value bets for {sport} (min_edge={min_edge})")
+
         games = get_upcoming_games(db, sport)
 
         if not games:
             logger.info(f"No upcoming games found for {sport}")
             return []
 
+        logger.debug(f"Found {len(games)} upcoming games for {sport}")
         game_data_list = [build_game_data(g, db) for g in games]
         predictions_list = model.predict_game_probabilities(game_data_list)
+        logger.debug(f"Generated predictions for {len(predictions_list)} games")
 
         predictions_by_game = {p["game_id"]: p for p in predictions_list}
 
@@ -201,7 +206,14 @@ def find_value_bets_for_sport(
 
         # Sort by edge and limit to top picks
         value_bets.sort(key=lambda x: x.edge, reverse=True)
-        return value_bets[:20]  # Limit to top 20 picks
+        top_bets = value_bets[:20]  # Limit to top 20 picks
+
+        if top_bets:
+            logger.info(f"Found {len(top_bets)} value bets for {sport}, top edge: {top_bets[0].edge:.2%}")
+        else:
+            logger.debug(f"No value bets found for {sport} with min_edge={min_edge}")
+
+        return top_bets
 
     finally:
         if close_db:
@@ -217,20 +229,22 @@ def find_value_bets_for_sports(
     if db is None:
         db = SessionLocal()
         close_db = True
-    
+
     try:
         if sports is None:
             sports = SUPPORTED_SPORTS
-        
+
+        logger.info(f"Scanning {len(sports)} sports for value bets (min_edge={min_edge})")
         all_candidates = []
-        
+
         for sport in sports:
             candidates = find_value_bets_for_sport(sport, min_edge, db)
             all_candidates.extend(candidates)
-        
+
         all_candidates.sort(key=lambda x: x.edge, reverse=True)
+        logger.info(f"Total value bets found across all sports: {len(all_candidates)}")
         return all_candidates
-        
+
     finally:
         if close_db:
             db.close()

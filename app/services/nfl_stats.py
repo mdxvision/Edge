@@ -8,9 +8,10 @@ No API key required.
 from datetime import datetime, date, timedelta
 from typing import Optional, List, Dict, Any
 import httpx
-import logging
 
-logger = logging.getLogger(__name__)
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 # ESPN API endpoints for NFL
 ESPN_NFL_BASE = "https://site.api.espn.com/apis/site/v2/sports/football/nfl"
@@ -57,16 +58,24 @@ NFL_TEAMS = {
 
 async def _fetch_espn(url: str, params: Dict[str, Any] = None) -> Optional[Dict]:
     """Fetch data from ESPN API with error handling."""
+    logger.debug(f"ESPN NFL request: {url} params={params}")
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url, params=params)
             response.raise_for_status()
+            logger.debug(f"ESPN NFL success: {url} status={response.status_code}")
             return response.json()
+    except httpx.TimeoutException:
+        logger.error(f"ESPN NFL timeout: {url}")
+        return None
+    except httpx.HTTPStatusError as e:
+        logger.error(f"ESPN NFL HTTP error: {url} status={e.response.status_code}")
+        return None
     except httpx.HTTPError as e:
-        logger.error(f"ESPN API error: {e}")
+        logger.error(f"ESPN NFL API error: {url} error={e}", exc_info=True)
         return None
     except Exception as e:
-        logger.error(f"Error fetching ESPN data: {e}")
+        logger.error(f"ESPN NFL unexpected error: {url} error={e}", exc_info=True)
         return None
 
 

@@ -8,9 +8,10 @@ Documentation: https://github.com/toddrob99/MLB-StatsAPI
 import httpx
 from datetime import datetime, date, timedelta
 from typing import Optional, List, Dict, Any
-import logging
 
-logger = logging.getLogger(__name__)
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 MLB_API_BASE = "https://statsapi.mlb.com/api/v1"
 
@@ -61,26 +62,42 @@ BALLPARK_FACTORS = {
 async def _make_request(endpoint: str, params: Optional[Dict] = None) -> Optional[Dict]:
     """Make an async request to the MLB Stats API."""
     url = f"{MLB_API_BASE}/{endpoint}"
+    logger.debug(f"MLB API request: {endpoint} params={params}")
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url, params=params)
             response.raise_for_status()
+            logger.debug(f"MLB API success: {endpoint} status={response.status_code}")
             return response.json()
+    except httpx.TimeoutException:
+        logger.error(f"MLB API timeout: {endpoint}")
+        return None
+    except httpx.HTTPStatusError as e:
+        logger.error(f"MLB API HTTP error: {endpoint} status={e.response.status_code}")
+        return None
     except httpx.HTTPError as e:
-        logger.error(f"MLB API request failed: {e}")
+        logger.error(f"MLB API request failed: {endpoint} error={e}", exc_info=True)
         return None
 
 
 def _make_request_sync(endpoint: str, params: Optional[Dict] = None) -> Optional[Dict]:
     """Make a synchronous request to the MLB Stats API."""
     url = f"{MLB_API_BASE}/{endpoint}"
+    logger.debug(f"MLB API sync request: {endpoint} params={params}")
     try:
         with httpx.Client(timeout=30.0) as client:
             response = client.get(url, params=params)
             response.raise_for_status()
+            logger.debug(f"MLB API sync success: {endpoint} status={response.status_code}")
             return response.json()
+    except httpx.TimeoutException:
+        logger.error(f"MLB API sync timeout: {endpoint}")
+        return None
+    except httpx.HTTPStatusError as e:
+        logger.error(f"MLB API sync HTTP error: {endpoint} status={e.response.status_code}")
+        return None
     except httpx.HTTPError as e:
-        logger.error(f"MLB API request failed: {e}")
+        logger.error(f"MLB API sync request failed: {endpoint} error={e}", exc_info=True)
         return None
 
 

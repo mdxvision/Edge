@@ -5,7 +5,9 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.db import Game, Market, Line, Team, OddsSnapshot
+from app.utils.logging import get_logger
 
+logger = get_logger(__name__)
 
 THE_ODDS_API_KEY = os.environ.get("THE_ODDS_API_KEY")
 THE_ODDS_API_BASE = "https://api.the-odds-api.com/v4"
@@ -30,19 +32,25 @@ def is_odds_api_configured() -> bool:
 
 async def get_available_sports() -> List[Dict[str, Any]]:
     if not THE_ODDS_API_KEY:
+        logger.warning("Odds API not configured - THE_ODDS_API_KEY missing")
         return []
-    
+
+    logger.debug("Fetching available sports from The Odds API")
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{THE_ODDS_API_BASE}/sports",
                 params={"apiKey": THE_ODDS_API_KEY}
             )
-        
+
         if response.status_code == 200:
-            return response.json()
+            sports = response.json()
+            logger.info(f"Fetched {len(sports)} available sports")
+            return sports
+        logger.error(f"Odds API returned status {response.status_code}: {response.text[:200]}")
         return []
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to fetch sports from Odds API: {e}", exc_info=True)
         return []
 
 
@@ -52,14 +60,17 @@ async def fetch_odds(
     markets: str = "h2h,spreads,totals"
 ) -> List[Dict[str, Any]]:
     if not THE_ODDS_API_KEY:
+        logger.warning("Odds API not configured - THE_ODDS_API_KEY missing")
         return []
-    
+
     api_sport = SPORT_MAPPING.get(sport)
     if not api_sport:
+        logger.warning(f"Unknown sport mapping for: {sport}")
         return []
-    
+
+    logger.debug(f"Fetching odds for {sport} (api_sport={api_sport}, regions={regions})")
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
                 f"{THE_ODDS_API_BASE}/sports/{api_sport}/odds",
                 params={
@@ -69,20 +80,29 @@ async def fetch_odds(
                     "oddsFormat": "american"
                 }
             )
-        
+
         if response.status_code == 200:
-            return response.json()
+            data = response.json()
+            logger.info(f"Fetched odds for {sport}: {len(data)} games")
+            return data
+        logger.error(f"Odds API error for {sport}: status={response.status_code}, response={response.text[:200]}")
         return []
-    except Exception:
+    except httpx.TimeoutException:
+        logger.error(f"Timeout fetching odds for {sport}")
+        return []
+    except Exception as e:
+        logger.error(f"Failed to fetch odds for {sport}: {e}", exc_info=True)
         return []
 
 
 async def fetch_and_store_odds(db: Session, sport: str) -> int:
+    logger.info(f"Starting odds fetch and store for {sport}")
     games_data = await fetch_odds(sport)
-    
+
     if not games_data:
+        logger.warning(f"No odds data returned for {sport}")
         return 0
-    
+
     count = 0
     
     for game_data in games_data:
@@ -190,8 +210,9 @@ async def fetch_and_store_odds(db: Session, sport: str) -> int:
                         line_value=point
                     )
                     db.add(snapshot)
-    
+
     db.commit()
+    logger.info(f"Stored odds for {sport}: {count} new games, {len(games_data)} total games processed")
     return count
 
 
