@@ -46,6 +46,7 @@ Edge/
 | `arbitrage.py` | Cross-book arb detection |
 | `push_notifications.py` | Firebase push notifications |
 | `edge_alerts.py` | Alert trigger system |
+| `clv_tracker.py` | CLV capture & calibration |
 
 ## 8-Factor Edge System
 

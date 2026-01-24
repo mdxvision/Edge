@@ -26,6 +26,13 @@ from app.services.arbitrage import (
     calculate_arb_stakes,
     ArbOpportunity
 )
+from app.services.clv_tracker import (
+    capture_closing_lines,
+    batch_update_clv,
+    get_calibration_metrics,
+    get_edge_accuracy,
+    get_clv_roi_correlation
+)
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -501,3 +508,129 @@ def calculate_arbitrage_stakes(request: StakeCalculatorRequest):
     )
 
     return StakeCalculatorResponse(**result)
+
+
+# CLV Tracking Endpoints
+
+class CalibrationResponse(BaseModel):
+    calibration_score: Optional[float]
+    brier_score: Optional[float]
+    sample_size: int
+    calibration_by_bucket: Optional[List[Dict[str, Any]]]
+    interpretation: Optional[str]
+    message: Optional[str] = None
+
+
+@router.get("/clv/calibration", response_model=CalibrationResponse)
+def get_model_calibration(
+    sport: Optional[str] = Query(None, description="Filter by sport"),
+    days: int = Query(90, ge=7, le=365),
+    db: Session = Depends(get_db)
+):
+    """
+    Get model calibration metrics.
+
+    Measures how well predicted probabilities match actual outcomes.
+    A calibration score of 90+ indicates excellent calibration.
+    """
+    result = get_calibration_metrics(db, sport, days)
+    return CalibrationResponse(**result)
+
+
+class EdgeAccuracyResponse(BaseModel):
+    sample_size: int
+    overall_roi: Optional[float]
+    total_profit: Optional[float]
+    edge_analysis: Optional[List[Dict[str, Any]]]
+    message: Optional[str] = None
+
+
+@router.get("/clv/edge-accuracy", response_model=EdgeAccuracyResponse)
+def get_edge_accuracy_metrics(
+    sport: Optional[str] = Query(None, description="Filter by sport"),
+    days: int = Query(90, ge=7, le=365),
+    db: Session = Depends(get_db)
+):
+    """
+    Analyze accuracy of edge predictions by edge range.
+
+    Shows win rate and ROI for different edge buckets (1-3%, 3-5%, etc.)
+    """
+    result = get_edge_accuracy(db, sport, days)
+    return EdgeAccuracyResponse(**result)
+
+
+class CLVCorrelationResponse(BaseModel):
+    correlation: Optional[float]
+    sample_size: int
+    positive_clv_bets: Optional[int]
+    positive_clv_roi: Optional[float]
+    negative_clv_bets: Optional[int]
+    negative_clv_roi: Optional[float]
+    interpretation: Optional[str]
+    message: Optional[str] = None
+
+
+@router.get("/clv/correlation", response_model=CLVCorrelationResponse)
+def get_clv_correlation(
+    days: int = Query(90, ge=7, le=365),
+    user: User = Depends(require_auth),
+    db: Session = Depends(get_db)
+):
+    """
+    Analyze correlation between CLV and ROI.
+
+    Strong positive correlation indicates skill-based betting.
+    """
+    result = get_clv_roi_correlation(db, user.id, days)
+    return CLVCorrelationResponse(**result)
+
+
+@router.get("/clv/correlation/global", response_model=CLVCorrelationResponse)
+def get_global_clv_correlation(
+    days: int = Query(90, ge=7, le=365),
+    db: Session = Depends(get_db)
+):
+    """
+    Get global CLV-ROI correlation across all users.
+    """
+    result = get_clv_roi_correlation(db, None, days)
+    return CLVCorrelationResponse(**result)
+
+
+class ClosingLineResponse(BaseModel):
+    games_processed: int
+    lines_captured: int
+    timestamp: str
+
+
+@router.post("/clv/capture-closing-lines", response_model=ClosingLineResponse)
+def trigger_closing_line_capture(
+    hours_before: float = Query(0.5, ge=0.1, le=2.0),
+    db: Session = Depends(get_db)
+):
+    """
+    Manually trigger closing line capture.
+
+    Captures current odds for games starting within the specified time window.
+    Should be run periodically (every 15-30 min) close to game times.
+    """
+    result = capture_closing_lines(db, hours_before)
+    return ClosingLineResponse(**result)
+
+
+class BatchCLVResponse(BaseModel):
+    updated: int
+    failed: int
+    processed: int
+
+
+@router.post("/clv/batch-update", response_model=BatchCLVResponse)
+def trigger_batch_clv_update(db: Session = Depends(get_db)):
+    """
+    Batch update CLV for settled bets.
+
+    Calculates CLV for bets that don't have it yet.
+    """
+    result = batch_update_clv(db)
+    return BatchCLVResponse(**result)
