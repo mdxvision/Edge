@@ -172,7 +172,7 @@ export default function Security() {
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {setupData.backup_codes.map((code, idx) => (
+                  {setupData.backup_codes?.map((code, idx) => (
                     <code key={idx} className="text-sm bg-white dark:bg-surface-800 px-3 py-2 rounded-lg text-center text-surface-900 dark:text-white font-mono">
                       {code}
                     </code>
