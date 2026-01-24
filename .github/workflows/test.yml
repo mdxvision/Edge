@@ -28,25 +28,31 @@ jobs:
 
   frontend-e2e:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: sqlite:///./test_e2e.db
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install Python dependencies
         run: |
           pip install -r requirements.txt
           pip install uvicorn
-      
+
+      - name: Seed test user first
+        run: |
+          python scripts/seed_test_user.py
+
       - name: Start backend server
         run: |
-          nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 &
+          nohup uvicorn app.main:app --host 0.0.0.0 --port 8080 > backend.log 2>&1 &
           echo "Backend PID: $!"
           sleep 10
-          curl http://localhost:8000/health || cat backend.log
+          curl http://localhost:8080/health || cat backend.log
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -68,8 +74,8 @@ jobs:
       - name: Start frontend server
         run: |
           cd client
-          npm run preview -- --port 5000 &
-          sleep 5
+          npm run dev -- --port 5000 &
+          sleep 10
       
       - name: Run Cypress E2E tests
         uses: cypress-io/github-action@v6
