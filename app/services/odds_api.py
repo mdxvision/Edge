@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.db import Game, Market, Line, Team, OddsSnapshot
 from app.utils.logging import get_logger
+from app.utils.cache import cached, cache, TTL_MEDIUM, TTL_HOUR, PREFIX_ODDS
 
 logger = get_logger(__name__)
 
@@ -30,7 +31,9 @@ def is_odds_api_configured() -> bool:
     return bool(THE_ODDS_API_KEY)
 
 
+@cached(PREFIX_ODDS, ttl=TTL_HOUR)
 async def get_available_sports() -> List[Dict[str, Any]]:
+    """Fetch available sports from The Odds API. Cached for 1 hour."""
     if not THE_ODDS_API_KEY:
         logger.warning("Odds API not configured - THE_ODDS_API_KEY missing")
         return []
@@ -54,11 +57,13 @@ async def get_available_sports() -> List[Dict[str, Any]]:
         return []
 
 
+@cached(PREFIX_ODDS, ttl=TTL_MEDIUM)
 async def fetch_odds(
     sport: str,
     regions: str = "us",
     markets: str = "h2h,spreads,totals"
 ) -> List[Dict[str, Any]]:
+    """Fetch odds for a sport from The Odds API. Cached for 5 minutes."""
     if not THE_ODDS_API_KEY:
         logger.warning("Odds API not configured - THE_ODDS_API_KEY missing")
         return []

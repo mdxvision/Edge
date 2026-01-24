@@ -4,6 +4,7 @@ from typing import List, Optional
 from app.db import get_db, Game, Team, Competitor
 from app.schemas.games import GameRead, TeamRead, CompetitorRead
 from app.config import SUPPORTED_SPORTS, TEAM_SPORTS
+from app.utils.cache import cache, TTL_SHORT, PREFIX_GAMES, PREFIX_TEAMS
 
 router = APIRouter(prefix="/games", tags=["Games"])
 
@@ -14,13 +15,19 @@ def list_games(
     limit: int = Query(50, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
+    """List games with optional sport filter. Cached for 1 minute."""
+    cache_key = f"{PREFIX_GAMES}:list:{sport or 'all'}:{limit}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+
     query = db.query(Game)
-    
+
     if sport:
         query = query.filter(Game.sport == sport)
-    
+
     games = query.order_by(Game.start_time).limit(limit).all()
-    
+
     result = []
     for game in games:
         game_read = GameRead(
@@ -39,7 +46,8 @@ def list_games(
             league=game.league
         )
         result.append(game_read)
-    
+
+    cache.set(cache_key, [r.model_dump() for r in result], TTL_SHORT)
     return result
 
 
@@ -57,12 +65,20 @@ def list_teams(
     sport: Optional[str] = Query(None, description="Filter by sport"),
     db: Session = Depends(get_db)
 ):
+    """List teams with optional sport filter. Cached for 1 minute."""
+    cache_key = f"{PREFIX_TEAMS}:list:{sport or 'all'}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+
     query = db.query(Team)
-    
+
     if sport:
         query = query.filter(Team.sport == sport)
-    
-    return query.all()
+
+    teams = query.all()
+    cache.set(cache_key, [TeamRead.model_validate(t).model_dump() for t in teams], TTL_SHORT)
+    return teams
 
 
 @router.get("/competitors", response_model=List[CompetitorRead])
@@ -70,9 +86,17 @@ def list_competitors(
     sport: Optional[str] = Query(None, description="Filter by sport"),
     db: Session = Depends(get_db)
 ):
+    """List competitors with optional sport filter. Cached for 1 minute."""
+    cache_key = f"{PREFIX_TEAMS}:competitors:{sport or 'all'}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+
     query = db.query(Competitor)
-    
+
     if sport:
         query = query.filter(Competitor.sport == sport)
-    
-    return query.all()
+
+    competitors = query.all()
+    cache.set(cache_key, [CompetitorRead.model_validate(c).model_dump() for c in competitors], TTL_SHORT)
+    return competitors

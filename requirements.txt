@@ -18,3 +18,5 @@ stripe>=8.0.0
 firebase-admin>=6.0.0
 nba_api>=1.4.1
 requests>=2.31.0
+redis>=5.0.0
+python-dotenv>=1.0.0

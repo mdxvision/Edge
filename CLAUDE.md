@@ -24,7 +24,9 @@ Edge/
 │   ├── db.py               # SQLAlchemy models
 │   ├── routers/            # API endpoints
 │   ├── services/           # Business logic
-│   └── utils/logging.py    # Logging (use get_logger(__name__))
+│   └── utils/
+│       ├── logging.py      # Logging (use get_logger(__name__))
+│       └── cache.py        # Redis cache with in-memory fallback
 ├── client/                 # React + Vite frontend
 ├── tests/                  # Pytest tests
 └── scripts/                # Utility scripts
@@ -88,6 +90,7 @@ See `.env.example` for all options. Required:
 DATABASE_URL=postgresql://user:pass@localhost:5432/edge_db  # or sqlite:///...
 THE_ODDS_API_KEY=xxx
 SESSION_SECRET=xxx
+REDIS_URL=redis://localhost:6379/0  # optional, falls back to in-memory
 ```
 
 ## Logging
@@ -104,6 +107,24 @@ logger.error("Failed", exc_info=True)
 ```
 
 Logs write to `app.log` - watch with `./watch_logs.sh`
+
+## Caching
+
+Redis-backed with in-memory fallback:
+```python
+from app.utils.cache import cache, cached, TTL_MEDIUM
+
+# Direct access
+cache.set("key", value, ttl=300)
+value = cache.get("key")
+
+# Decorator (auto-generates cache key)
+@cached("odds", ttl=TTL_MEDIUM)
+async def fetch_odds(sport: str):
+    ...
+```
+
+Check cache stats: `curl http://localhost:8080/health/cache`
 
 ## Testing
 
