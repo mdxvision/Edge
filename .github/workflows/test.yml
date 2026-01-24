@@ -52,8 +52,17 @@ jobs:
         run: |
           nohup uvicorn app.main:app --host 0.0.0.0 --port 8080 > backend.log 2>&1 &
           echo "Backend PID: $!"
-          sleep 10
-          curl http://localhost:8080/health || cat backend.log
+          # Wait for backend to be ready with retries
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/health > /dev/null 2>&1; then
+              echo "Backend is ready!"
+              curl http://localhost:8080/health
+              break
+            fi
+            echo "Waiting for backend... attempt $i"
+            sleep 2
+          done
+          curl http://localhost:8080/health || (cat backend.log && exit 1)
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
