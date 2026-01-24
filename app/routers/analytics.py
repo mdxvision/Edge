@@ -21,6 +21,11 @@ from app.services.odds_scheduler import (
     get_line_movements,
     get_odds_history
 )
+from app.services.arbitrage import (
+    scan_for_arbitrage,
+    calculate_arb_stakes,
+    ArbOpportunity
+)
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -392,3 +397,107 @@ def get_performance_summary(
         peak_bankroll=round(peak, 2),
         current_streak=streak
     )
+
+
+# Arbitrage Detection Endpoints
+
+class ArbOpportunityResponse(BaseModel):
+    game_id: int
+    sport: str
+    home_team: str
+    away_team: str
+    market_type: str
+    start_time: str
+    profit_margin: float
+    bet1_selection: str
+    bet1_sportsbook: str
+    bet1_odds: int
+    bet1_stake_pct: float
+    bet2_selection: str
+    bet2_sportsbook: str
+    bet2_odds: int
+    bet2_stake_pct: float
+    bet3_selection: Optional[str] = None
+    bet3_sportsbook: Optional[str] = None
+    bet3_odds: Optional[int] = None
+    bet3_stake_pct: Optional[float] = None
+
+
+@router.get("/arbitrage", response_model=List[ArbOpportunityResponse])
+def get_arbitrage_opportunities(
+    sport: Optional[str] = Query(None, description="Filter by sport"),
+    min_profit: float = Query(0.0, ge=0, le=20, description="Minimum profit margin %"),
+    db: Session = Depends(get_db)
+):
+    """
+    Scan for arbitrage opportunities across all sportsbooks.
+
+    Returns list of opportunities sorted by profit margin (highest first).
+    """
+    opportunities = scan_for_arbitrage(db, sport, min_profit)
+
+    return [
+        ArbOpportunityResponse(
+            game_id=arb.game_id,
+            sport=arb.sport,
+            home_team=arb.home_team,
+            away_team=arb.away_team,
+            market_type=arb.market_type,
+            start_time=arb.start_time.isoformat(),
+            profit_margin=arb.profit_margin,
+            bet1_selection=arb.bet1_selection,
+            bet1_sportsbook=arb.bet1_sportsbook,
+            bet1_odds=arb.bet1_odds,
+            bet1_stake_pct=arb.bet1_stake_pct,
+            bet2_selection=arb.bet2_selection,
+            bet2_sportsbook=arb.bet2_sportsbook,
+            bet2_odds=arb.bet2_odds,
+            bet2_stake_pct=arb.bet2_stake_pct,
+            bet3_selection=arb.bet3_selection,
+            bet3_sportsbook=arb.bet3_sportsbook,
+            bet3_odds=arb.bet3_odds,
+            bet3_stake_pct=arb.bet3_stake_pct,
+        )
+        for arb in opportunities
+    ]
+
+
+class StakeCalculatorRequest(BaseModel):
+    odds1: int
+    odds2: int
+    total_stake: float = 100.0
+    odds3: Optional[int] = None
+
+
+class StakeCalculatorResponse(BaseModel):
+    is_arb: bool
+    margin: float
+    total_stake: Optional[float] = None
+    stakes: Optional[List[float]] = None
+    guaranteed_payout: Optional[float] = None
+    profit: Optional[float] = None
+    roi_percent: Optional[float] = None
+    message: Optional[str] = None
+
+
+@router.post("/arbitrage/calculate", response_model=StakeCalculatorResponse)
+def calculate_arbitrage_stakes(request: StakeCalculatorRequest):
+    """
+    Calculate optimal stakes for an arbitrage bet.
+
+    Provide American odds for each outcome and total stake amount.
+    Returns stake distribution, guaranteed payout, and expected profit.
+
+    Example:
+    - odds1: +150 (Team A moneyline at Book 1)
+    - odds2: +140 (Team B moneyline at Book 2)
+    - total_stake: 1000
+    """
+    result = calculate_arb_stakes(
+        odds1=request.odds1,
+        odds2=request.odds2,
+        total_stake=request.total_stake,
+        odds3=request.odds3
+    )
+
+    return StakeCalculatorResponse(**result)

@@ -43,6 +43,7 @@ Edge/
 | `nba_stats.py` | NBA API (nba_api package) |
 | `nfl_stats.py` | ESPN API for NFL |
 | `auth.py` | User authentication |
+| `arbitrage.py` | Cross-book arb detection |
 
 ## 8-Factor Edge System
 
@@ -60,12 +61,14 @@ Edge/
 ## API Endpoints (Main)
 
 ```
-POST /auth/register          # Create account
-POST /auth/login             # Login
-GET  /games?sport=NBA        # List games
-POST /recommendations/run    # Generate picks
-GET  /tracker/picks          # Get tracked picks
-GET  /analytics/edge-tracker # 8-factor analysis
+POST /auth/register              # Create account
+POST /auth/login                 # Login
+GET  /games?sport=NBA            # List games
+POST /recommendations/run        # Generate picks
+GET  /tracker/picks              # Get tracked picks
+GET  /analytics/edge-tracker     # 8-factor analysis
+GET  /analytics/arbitrage        # Find arb opportunities
+POST /analytics/arbitrage/calculate  # Stake calculator
 ```
 
 ## Database
