@@ -121,4 +121,15 @@ curl http://localhost:8080/health
 
 Track work via GitHub issues: https://github.com/MDx-Vision/Edge/issues
 
-See `ARCHITECTURE.md` for detailed system design.
+## Documentation
+
+- `docs/ARCHITECTURE.md` - System design
+- `docs/BUILD_CHECKLIST.md` - Build tasks
+- `docs/TEST_PLAN.md` - Testing strategy
+
+## Docker
+
+```bash
+cd infrastructure/docker
+docker-compose up --build
+```

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.backend
+    container_name: edge-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=sqlite:///data/sports_betting.db
+      - LOG_LEVEL=INFO
+    env_file:
+      - ../../.env
+    volumes:
+      - ../../data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.frontend
+    container_name: edge-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: edge-network

@@ -77,3 +77,23 @@ cython_debug/
 
 # QA System results
 .qa-results/
+
+# Log files (keep out of repo)
+*.log
+app.log
+backend.log
+server*.log
+
+# Database files
+*.db
+*.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
