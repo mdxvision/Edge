@@ -127,7 +127,7 @@ export default function WeatherImpact({
       setError(null);
 
       try {
-        const response = await api.weather.getImpact(sport, venue, gameDate, gameHour);
+        const response = await api.weather.getImpact(sport, venue, gameDate || '', gameHour);
         setData(response);
       } catch (err) {
         console.error('Failed to fetch weather impact:', err);

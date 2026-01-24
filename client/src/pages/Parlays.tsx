@@ -287,7 +287,7 @@ export default function Parlays() {
               <Card padding="lg">
                 <h2 className="text-h2 text-surface-900 dark:text-white mb-4">Pick Breakdown</h2>
                 <div className="space-y-2">
-                  {analysis.legs.map((leg, idx) => (
+                  {analysis.legs.map((leg: { selection: string; edge: number }, idx: number) => (
                     <div
                       key={idx}
                       className="flex items-center justify-between p-3 border-b border-surface-200 dark:border-surface-700 last:border-0"

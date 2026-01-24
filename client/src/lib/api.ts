@@ -49,7 +49,7 @@ export const api = {
           ...(data.totp_code && { totp_code: data.totp_code })
         }),
       }),
-    register: (data: { email: string; username: string; password: string }) =>
+    register: (data: { email: string; username: string; password: string; initial_bankroll?: number; risk_profile?: string }) =>
       request<{ access_token: string; refresh_token: string; user: any }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(data),
@@ -112,14 +112,14 @@ export const api = {
 
   // Billing
   billing: {
-    getPlans: () => request<any[]>('/billing/plans'),
+    getPlans: () => request<{ plans: any[] }>('/billing/plans'),
     getSubscription: () => request<any>('/billing/subscription'),
     createCheckout: (priceId: string, billingPeriod: string) =>
-      request<{ url: string }>('/billing/checkout', {
+      request<{ checkout_url: string }>('/billing/checkout', {
         method: 'POST',
         body: JSON.stringify({ price_id: priceId, billing_period: billingPeriod }),
       }),
-    createPortal: () => request<{ url: string }>('/billing/portal', { method: 'POST' }),
+    createPortal: () => request<{ portal_url: string }>('/billing/portal', { method: 'POST' }),
   },
 
   // Alerts
@@ -146,7 +146,7 @@ export const api = {
   // Telegram
   telegram: {
     getStatus: () => request<any>('/telegram/status'),
-    generateLinkCode: () => request<{ code: string }>('/telegram/link', { method: 'POST' }),
+    generateLinkCode: () => request<{ code: string; deep_link: string }>('/telegram/link', { method: 'POST' }),
     unlink: () => request<void>('/telegram/unlink', { method: 'POST' }),
   },
 

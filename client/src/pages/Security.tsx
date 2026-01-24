@@ -17,7 +17,7 @@ export default function Security() {
   const [setupData, setSetupData] = useState<{
     secret: string;
     qr_code: string;
-    backup_codes: string[];
+    backup_codes?: string[];
   } | null>(null);
 
   const { data: twoFAStatus, isLoading: statusLoading } = useQuery({
@@ -315,7 +315,7 @@ export default function Security() {
                   <tr key={log.id} className="border-b border-surface-200 dark:border-surface-700 last:border-0">
                     <td className="py-4 pr-4">
                       <span className="font-medium text-surface-900 dark:text-white">
-                        {log.action.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                        {log.action.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
                       </span>
                       {log.resource_type && (
                         <span className="text-sm text-surface-500 dark:text-surface-400 ml-2">

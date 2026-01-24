@@ -6,7 +6,8 @@
  * to show wrong day after 7 PM EST.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+// @ts-ignore - vitest types
+import { describe, it, expect } from 'vitest';
 
 // Helper to format date like the API does
 function formatLocalDate(date: Date): string {
@@ -63,8 +64,8 @@ describe('API Route Formats', () => {
     // Correct format
     const correctRoute = `/h2h/${sport}/${encodeURIComponent(team1)}/${encodeURIComponent(team2)}/summary`;
 
-    // Wrong format (old bug)
-    const wrongRoute = `/h2h/summary?sport=${sport}&team1=${team1}&team2=${team2}`;
+    // Wrong format (old bug) - kept as comment for documentation
+    // const wrongRoute = `/h2h/summary?sport=${sport}&team1=${team1}&team2=${team2}`;
 
     expect(correctRoute).toContain('/h2h/nba/');
     expect(correctRoute).toContain('/summary');
@@ -80,8 +81,8 @@ describe('API Route Formats', () => {
     // Correct format
     const correctRoute = `/weather/impact/${sport}?venue=${encodeURIComponent(venue)}&game_date=${date}&game_hour=${hour}`;
 
-    // Wrong format (old bug)
-    const wrongRoute = `/weather/impact?sport=${sport}&venue=${venue}&date=${date}&hour=${hour}`;
+    // Wrong format (old bug) - kept as comment for documentation
+    // const wrongRoute = `/weather/impact?sport=${sport}&venue=${venue}&date=${date}&hour=${hour}`;
 
     expect(correctRoute).toContain('/weather/impact/nfl');
     expect(correctRoute).toContain('game_date=');
