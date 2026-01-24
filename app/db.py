@@ -2338,6 +2338,39 @@ class UserDevice(Base):
     user = relationship("User", back_populates="devices")
 
 
+# Notification Preferences
+class NotificationPreferences(Base):
+    __tablename__ = "notification_preferences"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+
+    # Global settings
+    push_enabled = Column(Boolean, default=True)
+    email_enabled = Column(Boolean, default=False)
+
+    # Thresholds
+    min_edge_threshold = Column(Float, default=5.0)  # Minimum edge % to trigger alert
+    min_arb_threshold = Column(Float, default=1.0)   # Minimum arb % to trigger alert
+
+    # Sport-specific settings (JSON: {"NBA": true, "NFL": true, ...})
+    sports_enabled = Column(Text, nullable=True)  # JSON string
+
+    # Quiet hours (in user's timezone)
+    quiet_hours_enabled = Column(Boolean, default=False)
+    quiet_start_hour = Column(Integer, default=22)  # 10 PM
+    quiet_end_hour = Column(Integer, default=8)     # 8 AM
+    timezone = Column(String(50), default="America/New_York")
+
+    # Frequency limits
+    max_notifications_per_hour = Column(Integer, default=10)
+    last_notification_at = Column(DateTime, nullable=True)
+    notifications_this_hour = Column(Integer, default=0)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 # Subscription Payment History
 class PaymentHistory(Base):
     __tablename__ = "payment_history"

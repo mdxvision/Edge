@@ -58,6 +58,7 @@ from app.routers.billing import router as billing_router
 from app.routers.api_keys import router as api_keys_router
 from app.routers.devices import router as devices_router
 from app.routers.tracker import router as tracker_router
+from app.routers.notifications import router as notifications_router
 from app.middleware.rate_limit import RateLimitMiddleware, AuthRateLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.utils.logging import setup_logging, request_logger
@@ -243,6 +244,7 @@ app.include_router(billing_router)
 app.include_router(api_keys_router)
 app.include_router(devices_router)
 app.include_router(tracker_router)
+app.include_router(notifications_router)
 
 
 @app.middleware("http")

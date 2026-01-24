@@ -44,6 +44,8 @@ Edge/
 | `nfl_stats.py` | ESPN API for NFL |
 | `auth.py` | User authentication |
 | `arbitrage.py` | Cross-book arb detection |
+| `push_notifications.py` | Firebase push notifications |
+| `edge_alerts.py` | Alert trigger system |
 
 ## 8-Factor Edge System
 

@@ -2,14 +2,18 @@
 Push Notifications Service
 
 Handles Firebase Cloud Messaging for mobile and web push notifications.
+Includes quiet hours, rate limiting, and configurable thresholds.
 """
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 
-from app.db import User, UserDevice
+from app.db import User, UserDevice, NotificationPreferences
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 # Firebase Admin SDK - optional import
 try:
@@ -335,3 +339,304 @@ async def get_user_devices(db: Session, user_id: int) -> List[Dict[str, Any]]:
         }
         for d in devices
     ]
+
+
+# Notification preferences and control functions
+
+def is_in_quiet_hours(prefs: NotificationPreferences) -> bool:
+    """Check if current time is within user's quiet hours."""
+    if not prefs.quiet_hours_enabled:
+        return False
+
+    try:
+        from zoneinfo import ZoneInfo
+        tz = ZoneInfo(prefs.timezone or "America/New_York")
+        now = datetime.now(tz)
+        current_hour = now.hour
+
+        start = prefs.quiet_start_hour
+        end = prefs.quiet_end_hour
+
+        # Handle overnight quiet hours (e.g., 22:00 to 08:00)
+        if start > end:
+            return current_hour >= start or current_hour < end
+        else:
+            return start <= current_hour < end
+    except Exception as e:
+        logger.warning(f"Error checking quiet hours: {e}")
+        return False
+
+
+def check_rate_limit(db: Session, prefs: NotificationPreferences) -> bool:
+    """
+    Check if user is under rate limit.
+
+    Returns True if notification can be sent, False if rate limited.
+    """
+    now = datetime.utcnow()
+    hour_ago = now - timedelta(hours=1)
+
+    if prefs.last_notification_at and prefs.last_notification_at > hour_ago:
+        if prefs.notifications_this_hour >= prefs.max_notifications_per_hour:
+            return False
+    else:
+        # Reset counter if over an hour has passed
+        prefs.notifications_this_hour = 0
+        db.commit()
+
+    return True
+
+
+def record_notification(db: Session, prefs: NotificationPreferences):
+    """Record that a notification was sent for rate limiting."""
+    now = datetime.utcnow()
+    hour_ago = now - timedelta(hours=1)
+
+    if prefs.last_notification_at and prefs.last_notification_at > hour_ago:
+        prefs.notifications_this_hour += 1
+    else:
+        prefs.notifications_this_hour = 1
+
+    prefs.last_notification_at = now
+    db.commit()
+
+
+def can_send_notification(
+    db: Session,
+    user_id: int,
+    notification_type: str = "general",
+    sport: Optional[str] = None,
+    edge_value: Optional[float] = None,
+    arb_value: Optional[float] = None
+) -> bool:
+    """
+    Check if a notification can be sent to a user.
+
+    Checks:
+    - Push notifications enabled
+    - Quiet hours
+    - Rate limit
+    - Sport-specific settings
+    - Edge/arb thresholds
+    """
+    prefs = db.query(NotificationPreferences).filter(
+        NotificationPreferences.user_id == user_id
+    ).first()
+
+    # No preferences = use defaults (allow)
+    if not prefs:
+        return True
+
+    # Check if push enabled
+    if not prefs.push_enabled:
+        logger.debug(f"Push disabled for user {user_id}")
+        return False
+
+    # Check quiet hours
+    if is_in_quiet_hours(prefs):
+        logger.debug(f"User {user_id} in quiet hours")
+        return False
+
+    # Check rate limit
+    if not check_rate_limit(db, prefs):
+        logger.debug(f"User {user_id} rate limited")
+        return False
+
+    # Check sport-specific settings
+    if sport and prefs.sports_enabled:
+        try:
+            sports_config = json.loads(prefs.sports_enabled)
+            if not sports_config.get(sport, True):
+                logger.debug(f"Sport {sport} disabled for user {user_id}")
+                return False
+        except json.JSONDecodeError:
+            pass
+
+    # Check edge threshold
+    if edge_value is not None and edge_value < prefs.min_edge_threshold:
+        logger.debug(f"Edge {edge_value} below threshold {prefs.min_edge_threshold}")
+        return False
+
+    # Check arb threshold
+    if arb_value is not None and arb_value < prefs.min_arb_threshold:
+        logger.debug(f"Arb {arb_value} below threshold {prefs.min_arb_threshold}")
+        return False
+
+    return True
+
+
+async def get_or_create_preferences(db: Session, user_id: int) -> NotificationPreferences:
+    """Get user's notification preferences, creating defaults if needed."""
+    prefs = db.query(NotificationPreferences).filter(
+        NotificationPreferences.user_id == user_id
+    ).first()
+
+    if not prefs:
+        prefs = NotificationPreferences(
+            user_id=user_id,
+            push_enabled=True,
+            min_edge_threshold=5.0,
+            min_arb_threshold=1.0,
+        )
+        db.add(prefs)
+        db.commit()
+        db.refresh(prefs)
+
+    return prefs
+
+
+async def update_preferences(
+    db: Session,
+    user_id: int,
+    **kwargs
+) -> NotificationPreferences:
+    """Update user's notification preferences."""
+    prefs = await get_or_create_preferences(db, user_id)
+
+    for key, value in kwargs.items():
+        if hasattr(prefs, key):
+            if key == "sports_enabled" and isinstance(value, dict):
+                value = json.dumps(value)
+            setattr(prefs, key, value)
+
+    db.commit()
+    db.refresh(prefs)
+    return prefs
+
+
+# Enhanced notification functions with preference checking
+
+async def notify_edge_alert(
+    db: Session,
+    user_id: int,
+    sport: str,
+    matchup: str,
+    edge: float,
+    pick: str,
+    odds: int
+) -> Dict[str, Any]:
+    """
+    Send edge alert with preference checking.
+
+    Respects quiet hours, rate limits, and edge thresholds.
+    """
+    if not can_send_notification(db, user_id, "edge_alert", sport, edge_value=edge):
+        return {"success": False, "reason": "notification_suppressed"}
+
+    title = f"🎯 {sport} Edge Alert"
+    body = f"{matchup}: {pick} ({odds:+d}) - {edge:.1f}% edge"
+    data = {
+        "type": "edge_alert",
+        "sport": sport,
+        "edge": str(edge),
+        "pick": pick,
+        "odds": str(odds)
+    }
+
+    result = await send_notification_to_user(db, user_id, title, body, data, "edge_alert")
+
+    if result.get("success"):
+        prefs = db.query(NotificationPreferences).filter(
+            NotificationPreferences.user_id == user_id
+        ).first()
+        if prefs:
+            record_notification(db, prefs)
+
+    return result
+
+
+async def notify_arb_alert(
+    db: Session,
+    user_id: int,
+    sport: str,
+    matchup: str,
+    profit_percent: float,
+    book1: str,
+    book2: str
+) -> Dict[str, Any]:
+    """
+    Send arbitrage alert with preference checking.
+
+    Respects quiet hours, rate limits, and arb thresholds.
+    """
+    if not can_send_notification(db, user_id, "arb_alert", sport, arb_value=profit_percent):
+        return {"success": False, "reason": "notification_suppressed"}
+
+    title = f"💰 Arbitrage Found"
+    body = f"{matchup}: {profit_percent:.2f}% profit ({book1} vs {book2})"
+    data = {
+        "type": "arb_alert",
+        "sport": sport,
+        "profit": str(profit_percent),
+        "book1": book1,
+        "book2": book2
+    }
+
+    result = await send_notification_to_user(db, user_id, title, body, data, "arb_alert")
+
+    if result.get("success"):
+        prefs = db.query(NotificationPreferences).filter(
+            NotificationPreferences.user_id == user_id
+        ).first()
+        if prefs:
+            record_notification(db, prefs)
+
+    return result
+
+
+async def broadcast_edge_alert(
+    db: Session,
+    sport: str,
+    matchup: str,
+    edge: float,
+    pick: str,
+    odds: int
+) -> Dict[str, Any]:
+    """
+    Broadcast edge alert to all eligible users.
+
+    Respects individual user preferences.
+    """
+    users = db.query(User).filter(User.is_active == True).all()
+
+    sent = 0
+    skipped = 0
+
+    for user in users:
+        result = await notify_edge_alert(db, user.id, sport, matchup, edge, pick, odds)
+        if result.get("success"):
+            sent += 1
+        else:
+            skipped += 1
+
+    logger.info(f"Broadcast edge alert: {sent} sent, {skipped} skipped")
+    return {"sent": sent, "skipped": skipped}
+
+
+async def broadcast_arb_alert(
+    db: Session,
+    sport: str,
+    matchup: str,
+    profit_percent: float,
+    book1: str,
+    book2: str
+) -> Dict[str, Any]:
+    """
+    Broadcast arbitrage alert to all eligible users.
+
+    Respects individual user preferences.
+    """
+    users = db.query(User).filter(User.is_active == True).all()
+
+    sent = 0
+    skipped = 0
+
+    for user in users:
+        result = await notify_arb_alert(db, user.id, sport, matchup, profit_percent, book1, book2)
+        if result.get("success"):
+            sent += 1
+        else:
+            skipped += 1
+
+    logger.info(f"Broadcast arb alert: {sent} sent, {skipped} skipped")
+    return {"sent": sent, "skipped": skipped}
