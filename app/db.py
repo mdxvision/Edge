@@ -1,16 +1,40 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Text, ForeignKey, Boolean
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
+from sqlalchemy.pool import QueuePool, NullPool
 from datetime import datetime
-from app.config import DATABASE_URL
+import os
 
+from app.config import DATABASE_URL
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
+
+# Database type detection
 is_sqlite = DATABASE_URL.startswith("sqlite")
+is_postgres = DATABASE_URL.startswith("postgresql")
+
+# Connection args based on database type
 connect_args = {"check_same_thread": False} if is_sqlite else {}
 
+# Engine options with connection pooling for PostgreSQL
 engine_options = {
-    "pool_pre_ping": True,
+    "pool_pre_ping": True,  # Verify connections before use
 }
-if not is_sqlite:
-    engine_options["pool_recycle"] = 300
+
+if is_postgres:
+    # PostgreSQL connection pooling settings
+    engine_options.update({
+        "poolclass": QueuePool,
+        "pool_size": int(os.environ.get("DB_POOL_SIZE", 5)),           # Base pool size
+        "max_overflow": int(os.environ.get("DB_MAX_OVERFLOW", 10)),    # Additional connections
+        "pool_recycle": 300,   # Recycle connections after 5 minutes
+        "pool_timeout": 30,    # Wait 30s for available connection
+    })
+    logger.info(f"PostgreSQL configured with pool_size={engine_options['pool_size']}, max_overflow={engine_options['max_overflow']}")
+elif is_sqlite:
+    # SQLite doesn't need pooling
+    engine_options["poolclass"] = NullPool
+    logger.info("SQLite configured (no connection pooling)")
 
 engine = create_engine(DATABASE_URL, connect_args=connect_args, **engine_options)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -68,18 +68,25 @@ GET  /analytics/edge-tracker # 8-factor analysis
 
 ## Database
 
-SQLite at `sports_betting.db`. Key tables:
+Supports SQLite (dev) and PostgreSQL (prod). Key tables:
 - `users`, `clients` - User accounts
 - `games`, `teams` - Game data
 - `tracked_picks` - Bet tracking
 - `odds_snapshots` - Line movement history
 
+**Migrate to PostgreSQL:**
+```bash
+python scripts/migrate_to_postgres.py \
+  --sqlite ./sports_betting.db \
+  --postgres postgresql://edge:password@localhost:5432/edge_db
+```
+
 ## Environment Variables
 
-Required in `.env`:
+See `.env.example` for all options. Required:
 ```
+DATABASE_URL=postgresql://user:pass@localhost:5432/edge_db  # or sqlite:///...
 THE_ODDS_API_KEY=xxx
-DATABASE_URL=sqlite:///sports_betting.db
 SESSION_SECRET=xxx
 ```
 
