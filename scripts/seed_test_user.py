@@ -7,12 +7,14 @@ import os
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.db import engine, Client
+from app.db import engine, Client, init_db
 from app.services.auth import hash_password
 from sqlalchemy import text
 from datetime import datetime
 
 def create_test_user():
+    # Initialize database tables if they don't exist
+    init_db()
     """Create a test user with the specified credentials using raw SQL."""
 
     with engine.connect() as conn:
