@@ -137,10 +137,26 @@ Check cache stats: `curl http://localhost:8080/health/cache`
 
 ## Testing
 
+**Before pushing, run all tests:**
 ```bash
+./scripts/run-tests.sh           # Full suite (requires servers running)
+./scripts/run-tests.sh --skip-e2e  # Skip Cypress (faster)
+```
+
+**Individual test commands:**
+```bash
+# Backend unit tests
 pytest tests/ -v
 pytest tests/test_auth.py -v  # Single file
+
+# Frontend build check
+cd client && npm run build
+
+# Cypress E2E tests (requires servers running)
+cd client && CYPRESS_BASE_URL=http://localhost:5173 npx cypress run
 ```
+
+**Pre-push hook:** Automatically runs tests before push (local only)
 
 ## Common Tasks
 
