@@ -109,13 +109,24 @@ jobs:
         run: |
           cd client
           npm run dev -- --port 5000 &
-          sleep 10
+          # Wait for frontend to be ready
+          for i in {1..30}; do
+            if curl -s http://localhost:5000 > /dev/null 2>&1; then
+              echo "Frontend is ready!"
+              break
+            fi
+            echo "Waiting for frontend... attempt $i"
+            sleep 2
+          done
+          curl -s http://localhost:5000 | head -20 || echo "Frontend check failed"
 
       - name: Run Cypress E2E tests
         uses: cypress-io/github-action@v6
         with:
           working-directory: client
           browser: chrome
+          wait-on: 'http://localhost:5000'
+          wait-on-timeout: 120
         env:
           CYPRESS_BASE_URL: http://localhost:5000
 
