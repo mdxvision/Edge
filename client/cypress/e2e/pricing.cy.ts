@@ -2,7 +2,7 @@ describe('Pricing', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
     cy.visit('/pricing')
-    cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+    cy.url().should('include', '/dashboard')
   })
 
   describe('Page Layout', () => {

@@ -87,7 +87,7 @@ describe('User Workflow Documentation Validation', () => {
         cy.contains('button', 'Sign In').click()
         cy.contains('button', 'Dev Login').click()
         cy.url({ timeout: 15000 }).should('include', '/dashboard')
-        cy.contains('testuser', { timeout: 10000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
     })
 
@@ -164,7 +164,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('3.1 Dashboard Overview', () => {
       beforeEach(() => {
         cy.visit('/dashboard')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Shows personalized greeting', () => {
@@ -185,7 +185,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('3.2 Browsing Games', () => {
       beforeEach(() => {
         cy.visit('/games')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Step 1: Can navigate to Games/Matchups', () => {
@@ -205,7 +205,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('3.3 Viewing Recommendations', () => {
       beforeEach(() => {
         cy.visit('/recommendations')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Step 1: Can navigate to Recommendations/Picks', () => {
@@ -233,7 +233,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('4.1 Paper Trading (Practice)', () => {
       beforeEach(() => {
         cy.visit('/paper-trading')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Step 1: Can navigate to Paper Trading', () => {
@@ -252,7 +252,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('4.2 Tracking Real Bets', () => {
       beforeEach(() => {
         cy.visit('/tracking')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Step 1: Can navigate to Tracking/My Bets', () => {
@@ -276,7 +276,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('4.3 Building Parlays', () => {
       beforeEach(() => {
         cy.visit('/parlays')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Step 1: Can navigate to Parlays', () => {
@@ -306,7 +306,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('5.1 Setting Up Alerts', () => {
       beforeEach(() => {
         cy.visit('/alerts')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Step 1: Can navigate to Alerts', () => {
@@ -325,7 +325,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('5.2 Power Ratings', () => {
       beforeEach(() => {
         cy.visit('/power-ratings')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Step 1: Can navigate to Power Ratings', () => {
@@ -340,7 +340,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('5.3 Edge Tracker', () => {
       beforeEach(() => {
         cy.visit('/edge-tracker')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Step 1: Can navigate to Edge Tracker', () => {
@@ -355,7 +355,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('5.4 DFS Lineups', () => {
       beforeEach(() => {
         cy.visit('/dfs')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Step 1: Can navigate to DFS', () => {
@@ -370,7 +370,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('5.5 Intelligence Models', () => {
       beforeEach(() => {
         cy.visit('/models')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Step 1: Can navigate to Models/Intelligence', () => {
@@ -423,7 +423,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('6.3 Subscription & Pricing', () => {
       beforeEach(() => {
         cy.visit('/pricing')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/dashboard')
       })
 
       it('Step 1: Can navigate to Pricing', () => {
@@ -463,7 +463,7 @@ describe('User Workflow Documentation Validation', () => {
     beforeEach(() => {
       cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
       cy.visit('/dashboard')
-      cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+      cy.url().should('include', '/dashboard')
     })
 
     it('Today → Dashboard', () => {

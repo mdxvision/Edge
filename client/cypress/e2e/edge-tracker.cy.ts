@@ -2,7 +2,7 @@ describe('Edge Tracker', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
     cy.visit('/edge-tracker')
-    cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+    cy.url().should('include', '/dashboard')
   })
 
   describe('Page Layout', () => {

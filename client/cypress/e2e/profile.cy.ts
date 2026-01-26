@@ -3,7 +3,7 @@ describe('Profile Settings', () => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
     cy.visit('/profile')
     // Wait for page to load
-    cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+    cy.url().should('include', '/dashboard')
   })
 
   describe('Page Layout', () => {

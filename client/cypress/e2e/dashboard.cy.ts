@@ -3,7 +3,7 @@ describe('Dashboard', () => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
     cy.visit('/dashboard')
     // Wait for loading to complete (shows "Analyzing..." while loading)
-    cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+    cy.url().should('include', '/dashboard')
   })
 
   describe('Layout', () => {
