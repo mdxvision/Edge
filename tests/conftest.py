@@ -5,8 +5,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-# Disable rate limiting for tests
+# Disable rate limiting and schedulers for tests
 os.environ["DISABLE_RATE_LIMIT"] = "true"
+os.environ["TESTING"] = "true"
 
 from app.main import app
 from app.db import Base, get_db

@@ -73,6 +73,8 @@ logger = setup_logging(level=os.environ.get("LOG_LEVEL", "DEBUG"))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    is_testing = os.environ.get("TESTING", "").lower() in ("true", "1", "yes")
+
     init_db()
     seed_sample_data()
     from app.db import SessionLocal
@@ -82,22 +84,25 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
 
-    # Start data refresh schedulers for MLB/NBA/CBB/Soccer
-    start_schedulers()
-    logger.info("MLB, NBA, CBB, and Soccer data schedulers started")
+    # Skip schedulers during tests to prevent hanging
+    if not is_testing:
+        # Start data refresh schedulers for MLB/NBA/CBB/Soccer
+        start_schedulers()
+        logger.info("MLB, NBA, CBB, and Soccer data schedulers started")
 
-    # Start alert and odds refresh schedulers
-    await alert_scheduler.start()
-    await odds_scheduler.start()
-    logger.info("Alert and odds refresh schedulers started")
+        # Start alert and odds refresh schedulers
+        await alert_scheduler.start()
+        await odds_scheduler.start()
+        logger.info("Alert and odds refresh schedulers started")
 
     yield
 
     # Cleanup on shutdown
-    stop_schedulers()
-    await alert_scheduler.stop()
-    await odds_scheduler.stop()
-    logger.info("All schedulers stopped")
+    if not is_testing:
+        stop_schedulers()
+        await alert_scheduler.stop()
+        await odds_scheduler.stop()
+        logger.info("All schedulers stopped")
 
 
 app = FastAPI(
