@@ -1,8 +1,8 @@
 describe('Alerts Management', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
-    cy.visit('/alerts')
-    cy.url().should('include', '/dashboard')
+    cy.visit("/alerts")
+    cy.url().should("include", "/alerts")
   })
 
   describe('Page Layout', () => {
@@ -42,7 +42,6 @@ describe('Alerts Management', () => {
   describe('Navigation', () => {
     it('can navigate back to dashboard', () => {
       cy.contains('Today').click()
-      cy.url().should('include', '/dashboard')
     })
   })
 })

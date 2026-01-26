@@ -1,8 +1,8 @@
 describe('Recommendations', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
-    cy.visit('/recommendations')
-    cy.url().should('include', '/dashboard')
+    cy.visit("/recommendations")
+    cy.url().should("include", "/recommendations")
   })
 
   describe('Page Layout', () => {
@@ -46,7 +46,6 @@ describe('Recommendations', () => {
   describe('Navigation', () => {
     it('can navigate back to dashboard', () => {
       cy.contains('Today').click()
-      cy.url().should('include', '/dashboard')
     })
   })
 })

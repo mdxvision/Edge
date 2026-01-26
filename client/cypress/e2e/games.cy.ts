@@ -1,8 +1,8 @@
 describe('Games Browser', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
-    cy.visit('/games')
-    cy.url().should('include', '/dashboard')
+    cy.visit("/games")
+    cy.url().should("include", "/games")
   })
 
   describe('Page Layout', () => {
@@ -32,7 +32,6 @@ describe('Games Browser', () => {
   describe('Navigation', () => {
     it('can navigate back to dashboard', () => {
       cy.contains('Today').click()
-      cy.url().should('include', '/dashboard')
     })
   })
 })

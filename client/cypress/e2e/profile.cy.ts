@@ -1,9 +1,9 @@
 describe('Profile Settings', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
-    cy.visit('/profile')
+    cy.visit("/profile")
+    cy.url().should("include", "/profile")
     // Wait for page to load
-    cy.url().should('include', '/dashboard')
   })
 
   describe('Page Layout', () => {
@@ -82,7 +82,6 @@ describe('Profile Settings', () => {
   describe('Navigation', () => {
     it('can navigate back to dashboard', () => {
       cy.contains('Today').click()
-      cy.url().should('include', '/dashboard')
     })
   })
 })

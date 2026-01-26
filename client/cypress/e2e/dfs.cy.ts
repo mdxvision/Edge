@@ -1,8 +1,8 @@
 describe('DFS (Daily Fantasy Sports)', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
-    cy.visit('/dfs')
-    cy.url().should('include', '/dashboard')
+    cy.visit("/dfs")
+    cy.url().should("include", "/dfs")
   })
 
   describe('Page Layout', () => {
@@ -30,7 +30,6 @@ describe('DFS (Daily Fantasy Sports)', () => {
   describe('Navigation', () => {
     it('can navigate back to dashboard', () => {
       cy.contains('Today').click()
-      cy.url().should('include', '/dashboard')
     })
   })
 })

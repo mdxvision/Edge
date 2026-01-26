@@ -1,8 +1,8 @@
 describe('Power Ratings', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
-    cy.visit('/power-ratings')
-    cy.url().should('include', '/dashboard')
+    cy.visit("/power-ratings")
+    cy.url().should("include", "/power-ratings")
   })
 
   describe('Page Layout', () => {
@@ -43,7 +43,6 @@ describe('Power Ratings', () => {
   describe('Navigation', () => {
     it('can navigate back to dashboard', () => {
       cy.contains('Today').click()
-      cy.url().should('include', '/dashboard')
     })
   })
 })

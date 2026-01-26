@@ -1,7 +1,8 @@
 describe('Dashboard', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
-    cy.visit('/dashboard')
+    cy.visit("/dashboard")
+    cy.url().should("include", "/dashboard")
     // Wait for loading to complete (shows "Analyzing..." while loading)
     cy.url().should('include', '/dashboard')
   })

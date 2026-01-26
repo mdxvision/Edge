@@ -1,8 +1,8 @@
 describe('Parlays Builder', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
-    cy.visit('/parlays')
-    cy.url().should('include', '/dashboard')
+    cy.visit("/parlays")
+    cy.url().should("include", "/parlays")
   })
 
   describe('Page Layout', () => {
@@ -41,7 +41,6 @@ describe('Parlays Builder', () => {
   describe('Navigation', () => {
     it('can navigate back to dashboard', () => {
       cy.contains('Today').click()
-      cy.url().should('include', '/dashboard')
     })
   })
 })

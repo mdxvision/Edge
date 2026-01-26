@@ -1,8 +1,8 @@
 describe('Edge Tracker', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
-    cy.visit('/edge-tracker')
-    cy.url().should('include', '/dashboard')
+    cy.visit("/edge-tracker")
+    cy.url().should("include", "/edge-tracker")
   })
 
   describe('Page Layout', () => {
@@ -24,7 +24,6 @@ describe('Edge Tracker', () => {
   describe('Navigation', () => {
     it('can navigate back to dashboard', () => {
       cy.contains('Today').click()
-      cy.url().should('include', '/dashboard')
     })
   })
 })

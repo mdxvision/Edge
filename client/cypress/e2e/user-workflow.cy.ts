@@ -87,7 +87,6 @@ describe('User Workflow Documentation Validation', () => {
         cy.contains('button', 'Sign In').click()
         cy.contains('button', 'Dev Login').click()
         cy.url({ timeout: 15000 }).should('include', '/dashboard')
-        cy.url().should('include', '/dashboard')
       })
     })
 
@@ -185,7 +184,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('3.2 Browsing Games', () => {
       beforeEach(() => {
         cy.visit('/games')
-        cy.url().should('include', '/dashboard')
+        cy.url().should('include', '/games')
       })
 
       it('Step 1: Can navigate to Games/Matchups', () => {
@@ -205,7 +204,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('3.3 Viewing Recommendations', () => {
       beforeEach(() => {
         cy.visit('/recommendations')
-        cy.url().should('include', '/dashboard')
+        cy.url().should('include', '/recommendations')
       })
 
       it('Step 1: Can navigate to Recommendations/Picks', () => {
@@ -233,7 +232,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('4.1 Paper Trading (Practice)', () => {
       beforeEach(() => {
         cy.visit('/paper-trading')
-        cy.url().should('include', '/dashboard')
+        cy.url().should('include', '/paper-trading')
       })
 
       it('Step 1: Can navigate to Paper Trading', () => {
@@ -252,7 +251,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('4.2 Tracking Real Bets', () => {
       beforeEach(() => {
         cy.visit('/tracking')
-        cy.url().should('include', '/dashboard')
+        cy.url().should('include', '/tracking')
       })
 
       it('Step 1: Can navigate to Tracking/My Bets', () => {
@@ -276,7 +275,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('4.3 Building Parlays', () => {
       beforeEach(() => {
         cy.visit('/parlays')
-        cy.url().should('include', '/dashboard')
+        cy.url().should('include', '/parlays')
       })
 
       it('Step 1: Can navigate to Parlays', () => {
@@ -306,7 +305,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('5.1 Setting Up Alerts', () => {
       beforeEach(() => {
         cy.visit('/alerts')
-        cy.url().should('include', '/dashboard')
+        cy.url().should('include', '/alerts')
       })
 
       it('Step 1: Can navigate to Alerts', () => {
@@ -325,7 +324,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('5.2 Power Ratings', () => {
       beforeEach(() => {
         cy.visit('/power-ratings')
-        cy.url().should('include', '/dashboard')
+        cy.url().should('include', '/power-ratings')
       })
 
       it('Step 1: Can navigate to Power Ratings', () => {
@@ -340,7 +339,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('5.3 Edge Tracker', () => {
       beforeEach(() => {
         cy.visit('/edge-tracker')
-        cy.url().should('include', '/dashboard')
+        cy.url().should('include', '/edge-tracker')
       })
 
       it('Step 1: Can navigate to Edge Tracker', () => {
@@ -355,7 +354,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('5.4 DFS Lineups', () => {
       beforeEach(() => {
         cy.visit('/dfs')
-        cy.url().should('include', '/dashboard')
+        cy.url().should('include', '/dfs')
       })
 
       it('Step 1: Can navigate to DFS', () => {
@@ -370,7 +369,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('5.5 Intelligence Models', () => {
       beforeEach(() => {
         cy.visit('/models')
-        cy.url().should('include', '/dashboard')
+        cy.url().should('include', '/models')
       })
 
       it('Step 1: Can navigate to Models/Intelligence', () => {
@@ -423,7 +422,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('6.3 Subscription & Pricing', () => {
       beforeEach(() => {
         cy.visit('/pricing')
-        cy.url().should('include', '/dashboard')
+        cy.url().should('include', '/pricing')
       })
 
       it('Step 1: Can navigate to Pricing', () => {
