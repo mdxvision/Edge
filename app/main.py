@@ -60,6 +60,7 @@ from app.routers.devices import router as devices_router
 from app.routers.tracker import router as tracker_router
 from app.routers.notifications import router as notifications_router
 from app.routers.player_props import router as player_props_router
+from app.routers.docs import router as docs_router
 from app.middleware.rate_limit import RateLimitMiddleware, AuthRateLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.utils.logging import setup_logging, request_logger
@@ -148,10 +149,19 @@ Authorization: Bearer <session_token>
 
 ## Rate Limits
 
-- 100 requests per minute
-- 2000 requests per hour
+Rate limits vary by subscription tier:
+
+| Tier | Requests/min | Requests/hour |
+|------|-------------|---------------|
+| Free | 30 | 500 |
+| Premium | 60 | 2,000 |
+| Pro | 120 | 5,000 |
+
+Additional limits:
 - 5 login attempts per minute
 - 10 registration attempts per hour
+
+Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
     """,
     version="2.0.0",
     lifespan=lifespan,
@@ -192,7 +202,8 @@ Authorization: Bearer <session_token>
         {"name": "billing", "description": "Subscription management and Stripe checkout"},
         {"name": "api-keys", "description": "API key management for programmatic access (Pro tier)"},
         {"name": "devices", "description": "Device registration for push notifications"},
-        {"name": "player-props", "description": "Player prop predictions and value finding"}
+        {"name": "player-props", "description": "Player prop predictions and value finding"},
+        {"name": "Documentation", "description": "API documentation, examples, error codes, and Postman export"}
     ]
 )
 
@@ -253,6 +264,7 @@ app.include_router(devices_router)
 app.include_router(tracker_router)
 app.include_router(notifications_router)
 app.include_router(player_props_router)
+app.include_router(docs_router)
 
 
 @app.middleware("http")
