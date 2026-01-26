@@ -33,7 +33,8 @@ Cypress.Commands.add('loginViaUI', () => {
   cy.contains('button', 'Sign In').click()
   cy.contains('button', 'Dev Login').click()
   cy.url({ timeout: 15000 }).should('include', '/dashboard')
-  cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+  // Wait for dashboard content to load
+  cy.get('body', { timeout: 15000 }).should('contain.text', 'Today')
 })
 
 // Always login fresh to avoid stale session issues
