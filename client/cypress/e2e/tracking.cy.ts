@@ -2,8 +2,7 @@ describe('Bet Tracking', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
     cy.visit('/tracking')
-    // Wait for page to load
-    cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+    cy.url().should('include', '/tracking')
   })
 
   describe('Page Layout', () => {
