@@ -41,59 +41,24 @@ Cypress.Commands.add('loginViaUI', () => {
   cy.url({ timeout: 20000 }).should('include', '/dashboard')
 })
 
-// Login via API - more reliable than UI in CI
+// Login with retries for reliability
 Cypress.Commands.add('loginWithCredentials', (email: string, password: string) => {
-  // First try to login - if user doesn't exist, register first
-  cy.request({
-    method: 'POST',
-    url: '/api/auth/login',
-    body: {
-      email: email,
-      password: password
-    },
-    failOnStatusCode: false
-  }).then((loginResponse) => {
-    if (loginResponse.status === 200) {
-      // Login successful
-      const result = loginResponse.body
+  // Use UI login with retries
+  cy.session([email, password], () => {
+    cy.visit('/login')
+    cy.get('button', { timeout: 15000 }).should('exist')
+    cy.contains('button', 'Sign In').click()
+    cy.wait(1000)
+    cy.contains('button', 'Dev Login', { timeout: 10000 }).click()
+    cy.url({ timeout: 30000 }).should('include', '/dashboard')
+  }, {
+    validate() {
       cy.window().then((win) => {
-        win.localStorage.setItem('session_token', result.access_token)
-        win.localStorage.setItem('refresh_token', result.refresh_token)
-        if (result.user?.client_id) {
-          win.localStorage.setItem('clientId', result.user.client_id.toString())
-        }
-        win.localStorage.setItem('user', JSON.stringify(result.user))
-      })
-    } else {
-      // User doesn't exist, register first
-      cy.request({
-        method: 'POST',
-        url: '/api/auth/register',
-        body: {
-          email: email,
-          username: 'testuser',
-          password: password,
-          confirm_password: password
-        },
-        failOnStatusCode: false
-      }).then((registerResponse) => {
-        if (registerResponse.status === 200) {
-          const result = registerResponse.body
-          cy.window().then((win) => {
-            win.localStorage.setItem('session_token', result.access_token)
-            win.localStorage.setItem('refresh_token', result.refresh_token)
-            if (result.user?.client_id) {
-              win.localStorage.setItem('clientId', result.user.client_id.toString())
-            }
-            win.localStorage.setItem('user', JSON.stringify(result.user))
-          })
-        }
+        const token = win.localStorage.getItem('session_token')
+        expect(token).to.exist
       })
     }
   })
-  // Navigate to dashboard after login
-  cy.visit('/dashboard')
-  cy.url({ timeout: 15000 }).should('include', '/dashboard')
 })
 
 // Register new user and login
