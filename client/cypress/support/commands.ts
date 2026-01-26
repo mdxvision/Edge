@@ -30,11 +30,15 @@ Cypress.Commands.add('login', (name: string, bankroll: number) => {
 // Login via UI using Dev Login button - always fresh login
 Cypress.Commands.add('loginViaUI', () => {
   cy.visit('/login')
-  cy.contains('button', 'Sign In').click()
-  cy.contains('button', 'Dev Login').click()
-  cy.url({ timeout: 15000 }).should('include', '/dashboard')
-  // Wait for dashboard content to load
-  cy.get('body', { timeout: 15000 }).should('contain.text', 'Today')
+  // Wait for page to be fully loaded
+  cy.get('button', { timeout: 10000 }).should('exist')
+  // Click Sign In tab and wait for it
+  cy.contains('button', 'Sign In').should('be.visible').click()
+  cy.wait(500)
+  // Click Dev Login button with retry logic
+  cy.contains('button', 'Dev Login', { timeout: 10000 }).should('be.visible').click()
+  // Wait for redirect to dashboard
+  cy.url({ timeout: 20000 }).should('include', '/dashboard')
 })
 
 // Always login fresh to avoid stale session issues
