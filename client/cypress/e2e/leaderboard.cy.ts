@@ -2,7 +2,8 @@ describe('Leaderboard', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
     cy.visit('/leaderboard')
-    cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+    // Wait for page to load - testuser may not be on leaderboard if no bets placed
+    cy.url().should('include', '/leaderboard')
   })
 
   describe('Page Layout', () => {

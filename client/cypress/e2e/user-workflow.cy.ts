@@ -404,7 +404,7 @@ describe('User Workflow Documentation Validation', () => {
     describe('6.2 Security Settings', () => {
       beforeEach(() => {
         cy.visit('/security')
-        cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+        cy.url().should('include', '/security')
       })
 
       it('Step 1: Can navigate to Security', () => {

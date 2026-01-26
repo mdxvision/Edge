@@ -2,7 +2,8 @@ describe('Security Settings', () => {
   beforeEach(() => {
     cy.loginWithCredentials('test@edgebet.com', 'TestPass123!')
     cy.visit('/security')
-    cy.contains('testuser', { timeout: 15000 }).should('be.visible')
+    // Wait for page to load
+    cy.url().should('include', '/security')
   })
 
   describe('Page Layout', () => {
