@@ -135,6 +135,35 @@ async def fetch_odds(sport: str):
 
 Check cache stats: `curl http://localhost:8080/health/cache`
 
+## Rate Limiting
+
+API rate limiting with Redis support and API key tiers:
+
+**Tier Limits:**
+| Tier | Requests/min | Requests/hour | Burst |
+|------|-------------|---------------|-------|
+| Free | 30 | 500 | 5 |
+| Premium | 60 | 2,000 | 10 |
+| Pro | 120 | 5,000 | 20 |
+
+**Per-Endpoint Limits:** Heavy endpoints like `/recommendations/run` have stricter limits (5/min).
+
+**API Key Headers:**
+```bash
+# Include X-API-Key for tier-based limits
+curl -H "X-API-Key: pro_your_key" http://localhost:8080/games
+```
+
+**Response Headers:**
+- `X-RateLimit-Limit` - Max requests per minute
+- `X-RateLimit-Remaining` - Requests remaining in window
+- `X-RateLimit-Reset` - Unix timestamp when limit resets
+- `X-RateLimit-Tier` - Current rate limit tier
+
+Check rate limit stats: `curl http://localhost:8080/health/rate-limit`
+
+Disable for testing: Set `DISABLE_RATE_LIMIT=true` environment variable.
+
 ## Testing
 
 **Before pushing, run all tests:**
