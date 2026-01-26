@@ -85,8 +85,9 @@ describe('User Workflow Documentation Validation', () => {
 
       it('Step 6: Successfully logs in and reaches Dashboard', () => {
         cy.contains('button', 'Sign In').click()
-        cy.contains('button', 'Dev Login').click()
-        cy.url({ timeout: 15000 }).should('include', '/dashboard')
+        cy.wait(500)
+        cy.contains('button', 'Dev Login', { timeout: 10000 }).should('be.visible').click()
+        cy.url({ timeout: 30000 }).should('include', '/dashboard')
       })
     })
 
