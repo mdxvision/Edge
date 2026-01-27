@@ -1,5 +1,17 @@
 # Edge - Sports Betting Platform
 
+## IMPORTANT: Before Building New Integrations
+
+**STOP and CHECK before building any new API integration:**
+
+1. Check `.env` for existing API keys (especially `THE_ODDS_API_KEY`)
+2. The Odds API already provides odds from 70+ sportsbooks including:
+   - DraftKings, FanDuel, BetMGM, Caesars, ESPN Bet, and more
+3. Check `app/services/odds_api.py` to see what data is already available
+4. Only build a new integration if the data is NOT already covered
+
+**Do NOT create redundant sportsbook integrations.** The Odds API is the single source for all betting odds.
+
 ## Quick Start
 
 ```bash
