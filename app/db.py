@@ -762,6 +762,80 @@ class TelegramUser(Base):
     linked_at = Column(DateTime, default=datetime.utcnow)
 
 
+class DiscordUser(Base):
+    """Discord user linking for notifications"""
+    __tablename__ = "discord_users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+
+    discord_user_id = Column(String(100), nullable=False, unique=True)
+    discord_username = Column(String(100), nullable=True)
+    discord_discriminator = Column(String(10), nullable=True)  # Legacy #1234 tag
+    discord_avatar = Column(String(255), nullable=True)
+
+    # Guild/server info (optional - for server-specific features)
+    guild_id = Column(String(100), nullable=True)
+    guild_name = Column(String(200), nullable=True)
+
+    is_active = Column(Boolean, default=True)
+    notify_recommendations = Column(Boolean, default=True)
+    notify_results = Column(Boolean, default=True)
+    notify_alerts = Column(Boolean, default=True)
+
+    # Access token for DM sending (if using OAuth2)
+    access_token = Column(String(500), nullable=True)
+    refresh_token = Column(String(500), nullable=True)
+    token_expires_at = Column(DateTime, nullable=True)
+
+    linked_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class DiscordLinkCode(Base):
+    """Temporary codes for linking Discord accounts"""
+    __tablename__ = "discord_link_codes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    code = Column(String(64), nullable=False, unique=True, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    is_used = Column(Boolean, default=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class DiscordWebhook(Base):
+    """Discord webhook configurations for server channels"""
+    __tablename__ = "discord_webhooks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    name = Column(String(200), nullable=False)
+    webhook_url = Column(String(500), nullable=False)
+
+    # What to send to this webhook
+    guild_id = Column(String(100), nullable=True)
+    channel_name = Column(String(200), nullable=True)
+
+    notify_recommendations = Column(Boolean, default=True)
+    notify_results = Column(Boolean, default=True)
+    notify_alerts = Column(Boolean, default=True)
+
+    # Filters
+    min_edge = Column(Float, default=3.0)  # Minimum edge % to notify
+    sports = Column(Text, nullable=True)  # JSON list of sports to include
+
+    is_active = Column(Boolean, default=True)
+    last_used = Column(DateTime, nullable=True)
+    failure_count = Column(Integer, default=0)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class OddsSnapshot(Base):
     __tablename__ = "odds_snapshots"
     
