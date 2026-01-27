@@ -758,8 +758,16 @@ export default function Games() {
           <Card key={game.game_id} padding="md" hover className="bg-white dark:bg-slate-800">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  {getStatusBadge(game.game_status)}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(game.game_status)}
+                  </div>
+                  <Link
+                    to={`/games/${game.game_id}?sport=NBA`}
+                    className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    Details <ExternalLink className="w-3 h-3" />
+                  </Link>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -1033,16 +1041,24 @@ export default function Games() {
           <Card key={game.id || game.espn_id} padding="md" hover className="bg-white dark:bg-slate-800">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  {getStatusBadge(game.status)}
-                  {game.week && (
-                    <Badge variant="outline">Week {game.week}</Badge>
-                  )}
-                  {game.quarter && game.time_remaining && (
-                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">
-                      Q{game.quarter} - {game.time_remaining}
-                    </span>
-                  )}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(game.status)}
+                    {game.week && (
+                      <Badge variant="outline">Week {game.week}</Badge>
+                    )}
+                    {game.quarter && game.time_remaining && (
+                      <span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+                        Q{game.quarter} - {game.time_remaining}
+                      </span>
+                    )}
+                  </div>
+                  <Link
+                    to={`/games/${game.id || game.espn_id}?sport=NFL`}
+                    className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    Details <ExternalLink className="w-3 h-3" />
+                  </Link>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -1288,8 +1304,16 @@ export default function Games() {
           <Card key={game.game_id || game.espn_id || idx} padding="md" hover className="bg-white dark:bg-slate-800">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  {getStatusBadge(game.status)}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(game.status)}
+                  </div>
+                  <Link
+                    to={`/games/${game.game_id || game.espn_id}?sport=CBB`}
+                    className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    Details <ExternalLink className="w-3 h-3" />
+                  </Link>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -1442,14 +1466,22 @@ export default function Games() {
           <Card key={game.game_id || idx} padding="md" hover className="bg-white dark:bg-slate-800">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  {getStatusBadge(game.status)}
-                  {game.broadcast && (
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Tv className="w-3 h-3" />
-                      {game.broadcast}
-                    </div>
-                  )}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(game.status)}
+                    {game.broadcast && (
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <Tv className="w-3 h-3" />
+                        {game.broadcast}
+                      </div>
+                    )}
+                  </div>
+                  <Link
+                    to={`/games/${game.game_id}?sport=CFB`}
+                    className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    Details <ExternalLink className="w-3 h-3" />
+                  </Link>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -1590,14 +1622,22 @@ export default function Games() {
           <Card key={game.game_id || idx} padding="md" hover className="bg-white dark:bg-slate-800">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  {getStatusBadge(game.status)}
-                  {game.broadcast && (
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Tv className="w-3 h-3" />
-                      {game.broadcast}
-                    </div>
-                  )}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(game.status)}
+                    {game.broadcast && (
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <Tv className="w-3 h-3" />
+                        {game.broadcast}
+                      </div>
+                    )}
+                  </div>
+                  <Link
+                    to={`/games/${game.game_id}?sport=NHL`}
+                    className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    Details <ExternalLink className="w-3 h-3" />
+                  </Link>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
