@@ -64,6 +64,7 @@ from app.routers.docs import router as docs_router
 from app.routers.pinnacle import router as pinnacle_router
 from app.routers.sgp import router as sgp_router
 from app.routers.monte_carlo import router as monte_carlo_router
+from app.routers.pnl_dashboard import router as pnl_dashboard_router
 from app.middleware.rate_limit import RateLimitMiddleware, AuthRateLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.utils.logging import setup_logging, request_logger
@@ -209,6 +210,7 @@ Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Res
         {"name": "Pinnacle Sharp Lines", "description": "Sharp lines from Pinnacle, CLV tracking, and market efficiency analysis"},
         {"name": "Same Game Parlay", "description": "AI-assisted SGP builder with correlation analysis and EV calculation"},
         {"name": "Monte Carlo Simulation", "description": "Bankroll projections, risk of ruin, and bet sizing strategy analysis"},
+        {"name": "P&L Dashboard", "description": "Comprehensive profit/loss tracking, ROI analysis, streaks, and CSV export"},
         {"name": "Documentation", "description": "API documentation, examples, error codes, and Postman export"}
     ]
 )
@@ -273,6 +275,7 @@ app.include_router(player_props_router)
 app.include_router(pinnacle_router)
 app.include_router(sgp_router)
 app.include_router(monte_carlo_router)
+app.include_router(pnl_dashboard_router)
 app.include_router(docs_router)
 
 
