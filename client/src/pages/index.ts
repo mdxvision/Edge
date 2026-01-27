@@ -16,3 +16,4 @@ export { default as PowerRatings } from './PowerRatings';
 export { default as PaperTrading } from './PaperTrading';
 export { default as Pricing } from './Pricing';
 export { default as EdgeTracker } from './EdgeTracker';
+export { default as GameDetail } from './GameDetail';

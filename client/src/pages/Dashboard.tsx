@@ -336,9 +336,10 @@ export default function Dashboard() {
               </div>
             ) : (
               games.map((game) => (
-                <div
+                <Link
                   key={game.id}
-                  className="p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors duration-200"
+                  to={`/games/${game.id}?sport=${game.sport}`}
+                  className="block p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors duration-200"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="min-w-0 flex-1">
@@ -355,25 +356,28 @@ export default function Dashboard() {
                         )}
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="flex items-center gap-1.5 text-gray-600 dark:text-slate-400 justify-end">
-                        <Clock className="w-4 h-4" />
-                        <span className="text-sm font-medium">
-                          {new Date(game.start_time).toLocaleDateString(undefined, {
-                            month: 'short',
-                            day: 'numeric'
+                    <div className="text-right flex-shrink-0 flex items-center gap-3">
+                      <div>
+                        <div className="flex items-center gap-1.5 text-gray-600 dark:text-slate-400 justify-end">
+                          <Clock className="w-4 h-4" />
+                          <span className="text-sm font-medium">
+                            {new Date(game.start_time).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-slate-500 mt-0.5">
+                          {new Date(game.start_time).toLocaleTimeString(undefined, {
+                            hour: 'numeric',
+                            minute: '2-digit'
                           })}
-                        </span>
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-slate-500 mt-0.5">
-                        {new Date(game.start_time).toLocaleTimeString(undefined, {
-                          hour: 'numeric',
-                          minute: '2-digit'
-                        })}
-                      </p>
+                      <ChevronRight className="w-5 h-5 text-gray-400 dark:text-slate-500" />
                     </div>
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </div>

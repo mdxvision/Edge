@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, Badge, Button } from '@/components/ui';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyState from '@/components/ui/EmptyState';
@@ -20,7 +21,8 @@ import {
   Moon,
   Plane,
   Check,
-  Search
+  Search,
+  ExternalLink
 } from 'lucide-react';
 
 // Sport tab types
@@ -565,13 +567,21 @@ export default function Games() {
           <Card key={game.id || game.game_pk} padding="md" hover className="bg-white dark:bg-slate-800">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  {getStatusBadge(game.status)}
-                  {game.inning && game.inning_state && (
-                    <span className="text-sm font-medium text-gray-600 dark:text-slate-400">
-                      {game.inning_state} {game.inning}
-                    </span>
-                  )}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(game.status)}
+                    {game.inning && game.inning_state && (
+                      <span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+                        {game.inning_state} {game.inning}
+                      </span>
+                    )}
+                  </div>
+                  <Link
+                    to={`/games/${game.id || game.game_pk}?sport=MLB`}
+                    className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    Details <ExternalLink className="w-3 h-3" />
+                  </Link>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
