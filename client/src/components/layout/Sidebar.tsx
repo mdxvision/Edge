@@ -98,16 +98,16 @@ export default function Sidebar() {
     const currentCategory = navCategories.find(cat =>
       cat.items.some(item => location.pathname === item.to)
     );
-    if (currentCategory && !expandedCategories.includes(currentCategory.name)) {
-      setExpandedCategories(prev => [...prev, currentCategory.name]);
+    if (currentCategory) {
+      setExpandedCategories([currentCategory.name]);
     }
   }, [location.pathname]);
 
   const toggleCategory = (categoryName: string) => {
     setExpandedCategories(prev =>
       prev.includes(categoryName)
-        ? prev.filter(name => name !== categoryName)
-        : [...prev, categoryName]
+        ? []
+        : [categoryName]
     );
   };
 
