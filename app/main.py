@@ -67,6 +67,7 @@ from app.routers.monte_carlo import router as monte_carlo_router
 from app.routers.pnl_dashboard import router as pnl_dashboard_router
 from app.routers.email_digest import router as email_digest_router
 from app.routers.discord import router as discord_router
+from app.routers.action_network import router as action_network_router
 from app.middleware.rate_limit import RateLimitMiddleware, AuthRateLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.utils.logging import setup_logging, request_logger
@@ -218,6 +219,7 @@ Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Res
         {"name": "P&L Dashboard", "description": "Comprehensive profit/loss tracking, ROI analysis, streaks, and CSV export"},
         {"name": "Email Digest", "description": "Daily email summaries with top edges, yesterday's results, and bankroll updates"},
         {"name": "Discord", "description": "Discord bot integration, webhooks, slash commands, and rich embedded messages"},
+        {"name": "Action Network", "description": "Public betting percentages, sharp money indicators, line movement alerts, and consensus picks"},
         {"name": "Documentation", "description": "API documentation, examples, error codes, and Postman export"}
     ]
 )
@@ -285,6 +287,7 @@ app.include_router(monte_carlo_router)
 app.include_router(pnl_dashboard_router)
 app.include_router(email_digest_router)
 app.include_router(discord_router)
+app.include_router(action_network_router)
 app.include_router(docs_router)
 
 
