@@ -62,6 +62,7 @@ from app.routers.notifications import router as notifications_router
 from app.routers.player_props import router as player_props_router
 from app.routers.docs import router as docs_router
 from app.routers.pinnacle import router as pinnacle_router
+from app.routers.sgp import router as sgp_router
 from app.middleware.rate_limit import RateLimitMiddleware, AuthRateLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.utils.logging import setup_logging, request_logger
@@ -205,6 +206,7 @@ Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Res
         {"name": "devices", "description": "Device registration for push notifications"},
         {"name": "player-props", "description": "Player prop predictions and value finding"},
         {"name": "Pinnacle Sharp Lines", "description": "Sharp lines from Pinnacle, CLV tracking, and market efficiency analysis"},
+        {"name": "Same Game Parlay", "description": "AI-assisted SGP builder with correlation analysis and EV calculation"},
         {"name": "Documentation", "description": "API documentation, examples, error codes, and Postman export"}
     ]
 )
@@ -267,6 +269,7 @@ app.include_router(tracker_router)
 app.include_router(notifications_router)
 app.include_router(player_props_router)
 app.include_router(pinnacle_router)
+app.include_router(sgp_router)
 app.include_router(docs_router)
 
 
