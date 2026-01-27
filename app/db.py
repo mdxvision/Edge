@@ -2371,6 +2371,35 @@ class NotificationPreferences(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+# Email Digest Preferences
+class EmailDigestPreferences(Base):
+    """User preferences for daily email digest"""
+    __tablename__ = "email_digest_preferences"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+
+    # Enable/disable digest
+    digest_enabled = Column(Boolean, default=True)
+
+    # Send time (in user's timezone)
+    send_hour = Column(Integer, default=7)  # 7 AM default
+    send_minute = Column(Integer, default=0)
+    timezone = Column(String(50), default="America/New_York")
+
+    # Content preferences
+    include_edges = Column(Boolean, default=True)
+    include_results = Column(Boolean, default=True)
+    include_bankroll = Column(Boolean, default=True)
+    min_edge_for_digest = Column(Float, default=3.0)  # Min edge % to include
+
+    # Tracking
+    last_sent_at = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 # Subscription Payment History
 class PaymentHistory(Base):
     __tablename__ = "payment_history"

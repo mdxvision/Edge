@@ -65,6 +65,7 @@ from app.routers.pinnacle import router as pinnacle_router
 from app.routers.sgp import router as sgp_router
 from app.routers.monte_carlo import router as monte_carlo_router
 from app.routers.pnl_dashboard import router as pnl_dashboard_router
+from app.routers.email_digest import router as email_digest_router
 from app.middleware.rate_limit import RateLimitMiddleware, AuthRateLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.utils.logging import setup_logging, request_logger
@@ -72,6 +73,7 @@ from app.services.currency import seed_default_rates
 from app.services.data_scheduler import start_schedulers, stop_schedulers
 from app.services.background_jobs import alert_scheduler
 from app.services.odds_scheduler import odds_scheduler
+from app.services.email_digest import digest_scheduler
 
 logger = setup_logging(level=os.environ.get("LOG_LEVEL", "DEBUG"))
 
@@ -95,10 +97,11 @@ async def lifespan(app: FastAPI):
         start_schedulers()
         logger.info("MLB, NBA, CBB, and Soccer data schedulers started")
 
-        # Start alert and odds refresh schedulers
+        # Start alert, odds, and digest schedulers
         await alert_scheduler.start()
         await odds_scheduler.start()
-        logger.info("Alert and odds refresh schedulers started")
+        await digest_scheduler.start()
+        logger.info("Alert, odds, and digest schedulers started")
 
     yield
 
@@ -107,6 +110,7 @@ async def lifespan(app: FastAPI):
         stop_schedulers()
         await alert_scheduler.stop()
         await odds_scheduler.stop()
+        await digest_scheduler.stop()
         logger.info("All schedulers stopped")
 
 
@@ -211,6 +215,7 @@ Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Res
         {"name": "Same Game Parlay", "description": "AI-assisted SGP builder with correlation analysis and EV calculation"},
         {"name": "Monte Carlo Simulation", "description": "Bankroll projections, risk of ruin, and bet sizing strategy analysis"},
         {"name": "P&L Dashboard", "description": "Comprehensive profit/loss tracking, ROI analysis, streaks, and CSV export"},
+        {"name": "Email Digest", "description": "Daily email summaries with top edges, yesterday's results, and bankroll updates"},
         {"name": "Documentation", "description": "API documentation, examples, error codes, and Postman export"}
     ]
 )
@@ -276,6 +281,7 @@ app.include_router(pinnacle_router)
 app.include_router(sgp_router)
 app.include_router(monte_carlo_router)
 app.include_router(pnl_dashboard_router)
+app.include_router(email_digest_router)
 app.include_router(docs_router)
 
 
