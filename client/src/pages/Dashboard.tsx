@@ -47,16 +47,25 @@ export default function Dashboard() {
       // Fetch live games from multiple sport APIs
       const allGames: Game[] = [];
 
+      // Helper to check if game is upcoming or live (not finished)
+      const isUpcomingOrLive = (status: string | undefined) => {
+        if (!status) return true;
+        const s = status.toLowerCase();
+        return !s.includes('final') && !s.includes('ended') && !s.includes('postponed');
+      };
+
       try {
         const nflData = await api.nfl.getGames();
         if (nflData?.games) {
-          allGames.push(...nflData.games.slice(0, 3).map((g: any) => ({
+          const upcoming = nflData.games.filter((g: any) => isUpcomingOrLive(g.status));
+          allGames.push(...upcoming.slice(0, 3).map((g: any) => ({
             id: g.id || g.game_id,
             sport: 'NFL',
             home_team_name: g.home_team?.name,
             away_team_name: g.away_team?.name,
             start_time: g.game_date || g.date,
-            league: 'NFL Week 18',
+            league: 'NFL',
+            status: g.status,
           })));
         }
       } catch (e) { console.log('NFL fetch error:', e); }
@@ -64,13 +73,15 @@ export default function Dashboard() {
       try {
         const nbaData = await api.nba.getTodaysGames();
         if (nbaData?.games) {
-          allGames.push(...nbaData.games.slice(0, 3).map((g: any) => ({
+          const upcoming = nbaData.games.filter((g: any) => isUpcomingOrLive(g.game_status));
+          allGames.push(...upcoming.slice(0, 3).map((g: any) => ({
             id: g.game_id,
             sport: 'NBA',
             home_team_name: g.home_team?.name,
             away_team_name: g.away_team?.name,
             start_time: g.game_date || g.date,
             league: 'NBA',
+            status: g.game_status,
           })));
         }
       } catch (e) { console.log('NBA fetch error:', e); }
@@ -78,13 +89,15 @@ export default function Dashboard() {
       try {
         const cfbData = await api.cfb.getTodaysGames();
         if (cfbData?.games) {
-          allGames.push(...cfbData.games.slice(0, 3).map((g: any) => ({
+          const upcoming = cfbData.games.filter((g: any) => isUpcomingOrLive(g.status));
+          allGames.push(...upcoming.slice(0, 3).map((g: any) => ({
             id: g.game_id,
             sport: 'CFB',
             home_team_name: g.home_team?.name,
             away_team_name: g.away_team?.name,
             start_time: g.date,
             league: 'Bowl Games',
+            status: g.status,
           })));
         }
       } catch (e) { console.log('CFB fetch error:', e); }
@@ -92,13 +105,15 @@ export default function Dashboard() {
       try {
         const nhlData = await api.nhl.getTodaysGames();
         if (nhlData?.games) {
-          allGames.push(...nhlData.games.slice(0, 3).map((g: any) => ({
+          const upcoming = nhlData.games.filter((g: any) => isUpcomingOrLive(g.status));
+          allGames.push(...upcoming.slice(0, 3).map((g: any) => ({
             id: g.game_id,
             sport: 'NHL',
             home_team_name: g.home_team?.name,
             away_team_name: g.away_team?.name,
             start_time: g.date,
             league: 'NHL',
+            status: g.status,
           })));
         }
       } catch (e) { console.log('NHL fetch error:', e); }
