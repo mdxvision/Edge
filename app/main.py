@@ -69,6 +69,7 @@ from app.routers.email_digest import router as email_digest_router
 from app.routers.discord import router as discord_router
 from app.routers.action_network import router as action_network_router
 from app.routers.covers import router as covers_router
+from app.routers.sportradar import router as sportradar_router
 from app.middleware.rate_limit import RateLimitMiddleware, AuthRateLimitMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.utils.logging import setup_logging, request_logger
@@ -222,6 +223,7 @@ Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Res
         {"name": "Discord", "description": "Discord bot integration, webhooks, slash commands, and rich embedded messages"},
         {"name": "Action Network", "description": "Public betting percentages, sharp money indicators, line movement alerts, and consensus picks"},
         {"name": "Covers.com", "description": "ATS records, O/U trends, consensus picks, and expert picks from Covers.com"},
+        {"name": "Sportradar", "description": "Comprehensive sports data: live games, player stats, injuries, and historical data"},
         {"name": "Documentation", "description": "API documentation, examples, error codes, and Postman export"}
     ]
 )
@@ -291,6 +293,7 @@ app.include_router(email_digest_router)
 app.include_router(discord_router)
 app.include_router(action_network_router)
 app.include_router(covers_router)
+app.include_router(sportradar_router)
 app.include_router(docs_router)
 
 
